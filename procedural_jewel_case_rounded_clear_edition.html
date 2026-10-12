@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Procedural 3D CD Jewel Case Simulation - Custom Cover Edition</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow: hidden;
+      background-color: #8fa0b5;
+      transition: background 0.8s ease;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .mono { font-family: 'Space Mono', monospace; }
+    canvas { outline: none; touch-action: none; }
+    #canvas-container { touch-action: none; }
+    .light-glass-panel {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      box-shadow: 0 16px 36px -12px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+    .accent-gradient-text {
+      background: linear-gradient(135deg, #1db954 20%, #4338ca 70%, #06b6d4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  </style>
+</head>
+<body class="w-screen h-screen text-slate-800">
+
+  <!-- Header Branding -->
+  <header class="absolute top-6 left-6 z-10 pointer-events-auto">
+    <div class="light-glass-panel px-4 py-2.5 rounded-2xl flex items-center gap-3">
+      <div class="w-7 h-7 rounded-full bg-slate-900 flex items-center justify-center shadow-md">
+        <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+      </div>
+      <div>
+        <h1 class="font-bold text-sm leading-none tracking-tight accent-gradient-text">CHROMA.DISC // v3.0</h1>
+        <p class="mono text-[10px] text-slate-500 mt-0.5 tracking-wider uppercase">Custom Image Engine</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Interactive Control Deck -->
+  <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 w-11/12 max-w-xl">
+    <div class="light-glass-panel rounded-2xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-2.5 text-xs">
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="toggleCaseBtn" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold transition active:scale-95 shadow-sm flex items-center gap-2">
+          <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path>
+          </svg>
+          <span id="caseStateText">Buka Casing</span>
+        </button>
+
+        <button id="toggleSpinBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200 flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-emerald-600 animate-spin" id="spinIcon" style="animation-duration: 4s;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          <span id="spinStateText">Stop Putar</span>
+        </button>
+
+        <button id="changeCoverBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">
+          Prosedural Cover
+        </button>
+
+        <button id="changeLabelBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">Label: Busur</button>
+        
+        <!-- File Input Hidden -->
+        <input type="file" id="imageUploadInput" accept="image/*" class="hidden">
+        <button id="uploadImageBtn" class="px-3.5 py-2 rounded-xl bg-green-50 hover:bg-green-100 text-green-700 font-semibold transition active:scale-95 border border-green-200 flex items-center gap-1.5 shadow-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+          Gunakan Gambar
+        </button>
+      </div>
+      <button id="resetCamBtn" class="px-3 py-2 rounded-xl text-slate-500 hover:text-slate-900 transition font-medium mono">Reset</button>
+    </div>
+    
+    <div class="text-center mt-2.5">
+      <span class="mono text-[11px] text-slate-500 bg-white/90 px-3 py-1 rounded-full border border-slate-200 shadow-sm">
+        🖱️ Drag untuk memutar 3D &bull; Klik casing untuk membuka
+      </span>
+    </div>
+  </div>
+
+  <!-- Audio Info Card Top-Right -->
+  <div class="absolute top-6 right-6 z-10 hidden sm:block">
+    <div class="light-glass-panel rounded-2xl p-3 px-4 flex items-center gap-3">
+      <div class="flex items-end gap-1 h-4 w-5">
+        <span class="w-1 bg-green-500 rounded-full animate-pulse h-2"></span>
+        <span class="w-1 bg-emerald-500 rounded-full animate-pulse h-4" style="animation-delay: 150ms;"></span>
+        <span class="w-1 bg-teal-500 rounded-full animate-pulse h-3" style="animation-delay: 300ms;"></span>
+        <span class="w-1 bg-cyan-400 rounded-full animate-pulse h-2" style="animation-delay: 75ms;"></span>
+      </div>
+      <div>
+        <p class="text-xs font-bold text-slate-800" id="albumTitleDisplay">NEO TOKYO '98</p>
+        <p class="mono text-[10px] text-slate-500" id="albumArtistDisplay">SYNTHETIX CORE</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
+
+  <script>
+    let scene, camera, renderer;
+    let cdAssembly, caseLidGroup, cdDiscGroup, cdDiscMesh;
+    let isOpen = false, targetLidAngle = 0.0, currentLidAngle = 0.0;
+    let isDiscSpinning = true, currentCoverIndex = 0;
+    let frontCoverTexture, backCoverTexture, discTexture, cdIridescenceMaterial;
+    let isDragging = false, prevMouseX = 0, prevMouseY = 0;
+    
+    let targetRotX = 0.25, targetRotY = -0.45;
+    let currentRotX = 0.25, currentRotY = -0.45;
+    
+    // Status custom image
+    let currentCustomImage = null;
+
+    // Offset geser casing saat terbuka (satu sumber nilai agar konsisten)
+    const OPEN_OFFSET_X = 1.2;
+
+    // PRNG ber-seed: barcode/blob/bintang tidak berubah tiap tekstur dibuat ulang
+    function mulberry32(a) {
+      return function() {
+        a |= 0; a = a + 0x6D2B79F5 | 0;
+        let t = Math.imul(a ^ a >>> 15, 1 | a);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+
+    // srgb=true untuk tekstur yang dipakai material standar (di-decode three.js ke linear)
+    function makeCanvasTexture(canvas, srgb) {
+      const t = new THREE.CanvasTexture(canvas);
+      t.anisotropy = 8;
+      if (srgb) t.encoding = THREE.sRGBEncoding;
+      return t;
+    }
+
+    const albumThemes = [
+      { title: "NEO TOKYO '98", artist: "SYNTHETIX CORE", bg: ["#1e3a8a", "#4338ca", "#db2777"], accent: "#22d3ee", pageBg: "#8fa0b5" },
+      { title: "MINIMAL DRIFT", artist: "ARCHITECTURAL", bg: ["#020617", "#1e293b", "#475569"], accent: "#facc15", pageBg: "#cbd5e1" },
+      { title: "SOLAR HORIZON", artist: "AMBER ECHOES", bg: ["#9a3412", "#e11d48", "#6d28d9"], accent: "#fef08a", pageBg: "#292524" }
+    ];
+
+    // Helper untuk menggambar UI overlay yang sama pada setiap cover (agar tetap sci-fi/industrial)
+    function drawOverlayUI(ctx, title, artist, accent, rand) {
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.15)"; ctx.lineWidth = 1;
+      for (let i = 0; i <= 1024; i += 64) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 1024); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(1024, i); ctx.stroke();
+      }
+
+      ctx.strokeStyle = accent; ctx.lineWidth = 4;
+      const m = 40, s = 60;
+      ctx.beginPath(); ctx.moveTo(m+s, m); ctx.lineTo(m, m); ctx.lineTo(m, m+s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(1024-m-s, m); ctx.lineTo(1024-m, m); ctx.lineTo(1024-m, m+s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(m+s, 1024-m); ctx.lineTo(m, 1024-m); ctx.lineTo(m, 1024-m-s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(1024-m-s, 1024-m); ctx.lineTo(1024-m, 1024-m); ctx.lineTo(1024-m, 1024-m-s); ctx.stroke();
+
+      ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 12;
+      ctx.fillStyle = "#ffffff"; ctx.font = "bold 72px 'Space Mono', monospace";
+      ctx.fillText(title, 60, 780);
+      ctx.fillStyle = accent; ctx.font = "600 32px 'Plus Jakarta Sans', sans-serif";
+      ctx.fillText(artist, 65, 830);
+      ctx.shadowBlur = 0;
+
+      // Barcode (deterministik lewat rand)
+      ctx.fillStyle = "#ffffff"; ctx.fillRect(810, 760, 150, 95);
+      ctx.fillStyle = "#000000";
+      for (let x = 820; x < 950; x += (rand() > 0.5 ? 4 : 9)) {
+        ctx.fillRect(x, 770, rand() * 3 + 1, 65);
+      }
+      ctx.font = "12px 'Space Mono', monospace"; ctx.fillText("8  02434  10294  9", 825, 848);
+    }
+
+    function generateFrontCoverTexture(themeIndex, customImg = null) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024; canvas.height = 1024;
+      const ctx = canvas.getContext('2d');
+      const rand = mulberry32(1000 + themeIndex * 17 + (customImg ? 1 : 0));
+      const theme = albumThemes[themeIndex];
+      let title = theme.title, artist = theme.artist, accent = theme.accent;
+
+      if (customImg) {
+        // Crop tengah 1:1
+        const size = Math.min(customImg.width, customImg.height);
+        const startX = (customImg.width - size) / 2;
+        const startY = (customImg.height - size) / 2;
+        ctx.drawImage(customImg, startX, startY, size, size, 0, 0, 1024, 1024);
+
+        // Vignette agar teks overlay terbaca
+        const vig = ctx.createRadialGradient(512, 512, 200, 512, 512, 800);
+        vig.addColorStop(0, "rgba(0,0,0,0)"); vig.addColorStop(1, "rgba(0,0,0,0.5)");
+        ctx.fillStyle = vig; ctx.fillRect(0,0,1024,1024);
+
+        title = "CUSTOM TRACK"; artist = "USER IMPORT"; accent = "#1db954";
+      } else {
+        const grad = ctx.createLinearGradient(0, 0, 1024, 1024);
+        grad.addColorStop(0, theme.bg[0]); grad.addColorStop(0.5, theme.bg[1]); grad.addColorStop(1, theme.bg[2]);
+        ctx.fillStyle = grad; ctx.fillRect(0, 0, 1024, 1024);
+
+        ctx.lineWidth = 2; ctx.strokeStyle = "rgba(255, 255, 255, 0.04)";
+        for(let i = -1024; i < 2048; i += 24) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + 1024, 1024); ctx.stroke(); }
+
+        for(let i = 0; i < 4; i++) {
+          const x = rand() * 1024; const y = rand() * 1024; const r = rand() * 300 + 100;
+          const blobGrad = ctx.createRadialGradient(x, y, 0, x, y, r);
+          blobGrad.addColorStop(0, theme.accent + "44"); blobGrad.addColorStop(1, "transparent");
+          ctx.fillStyle = blobGrad; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+
+      drawOverlayUI(ctx, title, artist, accent, rand);
+      return makeCanvasTexture(canvas, true);
+    }
+
+    function generateBackCoverTexture(themeIndex, customImg = null) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024; canvas.height = 1024;
+      const ctx = canvas.getContext('2d');
+      const rand = mulberry32(5000 + themeIndex * 31 + (customImg ? 1 : 0));
+      const theme = albumThemes[themeIndex];
+      let title = theme.title, artist = theme.artist, accent = theme.accent, spineBg = theme.bg[0];
+
+      ctx.fillStyle = "#0a0f18"; ctx.fillRect(0, 0, 1024, 1024);
+
+      if (customImg) {
+        // Blur manual (downscale -> upscale), karena ctx.filter tidak didukung Safari
+        const size = Math.min(customImg.width, customImg.height);
+        const startX = (customImg.width - size) / 2; const startY = (customImg.height - size) / 2;
+        const small = document.createElement('canvas'); small.width = 48; small.height = 48;
+        const sctx = small.getContext('2d');
+        sctx.imageSmoothingEnabled = true; sctx.imageSmoothingQuality = 'high';
+        sctx.drawImage(customImg, startX, startY, size, size, 0, 0, 48, 48);
+        ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(small, 0, 0, 1024, 1024);
+        ctx.fillStyle = "rgba(10, 15, 24, 0.85)"; ctx.fillRect(0,0,1024,1024);
+        title = "CUSTOM TRACK"; artist = "USER IMPORT"; accent = "#1db954"; spineBg = "#111";
+      } else {
+        ctx.fillStyle = "rgba(255,255,255,0.03)";
+        for(let i=0; i<300; i++){ ctx.beginPath(); ctx.arc(rand()*1024, rand()*1024, rand()*1.5, 0, Math.PI*2); ctx.fill(); }
+      }
+
+      // Spine: di sisi kanan tekstur = sisi engsel (kiri-depan casing) saat dilihat dari belakang
+      const spineX = 1024 - 80;
+      const spineGrad = ctx.createLinearGradient(spineX, 0, 1024, 0);
+      spineGrad.addColorStop(0, "#000000"); spineGrad.addColorStop(1, spineBg);
+      ctx.fillStyle = spineGrad; ctx.fillRect(spineX, 0, 80, 1024);
+      ctx.save();
+      ctx.translate(spineX + 45, 980); ctx.rotate(-Math.PI / 2);
+      ctx.fillStyle = "#ffffff"; ctx.font = "bold 26px 'Space Mono', monospace";
+      ctx.fillText(artist + "   —   " + title, 0, 0);
+      ctx.restore();
+
+      ctx.fillStyle = "#94a3b8"; ctx.font = "bold 28px 'Space Mono', monospace";
+      ctx.fillText("INDEX // TRACKLIST", 120, 180);
+
+      const tracks = customImg ?
+        [{n:"01", t:"IMPORTED AUDIO", l:"04:20"}, {n:"02", t:"UNKNOWN DATA", l:"03:15"}, {n:"03", t:"WAV. EXTRACT", l:"05:50"}] :
+        [{n:"01", t:"NEON AWAKENING", l:"04:23"}, {n:"02", t:"DIGITAL HORIZONS", l:"05:12"}, {n:"03", t:"SYNTHETIC DREAMS", l:"03:45"}, {n:"04", t:"MIDNIGHT DRIFT", l:"06:01"}];
+
+      for(let i = 0; i < tracks.length; i++) {
+        const y = 260 + (i * 75);
+        ctx.fillStyle = accent; ctx.font = "bold 32px 'Space Mono', monospace"; ctx.fillText(tracks[i].n, 120, y);
+        ctx.fillStyle = "#ffffff"; ctx.font = "600 36px 'Plus Jakarta Sans', sans-serif"; ctx.fillText(tracks[i].t, 180, y);
+        const titleWidth = ctx.measureText(tracks[i].t).width;
+        ctx.fillStyle = "#64748b"; ctx.font = "24px 'Space Mono', monospace"; ctx.fillText(tracks[i].l, 850, y);
+        ctx.strokeStyle = "rgba(255,255,255,0.15)"; ctx.setLineDash([3, 8]);
+        ctx.beginPath(); ctx.moveTo(200 + titleWidth, y - 8); ctx.lineTo(830, y - 8); ctx.stroke(); ctx.setLineDash([]);
+      }
+
+      return makeCanvasTexture(canvas, true);
+    }
+
+    function generateDiscTexture(themeIndex, customImg = null) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024; canvas.height = 1024;
+      const ctx = canvas.getContext('2d');
+      const theme = albumThemes[themeIndex];
+      let title = theme.title, artist = theme.artist, accent = theme.accent;
+
+      ctx.fillStyle = "#06090f";
+      ctx.fillRect(0, 0, 1024, 1024);
+
+      if (customImg) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(512, 512, 460, 0, Math.PI * 2);
+        ctx.clip();
+
+        const size = Math.min(customImg.width, customImg.height);
+        const startX = (customImg.width - size) / 2; const startY = (customImg.height - size) / 2;
+        ctx.drawImage(customImg, startX, startY, size, size, 52, 52, 920, 920);
+
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath(); ctx.arc(512, 512, 160, 0, Math.PI * 2); ctx.fill();
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.restore();
+
+        title = "CUSTOM MEDIA"; artist = "USER"; accent = "#1db954";
+      } else {
+        const radialGrad = ctx.createRadialGradient(512, 512, 100, 512, 512, 500);
+        radialGrad.addColorStop(0, theme.accent + "55"); radialGrad.addColorStop(1, "transparent");
+        ctx.fillStyle = radialGrad; ctx.fillRect(0, 0, 1024, 1024);
+      }
+
+      ctx.lineWidth = 18; ctx.strokeStyle = customImg ? "rgba(0,0,0,0.5)" : theme.bg[1];
+      ctx.beginPath(); ctx.arc(512, 512, 460, 0, Math.PI*2); ctx.stroke();
+
+      ctx.lineWidth = 2; ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+      ctx.beginPath(); ctx.arc(512, 512, 390, 0, Math.PI*2); ctx.stroke();
+
+      ctx.setLineDash([8, 12]);
+      ctx.beginPath(); ctx.arc(512, 512, 280, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+
+      ctx.fillStyle = "#ffffff"; ctx.textAlign = "center"; ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 8;
+      ctx.font = "bold 56px 'Space Mono', monospace"; ctx.fillText(title, 512, 200); ctx.shadowBlur = 0;
+      ctx.fillStyle = accent; ctx.font = "600 36px 'Plus Jakarta Sans', sans-serif"; ctx.fillText(artist, 512, 260);
+
+      // Dipakai langsung oleh ShaderMaterial (tanpa decode sRGB), jadi tetap non-sRGB
+      return makeCanvasTexture(canvas, false);
+    }
+
+    // ===================== LABEL DI LID TRANSPARAN =====================
+    // Canvas berasio sama dengan lid (2.8 x 2.65). Setiap bentuk menutupi kira-kira 1/4 lid.
+    const LW = 1024, LH = 969;
+    let lidLabelTexture, lidLabelMesh, currentLidShape = 0;
+
+    // box = area aman untuk teks + barcode (sudah dihitung agar berada di dalam bentuk)
+    const lidShapes = [
+      { name: "Busur", barcode: "bottom",   // seperempat lingkaran di sudut kanan-atas
+        box: { x: LW - 400, y: 30, w: 370, h: 340 },
+        path(ctx) { const R = 620; ctx.moveTo(LW, 0); ctx.lineTo(LW - R, 0); ctx.arc(LW, 0, R, Math.PI, Math.PI / 2, true); ctx.closePath(); } },
+      { name: "Potong", barcode: "bottom",  // panel sudut terpotong, kanan-bawah
+        box: { x: LW - 480, y: LH - 360, w: 440, h: 330 },
+        path(ctx) { const x0 = LW - 520, y0 = LH - 490, c = 120; ctx.moveTo(x0 + c, y0); ctx.lineTo(LW, y0); ctx.lineTo(LW, LH); ctx.lineTo(x0, LH); ctx.lineTo(x0, y0 + c); ctx.closePath(); } },
+      { name: "Pita", barcode: "right",     // pita chevron di sepanjang bawah
+        box: { x: 40, y: LH - 225, w: LW - 170, h: 200 },
+        path(ctx) { const y0 = LH - 250, n = 90; ctx.moveTo(0, y0); ctx.lineTo(LW - n, y0); ctx.lineTo(LW, y0 + 125); ctx.lineTo(LW - n, LH); ctx.lineTo(0, LH); ctx.closePath(); } },
+      { name: "Hexagon", barcode: "bottom",  // hexagon di kiri-bawah
+        box: { x: 330 - 200, y: LH - 310 - 150, w: 400, h: 300 },
+        path(ctx) { const s = 309, cx = 330, cy = LH - 310; for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; const x = cx + s * Math.cos(a), y = cy + s * Math.sin(a); if (k) ctx.lineTo(x, y); else ctx.moveTo(x, y); } ctx.closePath(); } },
+      { name: "Lingkaran", barcode: "bottom", // lencana bulat di kiri-atas
+        box: { x: 310 - 170, y: 310 - 130, w: 340, h: 260 },
+        path(ctx) { ctx.arc(310, 310, 285, 0, Math.PI * 2); ctx.closePath(); } },
+      { name: "Segitiga", barcode: "bottom", // segitiga siku di sudut kanan-bawah
+        box: { x: LW - 370, y: LH - 330, w: 340, h: 300 },
+        path(ctx) { ctx.moveTo(LW, LH); ctx.lineTo(LW - 760, LH); ctx.lineTo(LW, LH - 760); ctx.closePath(); } }
+    ];
+
+    function hexToRgba(hex, a) {
+      const n = parseInt(hex.slice(1), 16);
+      return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+    }
+
+    function wrapLines(ctx, text, maxW) {
+      const words = text.split(' '); const lines = []; let line = '';
+      for (const w of words) {
+        const test = line ? line + ' ' + w : w;
+        if (line && ctx.measureText(test).width > maxW) { lines.push(line); line = w; } else { line = test; }
+      }
+      if (line) lines.push(line);
+      return lines;
+    }
+
+    function drawBarcode(ctx, x, y, w, h, rand) {
+      ctx.fillStyle = "#ffffff"; ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "#000000";
+      const barH = h - 8 - 16;
+      for (let bx = x + 10; bx < x + w - 10; bx += (rand() > 0.5 ? 4 : 7)) ctx.fillRect(bx, y + 8, rand() * 2.5 + 1, barH);
+      ctx.font = "11px 'Space Mono', monospace"; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+      ctx.fillText("8  02434  10294  9", x + 12, y + h - 5);
+    }
+
+    function drawLidLabelContent(ctx, box, mode, title, artist, accent, rand) {
+      const bw = 170, bh = 70, gap = 14;
+      let bx, by, textW, textH;
+      if (mode === 'right') { bx = box.x + box.w - bw; by = box.y + (box.h - bh) / 2; textW = box.w - bw - 30; textH = box.h; }
+      else { bx = box.x + box.w - bw; by = box.y + box.h - bh; textW = box.w; textH = box.h - bh - gap; }
+      drawBarcode(ctx, bx, by, bw, bh, rand);
+
+      // Cari ukuran judul terbesar yang muat (maks 3 baris)
+      ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+      let size = 64, lines = [], artistSize = 30;
+      while (true) {
+        ctx.font = `bold ${size}px 'Space Mono', monospace`;
+        lines = wrapLines(ctx, title, textW);
+        artistSize = Math.max(18, Math.min(34, Math.round(size * 0.55)));
+        const widest = Math.max(...lines.map(l => ctx.measureText(l).width));
+        const total = 18 + lines.length * size * 1.12 + 10 + artistSize * 1.2;
+        if ((lines.length <= 3 && widest <= textW && total <= textH) || size <= 22) break;
+        size -= 2;
+      }
+      ctx.font = `600 ${artistSize}px 'Plus Jakarta Sans', sans-serif`;
+      while (artistSize > 14 && ctx.measureText(artist).width > textW) {
+        artistSize -= 2; ctx.font = `600 ${artistSize}px 'Plus Jakarta Sans', sans-serif`;
+      }
+
+      const blockH = 18 + lines.length * size * 1.12 + 10 + artistSize * 1.2;
+      let y = mode === 'right' ? box.y + Math.max(0, (textH - blockH) / 2) : box.y;
+      ctx.fillStyle = accent; ctx.fillRect(box.x, y, 64, 6); y += 18;
+      ctx.fillStyle = "#ffffff"; ctx.font = `bold ${size}px 'Space Mono', monospace`;
+      for (const l of lines) { ctx.fillText(l, box.x, y); y += size * 1.12; }
+      y += 10;
+      ctx.fillStyle = accent; ctx.font = `600 ${artistSize}px 'Plus Jakarta Sans', sans-serif`;
+      ctx.fillText(artist, box.x, y);
+    }
+
+    function generateLidLabelTexture(themeIndex, customImg = null, shapeIndex = 0) {
+      const canvas = document.createElement('canvas');
+      canvas.width = LW; canvas.height = LH;
+      const ctx = canvas.getContext('2d');
+      const theme = albumThemes[themeIndex];
+      let title = theme.title, artist = theme.artist, accent = theme.accent, c0 = theme.bg[0], c1 = theme.bg[1];
+      if (customImg) { title = "CUSTOM TRACK"; artist = "USER IMPORT"; accent = "#1db954"; c0 = "#0f172a"; c1 = "#1e293b"; }
+      const shape = lidShapes[shapeIndex];
+      const rand = mulberry32(9000 + shapeIndex * 13 + themeIndex * 7 + (customImg ? 1 : 0));
+
+      // Bentuk + isi gradien semi-transparan
+      ctx.beginPath(); shape.path(ctx);
+      const grad = ctx.createLinearGradient(0, 0, LW, LH);
+      grad.addColorStop(0, hexToRgba(c0, 0.92)); grad.addColorStop(1, hexToRgba(c1, 0.92));
+      ctx.fillStyle = grad; ctx.fill();
+
+      // Tekstur garis diagonal halus di dalam bentuk
+      ctx.save(); ctx.clip();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.06)"; ctx.lineWidth = 2;
+      for (let i = -LH; i < LW + LH; i += 22) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + LH, LH); ctx.stroke(); }
+      ctx.restore();
+
+      // Garis tepi aksen
+      ctx.beginPath(); shape.path(ctx);
+      ctx.lineWidth = 5; ctx.strokeStyle = accent; ctx.stroke();
+
+      drawLidLabelContent(ctx, shape.box, shape.barcode, title, artist, accent, rand);
+      return makeCanvasTexture(canvas, true);
+    }
+
+    function refreshLidLabel() {
+      const old = lidLabelTexture;
+      lidLabelTexture = generateLidLabelTexture(currentCoverIndex, currentCustomImage, currentLidShape);
+      if (lidLabelMesh) { lidLabelMesh.material.map = lidLabelTexture; lidLabelMesh.material.needsUpdate = true; }
+      if (old) old.dispose();
+      const btn = document.getElementById('changeLabelBtn');
+      if (btn) btn.textContent = 'Label: ' + lidShapes[currentLidShape].name;
+    }
+
+    function createProceduralEnvMap() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024; canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      const grad = ctx.createLinearGradient(0, 0, 0, 512);
+      grad.addColorStop(0, '#1a1a24'); grad.addColorStop(0.5, '#050508'); grad.addColorStop(1, '#0f0f15');
+      ctx.fillStyle = grad; ctx.fillRect(0, 0, 1024, 512);
+      
+      ctx.shadowColor = 'rgba(255, 255, 255, 0.8)'; ctx.shadowBlur = 30;
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(150, 150, 250, 120);
+      ctx.fillStyle = '#f8fafc'; ctx.fillRect(400, -20, 220, 80);
+      ctx.fillStyle = '#e2e8f0'; ctx.fillRect(800, 200, 100, 200);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.mapping = THREE.EquirectangularReflectionMapping; texture.encoding = THREE.sRGBEncoding; return texture;
+    }
+
+    function createCDMaterial(coverTexture) {
+      const uniforms = { uLightPos: { value: new THREE.Vector3(4, 8, 6) }, uCoverTex: { value: coverTexture } };
+      // Semua perhitungan arah (N, V, L, tangent) dilakukan di VIEW SPACE agar konsisten.
+      // vSide = normal.z lokal: +1 = sisi label (depan), -1 = sisi belakang disc.
+      const vertexShader = `
+        varying vec3 vNormal; varying vec3 vViewPosition; varying vec3 vTangent; varying vec3 vLocalPosition; varying float vSide;
+        void main() {
+          vLocalPosition = position; vSide = normal.z;
+          vNormal = normalize(normalMatrix * normal);
+          vTangent = normalMatrix * vec3(-position.y, position.x, 0.0);
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          vViewPosition = -mvPosition.xyz;
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `;
+      const fragmentShader = `
+        varying vec3 vNormal; varying vec3 vViewPosition; varying vec3 vTangent; varying vec3 vLocalPosition; varying float vSide;
+        uniform vec3 uLightPos; uniform sampler2D uCoverTex;
+        vec3 spectralRainbow(float t) { return 0.5 + 0.5 * cos(6.28318 * (t + vec3(0.0, 0.33, 0.67))); }
+        void main() {
+          vec2 discUv = (vLocalPosition.xy / 2.3) + 0.5; float dist = length(discUv - vec2(0.5));
+          if (dist < 0.035) discard;
+
+          vec3 N = normalize(vNormal); vec3 V = normalize(vViewPosition);
+          vec3 lightView = (viewMatrix * vec4(uLightPos, 1.0)).xyz;
+          vec3 L = normalize(lightView + vViewPosition);
+          float tl = length(vTangent); vec3 T = tl > 1e-5 ? vTangent / tl : vec3(0.0);
+          float diffractionShift = (dot(V, T) + dot(L, T)) * 7.5;
+          vec3 rainbow = spectralRainbow(diffractionShift + dist * 2.8);
+
+          vec3 silverAlu = vec3(0.92, 0.93, 0.96); vec3 H = normalize(L + V);
+          float diffuse = max(dot(N, L), 0.0);
+          float spec = pow(max(dot(N, H), 0.0), 40.0); float fresnel = pow(1.0 - max(dot(N, V), 0.0), 3.0);
+
+          bool isBack = vSide < -0.5;
+          vec3 finalColor = vec3(0.0); float alpha = 1.0;
+          if (dist < 0.08) { finalColor = vec3(0.95); alpha = 0.2 + fresnel * 0.7; }
+          else if (isBack) {
+            // Sisi bawah CD: perak polos berpelangi, tanpa artwork (tidak mirror)
+            finalColor = mix(silverAlu, rainbow, 0.55) * (0.55 + 0.45 * diffuse) + spec * 1.2;
+          }
+          else if (dist < 0.16) { finalColor = mix(silverAlu, rainbow, 0.7) * (0.6 + 0.4 * diffuse); finalColor += spec * 1.5; }
+          else { vec4 cover = texture2D(uCoverTex, discUv); finalColor = cover.rgb * (0.7 + 0.3 * diffuse) + spec * 0.8 + rainbow * 0.15 * fresnel; }
+          if (dist > 0.492) { finalColor = silverAlu * (0.5 + 0.5 * diffuse) + spec; }
+          gl_FragColor = vec4(finalColor, alpha);
+        }
+      `;
+      return new THREE.ShaderMaterial({ vertexShader, fragmentShader, uniforms, side: THREE.DoubleSide, transparent: true });
+    }
+
+    function getRoundedRectShape(width, height, radius) {
+      const ctx = new THREE.Shape(); const x = -width / 2, y = -height / 2;
+      ctx.moveTo(x, y + radius); ctx.lineTo(x, y + height - radius);
+      ctx.quadraticCurveTo(x, y + height, x + radius, y + height);
+      ctx.lineTo(x + width - radius, y + height);
+      ctx.quadraticCurveTo(x + width, y + height, x + width, y + height - radius);
+      ctx.lineTo(x + width, y + radius);
+      ctx.quadraticCurveTo(x + width, y, x + width - radius, y);
+      ctx.lineTo(x + radius, y);
+      ctx.quadraticCurveTo(x, y, x, y + radius); return ctx;
+    }
+
+    function buildProceduralCDAssembly() {
+      if (cdAssembly) scene.remove(cdAssembly);
+      cdAssembly = new THREE.Group(); scene.add(cdAssembly);
+
+      const clearAcrylicMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0xffffff, transmission: 1.0, opacity: 1, transparent: true, depthWrite: false, roughness: 0.03, metalness: 0.02,
+        ior: 1.52, reflectivity: 1.0, thickness: 0.15, clearcoat: 1.0, clearcoatRoughness: 0.02, side: THREE.DoubleSide
+      });
+
+      const caseW = 2.8, caseH = 2.65, caseD = 0.28, t = 0.04;
+      const cornerRadius = 0.12, rimThick = 0.045, edgeDepth = caseD / 2;
+
+      const baseShape = getRoundedRectShape(caseW, caseH, cornerRadius);
+      const plateGeo = new THREE.ExtrudeGeometry(baseShape, { depth: t, bevelEnabled: false });
+      plateGeo.translate(0, 0, -t/2);
+
+      const rimShape = getRoundedRectShape(caseW, caseH, cornerRadius);
+      const holeShape = getRoundedRectShape(caseW - rimThick*2, caseH - rimThick*2, Math.max(0, cornerRadius - rimThick));
+      rimShape.holes.push(holeShape);
+      const rimGeo = new THREE.ExtrudeGeometry(rimShape, { depth: edgeDepth, bevelEnabled: false });
+      rimGeo.translate(0, 0, -edgeDepth/2);
+
+      const backGroup = new THREE.Group();
+      const backPlate = new THREE.Mesh(plateGeo, clearAcrylicMaterial); backPlate.position.z = -caseD/2 + t/2; backGroup.add(backPlate);
+      const backRim = new THREE.Mesh(rimGeo, clearAcrylicMaterial); backRim.position.z = -caseD/4; backGroup.add(backRim);
+
+      // Generate Textures based on current state (Procedural OR Custom Uploaded)
+      frontCoverTexture = generateFrontCoverTexture(currentCoverIndex, currentCustomImage);
+      backCoverTexture = generateBackCoverTexture(currentCoverIndex, currentCustomImage);
+
+      const inlayGeo = new THREE.PlaneGeometry(caseW - rimThick*2 - 0.01, caseH - rimThick*2 - 0.01);
+      
+      const trayOutsideMat = new THREE.MeshStandardMaterial({ map: backCoverTexture, roughness: 0.8, metalness: 0 });
+      const trayOutside = new THREE.Mesh(inlayGeo, trayOutsideMat); trayOutside.name = "trayOutside";
+      trayOutside.rotation.y = Math.PI; trayOutside.position.z = -caseD/2 + t + 0.001; backGroup.add(trayOutside);
+
+      const trayInsideMat = new THREE.MeshStandardMaterial({ map: frontCoverTexture, roughness: 0.8, metalness: 0 });
+      const trayInside = new THREE.Mesh(inlayGeo, trayInsideMat); trayInside.name = "trayInside";
+      trayInside.position.z = -caseD/2 + t + 0.002; backGroup.add(trayInside);
+
+      const frameGroup = new THREE.Group(); frameGroup.position.z = -caseD/2 + t + 0.015;
+      const bracketDistX = caseW/2 - rimThick - 0.12, bracketDistY = caseH/2 - rimThick - 0.12;
+      const bLength = 0.45, bThick = 0.06, bHeight = 0.12;
+
+      const corners = [ [1, 1], [-1, 1], [1, -1], [-1, -1] ];
+      corners.forEach(([dirX, dirY]) => {
+        const bL = new THREE.Group();
+        const hBar = new THREE.Mesh(new THREE.BoxGeometry(bLength, bThick, bHeight), clearAcrylicMaterial);
+        hBar.position.set(dirX * (bracketDistX - bLength/2 + bThick/2), dirY * bracketDistY, 0); bL.add(hBar);
+        const vBar = new THREE.Mesh(new THREE.BoxGeometry(bThick, bLength - bThick, bHeight), clearAcrylicMaterial);
+        vBar.position.set(dirX * bracketDistX, dirY * (bracketDistY - bLength/2), 0); bL.add(vBar); frameGroup.add(bL);
+      });
+
+      const tabs = [[1.2, 0], [-1.2, 0], [0, 1.15], [0, -1.15]];
+      tabs.forEach(([x, y]) => {
+         const tab = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.12), clearAcrylicMaterial);
+         tab.position.set(x, y, 0); frameGroup.add(tab);
+      });
+
+      const hubMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.08, 32).rotateX(Math.PI/2), clearAcrylicMaterial);
+      hubMesh.position.z = 0;
+      for(let i=0; i<4; i++) {
+          const teeth = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.12), clearAcrylicMaterial);
+          teeth.position.set(Math.cos(i * Math.PI/2) * 0.13, Math.sin(i * Math.PI/2) * 0.13, 0.03); hubMesh.add(teeth);
+      }
+      frameGroup.add(hubMesh); backGroup.add(frameGroup); cdAssembly.add(backGroup);
+
+      cdDiscGroup = new THREE.Group(); cdDiscGroup.position.set(0, 0, frameGroup.position.z + 0.04);
+      const discGeo = new THREE.CylinderGeometry(1.15, 1.15, 0.012, 64); discGeo.rotateX(Math.PI / 2);
+      
+      discTexture = generateDiscTexture(currentCoverIndex, currentCustomImage);
+      if(!cdIridescenceMaterial) cdIridescenceMaterial = createCDMaterial(discTexture);
+      
+      cdDiscMesh = new THREE.Mesh(discGeo, cdIridescenceMaterial); cdDiscGroup.add(cdDiscMesh); cdAssembly.add(cdDiscGroup);
+
+      caseLidGroup = new THREE.Group(); caseLidGroup.position.set(-caseW/2, 0, 0);
+      const lidPlate = new THREE.Mesh(plateGeo, clearAcrylicMaterial); lidPlate.position.set(caseW/2, 0, caseD/2 - t/2); caseLidGroup.add(lidPlate);
+      const lidRim = new THREE.Mesh(rimGeo, clearAcrylicMaterial); lidRim.position.set(caseW/2, 0, caseD/4); caseLidGroup.add(lidRim);
+
+      // Label cetak di permukaan luar lid (ikut berputar bersama lid)
+      lidLabelTexture = generateLidLabelTexture(currentCoverIndex, currentCustomImage, currentLidShape);
+      lidLabelMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(caseW, caseH),
+        new THREE.MeshBasicMaterial({ map: lidLabelTexture, transparent: true, depthWrite: false, side: THREE.DoubleSide })
+      );
+      lidLabelMesh.name = "lidLabel";
+      lidLabelMesh.position.set(caseW / 2, 0, caseD / 2 + 0.003);
+      caseLidGroup.add(lidLabelMesh);
+
+      cdAssembly.add(caseLidGroup);
+      targetLidAngle = isOpen ? -Math.PI * 0.78 : 0; currentLidAngle = targetLidAngle; caseLidGroup.rotation.y = currentLidAngle;
+      cdAssembly.userData.targetPosX = isOpen ? OPEN_OFFSET_X : 0.0; cdAssembly.position.x = cdAssembly.userData.targetPosX;
+    }
+
+    function init() {
+      const container = document.getElementById('canvas-container');
+      scene = new THREE.Scene();
+      scene.environment = createProceduralEnvMap();
+      camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
+      camera.position.set(0, 0, 8.0);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+      renderer.setSize(window.innerWidth, window.innerHeight); renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.outputEncoding = THREE.sRGBEncoding;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
+      container.appendChild(renderer.domElement);
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+      const keyLight = new THREE.DirectionalLight(0xffffff, 1.4); keyLight.position.set(5, 8, 5); scene.add(keyLight);
+      const softFill = new THREE.DirectionalLight(0xe0e7ff, 0.6); softFill.position.set(-5, 4, 3); scene.add(softFill);
+      const subtleRim = new THREE.PointLight(0x60a5fa, 0.8, 12); subtleRim.position.set(-3, -3, -2); scene.add(subtleRim);
+
+      document.body.style.backgroundColor = albumThemes[currentCoverIndex].pageBg;
+      buildProceduralCDAssembly(); setupInteractions(); setupUIEvents();
+      window.addEventListener('resize', onWindowResize);
+    }
+
+    function updateTextures() {
+      const oldTextures = [frontCoverTexture, backCoverTexture, discTexture];
+
+      frontCoverTexture = generateFrontCoverTexture(currentCoverIndex, currentCustomImage);
+      backCoverTexture = generateBackCoverTexture(currentCoverIndex, currentCustomImage);
+      discTexture = generateDiscTexture(currentCoverIndex, currentCustomImage);
+
+      const trayInsideMesh = scene.getObjectByName("trayInside");
+      if (trayInsideMesh) { trayInsideMesh.material.map = frontCoverTexture; trayInsideMesh.material.needsUpdate = true; }
+
+      const trayOutsideMesh = scene.getObjectByName("trayOutside");
+      if (trayOutsideMesh) { trayOutsideMesh.material.map = backCoverTexture; trayOutsideMesh.material.needsUpdate = true; }
+
+      if (cdIridescenceMaterial) { cdIridescenceMaterial.uniforms.uCoverTex.value = discTexture; }
+
+      // Lepas VRAM tekstur lama
+      oldTextures.forEach(t => { if (t) t.dispose(); });
+      refreshLidLabel();
+
+      if(currentCustomImage) {
+         document.getElementById('albumTitleDisplay').innerText = "CUSTOM UPLOAD";
+         document.getElementById('albumArtistDisplay').innerText = "USER DEFINED";
+         document.body.style.backgroundColor = "#242424";
+      } else {
+         const theme = albumThemes[currentCoverIndex];
+         document.getElementById('albumTitleDisplay').innerText = theme.title;
+         document.getElementById('albumArtistDisplay').innerText = theme.artist;
+         document.body.style.backgroundColor = theme.pageBg;
+      }
+    }
+
+    // Pointer Events: satu jalur untuk mouse, sentuh, dan pen (tidak ada event tiruan ganda di HP)
+    function setupInteractions() {
+      const container = document.getElementById('canvas-container');
+      let startX = 0, startY = 0, hasDragged = false, activePointerId = null;
+      const clampX = v => Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, v));
+
+      function onPointerDown(e) {
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        if (activePointerId !== null) return;
+        isDragging = true; activePointerId = e.pointerId;
+        prevMouseX = startX = e.clientX; prevMouseY = startY = e.clientY; hasDragged = false;
+        try { container.setPointerCapture(e.pointerId); } catch (_) {}
+      }
+      function onPointerMove(e) {
+        if (!isDragging || e.pointerId !== activePointerId) return;
+        if (Math.hypot(e.clientX - startX, e.clientY - startY) > 6) hasDragged = true;
+        targetRotY += (e.clientX - prevMouseX) * 0.006;
+        targetRotX = clampX(targetRotX + (e.clientY - prevMouseY) * 0.006);
+        prevMouseX = e.clientX; prevMouseY = e.clientY;
+      }
+      function endDrag(e, allowToggle) {
+        if (!isDragging || e.pointerId !== activePointerId) return;
+        isDragging = false; activePointerId = null;
+        try { container.releasePointerCapture(e.pointerId); } catch (_) {}
+        if (allowToggle && !hasDragged) toggleCase();
+      }
+      container.addEventListener('pointerdown', onPointerDown);
+      window.addEventListener('pointermove', onPointerMove);
+      window.addEventListener('pointerup', e => endDrag(e, true));
+      window.addEventListener('pointercancel', e => endDrag(e, false));
+    }
+
+    function toggleCase() {
+      isOpen = !isOpen;
+      targetLidAngle = isOpen ? -Math.PI * 0.78 : 0.0; cdAssembly.userData.targetPosX = isOpen ? OPEN_OFFSET_X : 0.0;
+      document.getElementById('caseStateText').innerText = isOpen ? "Tutup Casing" : "Buka Casing";
+    }
+
+    function setupUIEvents() {
+      document.getElementById('toggleCaseBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleCase(); });
+      document.getElementById('toggleSpinBtn').addEventListener('click', (e) => {
+        e.stopPropagation(); isDiscSpinning = !isDiscSpinning;
+        const icon = document.getElementById('spinIcon'); const text = document.getElementById('spinStateText');
+        if (isDiscSpinning) { icon.classList.add('animate-spin'); text.innerText = "Stop Putar"; } else { icon.classList.remove('animate-spin'); text.innerText = "Putar CD"; }
+      });
+      document.getElementById('changeCoverBtn').addEventListener('click', (e) => {
+        e.stopPropagation(); 
+        currentCustomImage = null; // Hapus image custom, kembali ke prosedural
+        currentCoverIndex = (currentCoverIndex + 1) % albumThemes.length;
+        updateTextures();
+      });
+      
+      // LOGIC UNTUK UPLOAD GAMBAR CUSTOM
+      const fileInput = document.getElementById('imageUploadInput');
+      document.getElementById('uploadImageBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        fileInput.click();
+      });
+      fileInput.addEventListener('change', (e) => {
+         const file = e.target.files[0];
+         if (!file) return;
+         const url = URL.createObjectURL(file);
+         const img = new Image();
+         img.onload = () => {
+            URL.revokeObjectURL(url);
+            currentCustomImage = img;
+            updateTextures();
+         };
+         img.onerror = () => {
+            URL.revokeObjectURL(url);
+            alert('Gagal memuat gambar. Pastikan file adalah gambar yang valid.');
+         };
+         img.src = url;
+         fileInput.value = ''; // agar memilih file yang sama lagi tetap memicu event
+      });
+
+      document.getElementById('changeLabelBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        currentLidShape = (currentLidShape + 1) % lidShapes.length;
+        refreshLidLabel();
+      });
+
+      document.getElementById('resetCamBtn').addEventListener('click', (e) => { e.stopPropagation(); targetRotX = 0.25; targetRotY = -0.45; });
+    }
+
+    function onWindowResize() { renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); }
+
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate); const elapsedTime = clock.getElapsedTime();
+      currentRotX += (targetRotX - currentRotX) * 0.08; currentRotY += (targetRotY - currentRotY) * 0.08;
+      if (cdAssembly) { 
+        cdAssembly.rotation.x = currentRotX; cdAssembly.rotation.y = currentRotY; cdAssembly.position.y = Math.sin(elapsedTime * 1.6) * 0.06; 
+        if(cdAssembly.userData.targetPosX !== undefined) cdAssembly.position.x += (cdAssembly.userData.targetPosX - cdAssembly.position.x) * 0.08;
+      }
+      currentLidAngle += (targetLidAngle - currentLidAngle) * 0.1;
+      if (caseLidGroup) caseLidGroup.rotation.y = currentLidAngle;
+      if (cdDiscGroup && isDiscSpinning && cdDiscMesh) cdDiscMesh.rotation.z += 0.022;
+      
+      renderer.render(scene, camera);
+    }
+
+    window.onload = async function() {
+      // Pastikan font sudah siap sebelum digambar ke canvas
+      try {
+        await Promise.race([
+          Promise.all([
+            document.fonts.load("bold 72px 'Space Mono'"),
+            document.fonts.load("24px 'Space Mono'"),
+            document.fonts.load("600 32px 'Plus Jakarta Sans'")
+          ]),
+          new Promise(r => setTimeout(r, 2500))
+        ]);
+      } catch (_) {}
+      init(); animate();
+    };
+  </script>
+</body>
+</html>
