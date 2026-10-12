@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Procedural 3D CD Jewel Case Simulation - Custom Cover Edition</title>
+  <title>Procedural 3D CD Jewel Case Simulation - Spotify Sync Edition</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -44,8 +44,8 @@
         <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
       </div>
       <div>
-        <h1 class="font-bold text-sm leading-none tracking-tight accent-gradient-text">CHROMA.DISC // v3.0</h1>
-        <p class="mono text-[10px] text-slate-500 mt-0.5 tracking-wider uppercase">Custom Image Engine</p>
+        <h1 class="font-bold text-sm leading-none tracking-tight accent-gradient-text">CHROMA.DISC // v4.0</h1>
+        <p class="mono text-[10px] text-slate-500 mt-0.5 tracking-wider uppercase">Spotify Sync Engine</p>
       </div>
     </div>
   </header>
@@ -72,15 +72,18 @@
           Prosedural Cover
         </button>
 
-        <button id="changeLabelBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">Label: Busur</button>
-
         <button id="ejectDiscBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">Keluarkan CD</button>
         
         <!-- File Input Hidden -->
         <input type="file" id="imageUploadInput" accept="image/*" class="hidden">
-        <button id="uploadImageBtn" class="px-3.5 py-2 rounded-xl bg-green-50 hover:bg-green-100 text-green-700 font-semibold transition active:scale-95 border border-green-200 flex items-center gap-1.5 shadow-sm">
+        <button id="uploadImageBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition active:scale-95 border border-slate-200 flex items-center gap-1.5 shadow-sm">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-          Gunakan Gambar
+        </button>
+
+        <!-- SPOTIFY INTEGRATION BUTTON -->
+        <button id="spotifySyncBtn" class="px-3.5 py-2 rounded-xl bg-[#1db954] hover:bg-[#1ed760] text-white font-bold transition active:scale-95 border border-[#1db954] shadow-sm flex items-center gap-2">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.54.659.301 1.02zM19.32 14.1c-.3.42-.84.54-1.26.24-3.36-2.04-8.52-2.64-12.54-1.44-.48.12-1.02-.12-1.14-.6-.12-.48.12-1.02.6-1.14 4.56-1.32 10.26-.66 14.1 1.68.42.24.54.84.24 1.26zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.781-.18-.6.18-1.2.78-1.38 4.2-1.26 11.28-1.02 16.32 1.98.54.3.72 1.02.42 1.56-.24.42-.9.6-1.44.3h-.42z"/></svg>
+          <span id="spotifyBtnText">Sync Spotify</span>
         </button>
       </div>
       <button id="resetCamBtn" class="px-3 py-2 rounded-xl text-slate-500 hover:text-slate-900 transition font-medium mono">Reset</button>
@@ -103,8 +106,8 @@
         <span class="w-1 bg-cyan-400 rounded-full animate-pulse h-2" style="animation-delay: 75ms;"></span>
       </div>
       <div>
-        <p class="text-xs font-bold text-slate-800" id="albumTitleDisplay">NEO TOKYO '98</p>
-        <p class="mono text-[10px] text-slate-500" id="albumArtistDisplay">SYNTHETIX CORE</p>
+        <p class="text-xs font-bold text-slate-800 uppercase" id="albumTitleDisplay">NEO TOKYO '98</p>
+        <p class="mono text-[10px] text-slate-500 uppercase" id="albumArtistDisplay">SYNTHETIX CORE</p>
       </div>
     </div>
   </div>
@@ -112,6 +115,19 @@
   <div id="canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
 
   <script>
+    // ==========================================
+    // 1. KONFIGURASI SPOTIFY (PENTING!)
+    // ==========================================
+    // Menggunakan token langsung dari user
+    const spotifyAccessToken = 'BQDw2jMgAOPdlZ3tCJN3oGERzBRbbEf7XiKc1TYFYaa4o9HucmSlE1eaTNAEHWbHztfjs4tw8ifcS2hAlsOgHNpE7mVXCHYHETQ-NFP5kqnqD5pYX1e3Y58jY5yp2AD_MnO84EtC-bgaXUyV-a-ufIeDbTmhKbWFEylhS-xFE0DqxeXT1cx6jKc77pyoTc3sHz8EXE-q1qbdHbTtLenhAPou8pGifHdE1bHehVPkfPzSwzcRytSdMvyGTskPsvaV4YVwEBY3Bu87U5W6nhru2TguvWDefnIeikKiu8YQVO52_JPvI2_uFPOaUb8cL7ldkzWK';
+    let topTracksData = [];
+    let currentTrackIndex = 0;
+
+    let customMetadata = { title: "CUSTOM MEDIA", artist: "USER IMPORT" };
+
+    // ==========================================
+    // 2. VARIABEL 3D & ENGINE
+    // ==========================================
     let scene, camera, renderer;
     let cdAssembly, caseLidGroup, cdDiscGroup, cdDiscMesh;
     let isOpen = false, targetLidAngle = 0.0, currentLidAngle = 0.0;
@@ -121,15 +137,11 @@
     
     let targetRotX = 0.25, targetRotY = -0.45;
     let currentRotX = 0.25, currentRotY = -0.45;
-    
-    // Status custom image
     let currentCustomImage = null;
 
-    // Offset geser casing saat terbuka (satu sumber nilai agar konsisten)
     const OPEN_OFFSET_X = 1.2;
     const LID_OPEN_ANGLE = -Math.PI * 0.78;
 
-    // --- State animasi & performa ---
     let isDiscOut = false, discOutAmt = 0, bobAmp = 1;
     let rafId = 0, lastFrameTime = 0;
     let shadowGroup, shadowMesh;
@@ -138,7 +150,6 @@
     const perf = { frames: 0, acc: 0, ignore: 90 };
     const smoothstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
-    // PRNG ber-seed: barcode/blob/bintang tidak berubah tiap tekstur dibuat ulang
     function mulberry32(a) {
       return function() {
         a |= 0; a = a + 0x6D2B79F5 | 0;
@@ -148,7 +159,6 @@
       };
     }
 
-    // srgb=true untuk tekstur yang dipakai material standar (di-decode three.js ke linear)
     function makeCanvasTexture(canvas, srgb) {
       const t = new THREE.CanvasTexture(canvas);
       t.anisotropy = 8;
@@ -162,35 +172,38 @@
       { title: "SOLAR HORIZON", artist: "AMBER ECHOES", bg: ["#9a3412", "#e11d48", "#6d28d9"], accent: "#fef08a", pageBg: "#292524" }
     ];
 
-    // Helper untuk menggambar UI overlay yang sama pada setiap cover (agar tetap sci-fi/industrial)
     function drawOverlayUI(ctx, title, artist, accent, rand) {
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.15)"; ctx.lineWidth = 1;
-      for (let i = 0; i <= 1024; i += 64) {
-        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 1024); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(1024, i); ctx.stroke();
+      const W = 1024, H = 969; // Disesuaikan dengan rasio mika depan
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.4)"; ctx.lineWidth = 1;
+      for (let i = 0; i <= W; i += 64) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, H); ctx.stroke();
+      }
+      for (let i = 0; i <= H; i += 64) {
+        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(W, i); ctx.stroke();
       }
 
       ctx.strokeStyle = accent; ctx.lineWidth = 4;
       const m = 40, s = 60;
       ctx.beginPath(); ctx.moveTo(m+s, m); ctx.lineTo(m, m); ctx.lineTo(m, m+s); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(1024-m-s, m); ctx.lineTo(1024-m, m); ctx.lineTo(1024-m, m+s); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(m+s, 1024-m); ctx.lineTo(m, 1024-m); ctx.lineTo(m, 1024-m-s); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(1024-m-s, 1024-m); ctx.lineTo(1024-m, 1024-m); ctx.lineTo(1024-m, 1024-m-s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(W-m-s, m); ctx.lineTo(W-m, m); ctx.lineTo(W-m, m+s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(m+s, H-m); ctx.lineTo(m, H-m); ctx.lineTo(m, H-m-s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(W-m-s, H-m); ctx.lineTo(W-m, H-m); ctx.lineTo(W-m, H-m-s); ctx.stroke();
 
       ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 12;
-      ctx.fillStyle = "#ffffff"; ctx.font = "bold 72px 'Space Mono', monospace";
-      ctx.fillText(title, 60, 780);
-      ctx.fillStyle = accent; ctx.font = "600 32px 'Plus Jakarta Sans', sans-serif";
-      ctx.fillText(artist, 65, 830);
+      ctx.fillStyle = "#ffffff"; ctx.font = "bold 64px 'Space Mono', monospace";
+      // Handle long titles by truncating
+      const displayTitle = title.length > 18 ? title.substring(0, 18) + "..." : title;
+      ctx.fillText(displayTitle, 60, H - 200);
+      ctx.fillStyle = accent; ctx.font = "600 28px 'Plus Jakarta Sans', sans-serif";
+      ctx.fillText(artist, 65, H - 150);
       ctx.shadowBlur = 0;
 
-      // Barcode (deterministik lewat rand)
-      ctx.fillStyle = "#ffffff"; ctx.fillRect(810, 760, 150, 95);
+      ctx.fillStyle = "#ffffff"; ctx.fillRect(W - 210, H - 200, 150, 95);
       ctx.fillStyle = "#000000";
-      for (let x = 820; x < 950; x += (rand() > 0.5 ? 4 : 9)) {
-        ctx.fillRect(x, 770, rand() * 3 + 1, 65);
+      for (let x = W - 200; x < W - 70; x += (rand() > 0.5 ? 4 : 9)) {
+        ctx.fillRect(x, H - 190, rand() * 3 + 1, 65);
       }
-      ctx.font = "12px 'Space Mono', monospace"; ctx.fillText("8  02434  10294  9", 825, 848);
+      ctx.font = "12px 'Space Mono', monospace"; ctx.fillText("8  02434  10294  9", W - 195, H - 112);
     }
 
     function generateFrontCoverTexture(themeIndex, customImg = null) {
@@ -199,21 +212,16 @@
       const ctx = canvas.getContext('2d');
       const rand = mulberry32(1000 + themeIndex * 17 + (customImg ? 1 : 0));
       const theme = albumThemes[themeIndex];
-      let title = theme.title, artist = theme.artist, accent = theme.accent;
 
       if (customImg) {
-        // Crop tengah 1:1
         const size = Math.min(customImg.width, customImg.height);
         const startX = (customImg.width - size) / 2;
         const startY = (customImg.height - size) / 2;
         ctx.drawImage(customImg, startX, startY, size, size, 0, 0, 1024, 1024);
 
-        // Vignette agar teks overlay terbaca
         const vig = ctx.createRadialGradient(512, 512, 200, 512, 512, 800);
-        vig.addColorStop(0, "rgba(0,0,0,0)"); vig.addColorStop(1, "rgba(0,0,0,0.5)");
+        vig.addColorStop(0, "rgba(0,0,0,0)"); vig.addColorStop(1, "rgba(0,0,0,0.6)");
         ctx.fillStyle = vig; ctx.fillRect(0,0,1024,1024);
-
-        title = "CUSTOM TRACK"; artist = "USER IMPORT"; accent = "#1db954";
       } else {
         const grad = ctx.createLinearGradient(0, 0, 1024, 1024);
         grad.addColorStop(0, theme.bg[0]); grad.addColorStop(0.5, theme.bg[1]); grad.addColorStop(1, theme.bg[2]);
@@ -230,7 +238,7 @@
         }
       }
 
-      drawOverlayUI(ctx, title, artist, accent, rand);
+      // HAPUS drawOverlayUI dari sini (agar teks tidak tertutup CD)
       return makeCanvasTexture(canvas, true);
     }
 
@@ -245,7 +253,6 @@
       ctx.fillStyle = "#0a0f18"; ctx.fillRect(0, 0, 1024, 1024);
 
       if (customImg) {
-        // Blur manual (downscale -> upscale), karena ctx.filter tidak didukung Safari
         const size = Math.min(customImg.width, customImg.height);
         const startX = (customImg.width - size) / 2; const startY = (customImg.height - size) / 2;
         const small = document.createElement('canvas'); small.width = 48; small.height = 48;
@@ -255,13 +262,13 @@
         ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(small, 0, 0, 1024, 1024);
         ctx.fillStyle = "rgba(10, 15, 24, 0.85)"; ctx.fillRect(0,0,1024,1024);
-        title = "CUSTOM TRACK"; artist = "USER IMPORT"; accent = "#1db954"; spineBg = "#111";
+        
+        title = customMetadata.title; artist = customMetadata.artist; accent = "#1db954"; spineBg = "#111";
       } else {
         ctx.fillStyle = "rgba(255,255,255,0.03)";
         for(let i=0; i<300; i++){ ctx.beginPath(); ctx.arc(rand()*1024, rand()*1024, rand()*1.5, 0, Math.PI*2); ctx.fill(); }
       }
 
-      // Spine: di sisi kanan tekstur = sisi engsel (kiri-depan casing) saat dilihat dari belakang
       const spineX = 1024 - 80;
       const spineGrad = ctx.createLinearGradient(spineX, 0, 1024, 0);
       spineGrad.addColorStop(0, "#000000"); spineGrad.addColorStop(1, spineBg);
@@ -269,14 +276,15 @@
       ctx.save();
       ctx.translate(spineX + 45, 980); ctx.rotate(-Math.PI / 2);
       ctx.fillStyle = "#ffffff"; ctx.font = "bold 26px 'Space Mono', monospace";
-      ctx.fillText(artist + "   —   " + title, 0, 0);
+      const displayTitle = title.length > 20 ? title.substring(0, 20) + "..." : title;
+      ctx.fillText(artist + "   —   " + displayTitle, 0, 0);
       ctx.restore();
 
       ctx.fillStyle = "#94a3b8"; ctx.font = "bold 28px 'Space Mono', monospace";
       ctx.fillText("INDEX // TRACKLIST", 120, 180);
 
       const tracks = customImg ?
-        [{n:"01", t:"IMPORTED AUDIO", l:"04:20"}, {n:"02", t:"UNKNOWN DATA", l:"03:15"}, {n:"03", t:"WAV. EXTRACT", l:"05:50"}] :
+        [{n:"01", t:title.length > 15 ? title.substring(0,15)+"..." : title, l:"04:20"}, {n:"02", t:"EXTRACT DATA", l:"03:15"}, {n:"03", t:"SYNTHETIC RHYTHM", l:"05:50"}] :
         [{n:"01", t:"NEON AWAKENING", l:"04:23"}, {n:"02", t:"DIGITAL HORIZONS", l:"05:12"}, {n:"03", t:"SYNTHETIC DREAMS", l:"03:45"}, {n:"04", t:"MIDNIGHT DRIFT", l:"06:01"}];
 
       for(let i = 0; i < tracks.length; i++) {
@@ -317,7 +325,7 @@
         ctx.globalCompositeOperation = 'source-over';
         ctx.restore();
 
-        title = "CUSTOM MEDIA"; artist = "USER"; accent = "#1db954";
+        title = customMetadata.title; artist = customMetadata.artist; accent = "#1db954";
       } else {
         const radialGrad = ctx.createRadialGradient(512, 512, 100, 512, 512, 500);
         radialGrad.addColorStop(0, theme.accent + "55"); radialGrad.addColorStop(1, "transparent");
@@ -333,141 +341,64 @@
       ctx.setLineDash([8, 12]);
       ctx.beginPath(); ctx.arc(512, 512, 280, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
 
+      // RESTORED: Multiple Concentric Decorative Rings
+      for (let r = 110; r < 210; r += 20) {
+        ctx.beginPath(); ctx.arc(512, 512, r, 0, Math.PI * 2);
+        ctx.lineWidth = 1; ctx.strokeStyle = "rgba(255, 255, 255, 0.15)"; ctx.stroke();
+      }
+      // Central Hub Marker
+      ctx.beginPath(); ctx.arc(512, 512, 70, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.8)"; ctx.lineWidth = 3; ctx.stroke();
+
       ctx.fillStyle = "#ffffff"; ctx.textAlign = "center"; ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 8;
-      ctx.font = "bold 56px 'Space Mono', monospace"; ctx.fillText(title, 512, 200); ctx.shadowBlur = 0;
+      ctx.font = "bold 56px 'Space Mono', monospace"; 
+      const displayTitle = title.length > 14 ? title.substring(0, 14) + "..." : title;
+      ctx.fillText(displayTitle, 512, 200); ctx.shadowBlur = 0;
       ctx.fillStyle = accent; ctx.font = "600 36px 'Plus Jakarta Sans', sans-serif"; ctx.fillText(artist, 512, 260);
 
-      // Dipakai langsung oleh ShaderMaterial (tanpa decode sRGB), jadi tetap non-sRGB
       return makeCanvasTexture(canvas, false);
     }
 
-    // ===================== LABEL DI LID TRANSPARAN =====================
-    // Canvas berasio sama dengan lid (2.8 x 2.65). Setiap bentuk menutupi kira-kira 1/4 lid.
+    // ===================== LABEL DI LID (dikosongkan untuk versi ini) =====================
+    // Kita hapus dulu teks label mika depan agar fokus ke artwork Spotify (Transparent Lid Clean)
     const LW = 1024, LH = 969;
-    let lidLabelTexture, lidLabelMesh, currentLidShape = 0;
-
-    // box = area aman untuk teks + barcode (sudah dihitung agar berada di dalam bentuk)
-    const lidShapes = [
-      { name: "Busur", barcode: "bottom",   // seperempat lingkaran di sudut kanan-atas
-        box: { x: LW - 400, y: 30, w: 370, h: 340 },
-        path(ctx) { const R = 620; ctx.moveTo(LW, 0); ctx.lineTo(LW - R, 0); ctx.arc(LW, 0, R, Math.PI, Math.PI / 2, true); ctx.closePath(); } },
-      { name: "Potong", barcode: "bottom",  // panel sudut terpotong, kanan-bawah
-        box: { x: LW - 480, y: LH - 360, w: 440, h: 330 },
-        path(ctx) { const x0 = LW - 520, y0 = LH - 490, c = 120; ctx.moveTo(x0 + c, y0); ctx.lineTo(LW, y0); ctx.lineTo(LW, LH); ctx.lineTo(x0, LH); ctx.lineTo(x0, y0 + c); ctx.closePath(); } },
-      { name: "Pita", barcode: "right",     // pita chevron di sepanjang bawah
-        box: { x: 40, y: LH - 225, w: LW - 170, h: 200 },
-        path(ctx) { const y0 = LH - 250, n = 90; ctx.moveTo(0, y0); ctx.lineTo(LW - n, y0); ctx.lineTo(LW, y0 + 125); ctx.lineTo(LW - n, LH); ctx.lineTo(0, LH); ctx.closePath(); } },
-      { name: "Hexagon", barcode: "bottom",  // hexagon di kiri-bawah
-        box: { x: 330 - 200, y: LH - 310 - 150, w: 400, h: 300 },
-        path(ctx) { const s = 309, cx = 330, cy = LH - 310; for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; const x = cx + s * Math.cos(a), y = cy + s * Math.sin(a); if (k) ctx.lineTo(x, y); else ctx.moveTo(x, y); } ctx.closePath(); } },
-      { name: "Lingkaran", barcode: "bottom", // lencana bulat di kiri-atas
-        box: { x: 310 - 170, y: 310 - 130, w: 340, h: 260 },
-        path(ctx) { ctx.arc(310, 310, 285, 0, Math.PI * 2); ctx.closePath(); } },
-      { name: "Segitiga", barcode: "bottom", // segitiga siku di sudut kanan-bawah
-        box: { x: LW - 370, y: LH - 330, w: 340, h: 300 },
-        path(ctx) { ctx.moveTo(LW, LH); ctx.lineTo(LW - 760, LH); ctx.lineTo(LW, LH - 760); ctx.closePath(); } }
-    ];
-
-    function hexToRgba(hex, a) {
-      const n = parseInt(hex.slice(1), 16);
-      return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
-    }
-
-    function wrapLines(ctx, text, maxW) {
-      const words = text.split(' '); const lines = []; let line = '';
-      for (const w of words) {
-        const test = line ? line + ' ' + w : w;
-        if (line && ctx.measureText(test).width > maxW) { lines.push(line); line = w; } else { line = test; }
-      }
-      if (line) lines.push(line);
-      return lines;
-    }
-
-    function drawBarcode(ctx, x, y, w, h, rand) {
-      ctx.fillStyle = "#ffffff"; ctx.fillRect(x, y, w, h);
-      ctx.fillStyle = "#000000";
-      const barH = h - 8 - 16;
-      for (let bx = x + 10; bx < x + w - 10; bx += (rand() > 0.5 ? 4 : 7)) ctx.fillRect(bx, y + 8, rand() * 2.5 + 1, barH);
-      ctx.font = "11px 'Space Mono', monospace"; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
-      ctx.fillText("8  02434  10294  9", x + 12, y + h - 5);
-    }
-
-    function drawLidLabelContent(ctx, box, mode, title, artist, accent, rand) {
-      const bw = 170, bh = 70, gap = 14;
-      let bx, by, textW, textH;
-      if (mode === 'right') { bx = box.x + box.w - bw; by = box.y + (box.h - bh) / 2; textW = box.w - bw - 30; textH = box.h; }
-      else { bx = box.x + box.w - bw; by = box.y + box.h - bh; textW = box.w; textH = box.h - bh - gap; }
-      drawBarcode(ctx, bx, by, bw, bh, rand);
-
-      // Cari ukuran judul terbesar yang muat (maks 3 baris)
-      ctx.textBaseline = 'top'; ctx.textAlign = 'left';
-      let size = 64, lines = [], artistSize = 30;
-      while (true) {
-        ctx.font = `bold ${size}px 'Space Mono', monospace`;
-        lines = wrapLines(ctx, title, textW);
-        artistSize = Math.max(18, Math.min(34, Math.round(size * 0.55)));
-        const widest = Math.max(...lines.map(l => ctx.measureText(l).width));
-        const total = 18 + lines.length * size * 1.12 + 10 + artistSize * 1.2;
-        if ((lines.length <= 3 && widest <= textW && total <= textH) || size <= 22) break;
-        size -= 2;
-      }
-      ctx.font = `600 ${artistSize}px 'Plus Jakarta Sans', sans-serif`;
-      while (artistSize > 14 && ctx.measureText(artist).width > textW) {
-        artistSize -= 2; ctx.font = `600 ${artistSize}px 'Plus Jakarta Sans', sans-serif`;
-      }
-
-      const blockH = 18 + lines.length * size * 1.12 + 10 + artistSize * 1.2;
-      let y = mode === 'right' ? box.y + Math.max(0, (textH - blockH) / 2) : box.y;
-      ctx.fillStyle = accent; ctx.fillRect(box.x, y, 64, 6); y += 18;
-      ctx.fillStyle = "#ffffff"; ctx.font = `bold ${size}px 'Space Mono', monospace`;
-      for (const l of lines) { ctx.fillText(l, box.x, y); y += size * 1.12; }
-      y += 10;
-      ctx.fillStyle = accent; ctx.font = `600 ${artistSize}px 'Plus Jakarta Sans', sans-serif`;
-      ctx.fillText(artist, box.x, y);
-    }
-
-    function generateLidLabelTexture(themeIndex, customImg = null, shapeIndex = 0) {
+    let lidLabelTexture, lidLabelMesh;
+    
+    function generateLidLabelTexture() {
       const canvas = document.createElement('canvas');
       canvas.width = LW; canvas.height = LH;
       const ctx = canvas.getContext('2d');
+      
+      const themeIndex = currentCoverIndex;
+      const customImg = currentCustomImage;
+      const rand = mulberry32(1000 + themeIndex * 17 + (customImg ? 1 : 0));
       const theme = albumThemes[themeIndex];
-      let title = theme.title, artist = theme.artist, accent = theme.accent, c0 = theme.bg[0], c1 = theme.bg[1];
-      if (customImg) { title = "CUSTOM TRACK"; artist = "USER IMPORT"; accent = "#1db954"; c0 = "#0f172a"; c1 = "#1e293b"; }
-      const shape = lidShapes[shapeIndex];
-      const rand = mulberry32(9000 + shapeIndex * 13 + themeIndex * 7 + (customImg ? 1 : 0));
-
-      // Bentuk + isi gradien semi-transparan
-      ctx.beginPath(); shape.path(ctx);
-      const grad = ctx.createLinearGradient(0, 0, LW, LH);
-      grad.addColorStop(0, hexToRgba(c0, 0.92)); grad.addColorStop(1, hexToRgba(c1, 0.92));
-      ctx.fillStyle = grad; ctx.fill();
-
-      // Tekstur garis diagonal halus di dalam bentuk
-      ctx.save(); ctx.clip();
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.06)"; ctx.lineWidth = 2;
-      for (let i = -LH; i < LW + LH; i += 22) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + LH, LH); ctx.stroke(); }
-      ctx.restore();
-
-      // Garis tepi aksen
-      ctx.beginPath(); shape.path(ctx);
-      ctx.lineWidth = 5; ctx.strokeStyle = accent; ctx.stroke();
-
-      drawLidLabelContent(ctx, shape.box, shape.barcode, title, artist, accent, rand);
+      
+      let title = theme.title, artist = theme.artist, accent = theme.accent;
+      
+      if (customImg) {
+        title = customMetadata.title; 
+        artist = customMetadata.artist; 
+        accent = "#1db954"; // Spotify Green
+      }
+      
+      // CETAK TEKS DI SINI (Di atas mika transparan)
+      drawOverlayUI(ctx, title, artist, accent, rand);
+      
       return makeCanvasTexture(canvas, true);
     }
 
     function refreshLidLabel() {
       const old = lidLabelTexture;
-      lidLabelTexture = generateLidLabelTexture(currentCoverIndex, currentCustomImage, currentLidShape);
+      lidLabelTexture = generateLidLabelTexture();
       if (lidLabelMesh) { lidLabelMesh.material.map = lidLabelTexture; lidLabelMesh.material.needsUpdate = true; }
       if (old) old.dispose();
-      const btn = document.getElementById('changeLabelBtn');
-      if (btn) btn.textContent = 'Label: ' + lidShapes[currentLidShape].name;
-      perf.ignore = Math.max(perf.ignore, 25);
       invalidate();
     }
 
-    // Studio gelap dengan softbox, strip light, dan tabung cahaya tipis (kilau tajam di tepi akrilik)
+    // ==========================================
+    // 3. MATERIAL & 3D RENDERING
+    // ==========================================
     function createProceduralEnvMap() {
       const W = 1024, H = 512;
       const canvas = document.createElement('canvas');
@@ -482,12 +413,12 @@
       const box = (x, y, w, h, color, blur) => {
         ctx.shadowColor = color; ctx.shadowBlur = blur; ctx.fillStyle = color; ctx.fillRect(x, y, w, h);
       };
-      box(250, 14, 520, 70, '#ffffff', 40);      // softbox besar di atas
-      box(120, 150, 240, 120, '#ffffff', 30);    // key light kiri
-      box(790, 190, 90, 210, '#e2ecff', 28);     // strip kanan (dingin)
-      box(560, 200, 70, 150, '#cfe3ff', 24);     // rim light belakang
-      box(440, 340, 140, 36, '#ffe6c4', 24);     // kicker hangat dari bawah
-      box(40, 120, 5, 280, '#ffffff', 10);       // tabung cahaya tipis
+      box(250, 14, 520, 70, '#ffffff', 40);      
+      box(120, 150, 240, 120, '#ffffff', 30);    
+      box(790, 190, 90, 210, '#e2ecff', 28);     
+      box(560, 200, 70, 150, '#cfe3ff', 24);     
+      box(440, 340, 140, 36, '#ffe6c4', 24);     
+      box(40, 120, 5, 280, '#ffffff', 10);       
       box(700, 120, 5, 280, '#ffffff', 10);
       box(930, 140, 5, 260, '#ffffff', 10);
       ctx.shadowBlur = 0;
@@ -502,7 +433,6 @@
       return texture;
     }
 
-    // Peta kekasaran akrilik: noda sidik jari, kabut tipis, dan goresan mikro (tileable)
     let acrylicRoughTex = null;
     function getAcrylicRoughnessMap() {
       if (acrylicRoughTex) return acrylicRoughTex;
@@ -512,7 +442,6 @@
       const rand = mulberry32(4242);
       ctx.fillStyle = 'rgb(10,10,10)'; ctx.fillRect(0, 0, S, S);
 
-      // gambar ulang di posisi tergeser agar tepi texture menyambung saat di-tile
       const wrapDraw = (fn) => {
         for (const ox of [-S, 0, S]) for (const oy of [-S, 0, S]) { ctx.save(); ctx.translate(ox, oy); fn(); ctx.restore(); }
       };
@@ -527,7 +456,7 @@
       ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
       for (let i = 0; i < 90; i++) {
         const x = rand() * S, y = rand() * S;
-        const ang = i % 4 === 0 ? rand() * Math.PI : 0.6 + (rand() - 0.5) * 0.5; // sebagian besar searah (bekas lap)
+        const ang = i % 4 === 0 ? rand() * Math.PI : 0.6 + (rand() - 0.5) * 0.5; 
         const len = 25 + rand() * 140, w = 0.5 + rand() * 0.9, a = 0.15 + rand() * 0.35;
         wrapDraw(() => {
           ctx.strokeStyle = `rgba(190,190,190,${a})`; ctx.lineWidth = w;
@@ -543,7 +472,6 @@
       return tex;
     }
 
-    // Gabungkan banyak BufferGeometry jadi satu (1 draw call)
     function mergeGeometries(geos) {
       const parts = geos.map(g => g.index ? g.toNonIndexed() : g);
       const total = parts.reduce((n, g) => n + g.attributes.position.count, 0);
@@ -563,7 +491,6 @@
       return out;
     }
 
-    // Bayangan lembut di bawah casing (ikut rotasi, melebar saat dibuka)
     function createGroundShadow() {
       const c = document.createElement('canvas'); c.width = c.height = 256;
       const g = c.getContext('2d');
@@ -584,13 +511,11 @@
       shadowGroup.rotation.y = currentRotY;
       shadowMesh.position.x = -open * 1.1;
       shadowMesh.scale.set(3.8 + open * 2.0, 1.6 + open * 1.0, 1);
-      shadowMesh.material.opacity = 0.42 - bobY * 1.2; // makin tinggi melayang, makin samar
+      shadowMesh.material.opacity = 0.42 - bobY * 1.2;
     }
 
     function createCDMaterial(coverTexture) {
       const uniforms = { uLightPos: { value: new THREE.Vector3(4, 8, 6) }, uCoverTex: { value: coverTexture } };
-      // Semua perhitungan arah (N, V, L, tangent) dilakukan di VIEW SPACE agar konsisten.
-      // vSide = normal.z lokal: +1 = sisi label (depan), -1 = sisi belakang disc.
       const vertexShader = `
         varying vec3 vNormal; varying vec3 vViewPosition; varying vec3 vTangent; varying vec3 vLocalPosition; varying float vSide;
         void main() {
@@ -625,7 +550,6 @@
           vec3 finalColor = vec3(0.0); float alpha = 1.0;
           if (dist < 0.08) { finalColor = vec3(0.95); alpha = 0.2 + fresnel * 0.7; }
           else if (isBack) {
-            // Sisi bawah CD: perak polos berpelangi, tanpa artwork (tidak mirror)
             finalColor = mix(silverAlu, rainbow, 0.55) * (0.55 + 0.45 * diffuse) + spec * 1.2;
           }
           else if (dist < 0.16) { finalColor = mix(silverAlu, rainbow, 0.7) * (0.6 + 0.4 * diffuse); finalColor += spec * 1.5; }
@@ -661,7 +585,6 @@
         clearcoat: 1.0, clearcoatRoughness: 1.0, clearcoatRoughnessMap: acrylicRoughMap
       };
       const clearAcrylicMaterial = new THREE.MeshPhysicalMaterial(Object.assign({ color: 0xffffff }, acrylicBase));
-      // Bagian tebal (rim & tray) sedikit bertint kehijauan seperti akrilik asli
       const clearEdgeMaterial = new THREE.MeshPhysicalMaterial(Object.assign({}, acrylicBase, { color: 0xdcf1ec, transmission: 0.93 }));
 
       const caseW = 2.8, caseH = 2.65, caseD = 0.28, t = 0.04;
@@ -681,7 +604,6 @@
       const backPlate = new THREE.Mesh(plateGeo, clearAcrylicMaterial); backPlate.position.z = -caseD/2 + t/2; backGroup.add(backPlate);
       const backRim = new THREE.Mesh(rimGeo, clearEdgeMaterial); backRim.position.z = -caseD/4; backGroup.add(backRim);
 
-      // Generate Textures based on current state (Procedural OR Custom Uploaded)
       frontCoverTexture = generateFrontCoverTexture(currentCoverIndex, currentCustomImage);
       backCoverTexture = generateBackCoverTexture(currentCoverIndex, currentCustomImage);
 
@@ -699,7 +621,6 @@
       const bracketDistX = caseW/2 - rimThick - 0.12, bracketDistY = caseH/2 - rimThick - 0.12;
       const bLength = 0.45, bThick = 0.06, bHeight = 0.12;
 
-      // Seluruh komponen tray digabung jadi SATU mesh (1 draw call, bukan ~17)
       const frameParts = [];
       [[1, 1], [-1, 1], [1, -1], [-1, -1]].forEach(([dirX, dirY]) => {
         frameParts.push(new THREE.BoxGeometry(bLength, bThick, bHeight).translate(dirX * (bracketDistX - bLength/2 + bThick/2), dirY * bracketDistY, 0));
@@ -727,8 +648,7 @@
       const lidPlate = new THREE.Mesh(plateGeo, clearAcrylicMaterial); lidPlate.position.set(caseW/2, 0, caseD/2 - t/2); caseLidGroup.add(lidPlate);
       const lidRim = new THREE.Mesh(rimGeo, clearEdgeMaterial); lidRim.position.set(caseW/2, 0, caseD/4); caseLidGroup.add(lidRim);
 
-      // Label cetak di permukaan luar lid (ikut berputar bersama lid)
-      lidLabelTexture = generateLidLabelTexture(currentCoverIndex, currentCustomImage, currentLidShape);
+      lidLabelTexture = generateLidLabelTexture();
       lidLabelMesh = new THREE.Mesh(
         new THREE.PlaneGeometry(caseW, caseH),
         new THREE.MeshBasicMaterial({ map: lidLabelTexture, transparent: true, depthWrite: false, side: THREE.DoubleSide })
@@ -765,7 +685,6 @@
       window.addEventListener('resize', onWindowResize);
     }
 
-    // Crop tengah 1:1 dan batasi sisi maks 2048px: hemat memori & waktu gambar ulang tekstur
     function prepareCustomImage(img, maxSide = 2048) {
       const size = Math.min(img.width, img.height);
       const target = Math.min(size, maxSide);
@@ -791,13 +710,13 @@
 
       if (cdIridescenceMaterial) { cdIridescenceMaterial.uniforms.uCoverTex.value = discTexture; }
 
-      // Lepas VRAM tekstur lama
       oldTextures.forEach(t => { if (t) t.dispose(); });
       refreshLidLabel();
 
       if(currentCustomImage) {
-         document.getElementById('albumTitleDisplay').innerText = "CUSTOM UPLOAD";
-         document.getElementById('albumArtistDisplay').innerText = "USER DEFINED";
+         document.getElementById('albumTitleDisplay').innerText = customMetadata.title;
+         document.getElementById('albumArtistDisplay').innerText = customMetadata.artist;
+         // Set dark background for custom tracks
          document.body.style.backgroundColor = "#242424";
       } else {
          const theme = albumThemes[currentCoverIndex];
@@ -807,7 +726,6 @@
       }
     }
 
-    // Pointer Events: satu jalur untuk mouse, sentuh, dan pen (tidak ada event tiruan ganda di HP)
     function setupInteractions() {
       const container = document.getElementById('canvas-container');
       let startX = 0, startY = 0, hasDragged = false, activePointerId = null;
@@ -841,7 +759,7 @@
 
     function toggleCase() {
       isOpen = !isOpen;
-      if (!isOpen) isDiscOut = false; // disc kembali ke tray dulu, baru lid menutup
+      if (!isOpen) isDiscOut = false; 
       document.getElementById('caseStateText').innerText = isOpen ? "Tutup Casing" : "Buka Casing";
       updateEjectButton();
       invalidate();
@@ -849,7 +767,7 @@
 
     function toggleDiscOut() {
       isDiscOut = !isDiscOut;
-      if (isDiscOut && !isOpen) toggleCase(); // buka casing dulu; disc keluar setelah lid terbuka
+      if (isDiscOut && !isOpen) toggleCase(); 
       updateEjectButton();
       invalidate();
     }
@@ -857,6 +775,58 @@
     function updateEjectButton() {
       const b = document.getElementById('ejectDiscBtn');
       if (b) b.textContent = isDiscOut ? 'Masukkan CD' : 'Keluarkan CD';
+    }
+
+    // ==========================================
+    // 4. LOGIKA SPOTIFY API (Menggunakan Token Langsung)
+    // ==========================================
+    async function applySpotifyTrack(track) {
+      const trackTitle = track.name.toUpperCase();
+      const trackArtist = track.artists.map(a => a.name).join(', ').toUpperCase();
+      const artUrl = track.album.images[0].url; 
+
+      customMetadata.title = trackTitle;
+      customMetadata.artist = trackArtist;
+      
+      const img = new Image();
+      img.crossOrigin = "anonymous"; 
+      img.onload = () => {
+        currentCustomImage = prepareCustomImage(img);
+        updateTextures();
+        document.getElementById('spotifyBtnText').innerText = `Track ${currentTrackIndex === 0 ? topTracksData.length : currentTrackIndex} Synced!`;
+      };
+      img.src = artUrl;
+    }
+
+    async function fetchAndApplyTopTracks() {
+      document.getElementById('spotifyBtnText').innerText = 'Memuat...';
+      try {
+        // Fetch data hanya di klik pertama untuk menghemat API call
+        if (topTracksData.length === 0) {
+          const res = await fetch('https://api.spotify.com/v1/me/top/tracks?time_range=long_term&limit=5', {
+            headers: { 'Authorization': 'Bearer ' + spotifyAccessToken },
+            method: 'GET'
+          });
+          
+          if (!res.ok) throw new Error('Token mungkin kedaluwarsa');
+          const data = await res.json();
+          topTracksData = data.items;
+        }
+
+        if (topTracksData && topTracksData.length > 0) {
+          const track = topTracksData[currentTrackIndex];
+          await applySpotifyTrack(track);
+          
+          // Loop ke track berikutnya di klik selanjutnya
+          currentTrackIndex = (currentTrackIndex + 1) % topTracksData.length;
+        } else {
+          document.getElementById('spotifyBtnText').innerText = 'Data Kosong';
+        }
+      } catch (err) {
+        console.error("Gagal menarik data dari Spotify", err);
+        alert("Gagal memuat. Pastikan Token Spotify masih berlaku (Token Web API kadaluwarsa setelah 1 jam).");
+        document.getElementById('spotifyBtnText').innerText = 'Sync Error';
+      }
     }
 
     function setupUIEvents() {
@@ -868,12 +838,21 @@
       });
       document.getElementById('changeCoverBtn').addEventListener('click', (e) => {
         e.stopPropagation(); 
-        currentCustomImage = null; // Hapus image custom, kembali ke prosedural
+        currentCustomImage = null; 
         currentCoverIndex = (currentCoverIndex + 1) % albumThemes.length;
         updateTextures();
       });
       
-      // LOGIC UNTUK UPLOAD GAMBAR CUSTOM
+      // RESTORED: Event Click Tombol Label
+      const labelBtn = document.getElementById('changeLabelBtn');
+      if(labelBtn) {
+        labelBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          currentLidShape = (currentLidShape + 1) % lidShapes.length;
+          refreshLidLabel();
+        });
+      }
+      
       const fileInput = document.getElementById('imageUploadInput');
       document.getElementById('uploadImageBtn').addEventListener('click', (e) => {
         e.stopPropagation();
@@ -886,25 +865,25 @@
          const img = new Image();
          img.onload = () => {
             URL.revokeObjectURL(url);
+            // Reset metadata ke local file generic text
+            customMetadata = { title: "LOCAL UPLOAD", artist: "USER FILE" };
             currentCustomImage = prepareCustomImage(img);
             updateTextures();
          };
          img.onerror = () => {
             URL.revokeObjectURL(url);
-            alert('Gagal memuat gambar. Pastikan file adalah gambar yang valid.');
+            alert('Gagal memuat gambar.');
          };
          img.src = url;
-         fileInput.value = ''; // agar memilih file yang sama lagi tetap memicu event
+         fileInput.value = ''; 
       });
 
-      document.getElementById('changeLabelBtn').addEventListener('click', (e) => {
+      document.getElementById('spotifySyncBtn').addEventListener('click', (e) => {
         e.stopPropagation();
-        currentLidShape = (currentLidShape + 1) % lidShapes.length;
-        refreshLidLabel();
+        fetchAndApplyTopTracks();
       });
 
       document.getElementById('ejectDiscBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleDiscOut(); });
-
       document.getElementById('resetCamBtn').addEventListener('click', (e) => { e.stopPropagation(); targetRotX = 0.25; targetRotY = -0.45; invalidate(); });
     }
 
@@ -926,10 +905,9 @@
       applyPixelRatio(); invalidate();
     }
 
-    // Resolusi dinamis: jika rata-rata < ~40 FPS, turunkan pixel ratio bertahap (min 1)
     function adaptPixelRatio(dt) {
-      if (dt > 0.1) { perf.frames = 0; perf.acc = 0; return; } // jeda panjang (tab disembunyikan, dsb.)
-      if (perf.ignore > 0) { perf.ignore--; return; }          // abaikan lonjakan awal (kompilasi shader, upload tekstur)
+      if (dt > 0.1) { perf.frames = 0; perf.acc = 0; return; } 
+      if (perf.ignore > 0) { perf.ignore--; return; }          
       perf.acc += dt; perf.frames++;
       if (perf.frames >= 40) {
         const avg = perf.acc / perf.frames;
@@ -941,7 +919,6 @@
       }
     }
 
-    // Loop hanya berjalan saat ada yang bergerak; saat semuanya diam, render berhenti total.
     function animate(now) {
       rafId = 0;
       const hadPrev = lastFrameTime > 0;
@@ -949,7 +926,7 @@
       lastFrameTime = now;
       if (hadPrev) adaptPixelRatio(rawDt);
 
-      const f = Math.min(rawDt, 0.05) * 60; // 1.0 pada 60 FPS -> gerakan sama di 30/60/120 Hz
+      const f = Math.min(rawDt, 0.05) * 60; 
       const approach = (cur, tgt, rate, eps = 0.0005) => {
         const n = cur + (tgt - cur) * (1 - Math.pow(1 - rate, f));
         return Math.abs(tgt - n) < eps ? tgt : n;
@@ -958,13 +935,11 @@
       currentRotX = approach(currentRotX, targetRotX, 0.08);
       currentRotY = approach(currentRotY, targetRotY, 0.08);
 
-      // Lid baru menutup setelah disc kembali ke tray
       const holdOpen = isOpen || discOutAmt > 0.12;
       targetLidAngle = holdOpen ? LID_OPEN_ANGLE : 0.0;
       const targetPosX = holdOpen ? OPEN_OFFSET_X : 0.0;
       currentLidAngle = approach(currentLidAngle, targetLidAngle, 0.1);
 
-      // Disc hanya keluar setelah lid hampir terbuka penuh
       const openProgress = currentLidAngle / LID_OPEN_ANGLE;
       const discTarget = (isDiscOut && isOpen && openProgress > 0.85) ? 1 : 0;
       discOutAmt = approach(discOutAmt, discTarget, 0.07, 0.0015);
@@ -981,7 +956,6 @@
       if (caseLidGroup) caseLidGroup.rotation.y = currentLidAngle;
 
       if (cdDiscGroup) {
-        // Angkat lurus dari hub dulu (lift), baru naik & miring (rise)
         const lift = smoothstep(0, 0.45, discOutAmt), rise = smoothstep(0.3, 1, discOutAmt);
         cdDiscGroup.position.set(0, 1.15 * rise, cdDiscGroup.userData.baseZ + 0.6 * lift);
         cdDiscGroup.rotation.x = -0.5 * rise;
@@ -999,7 +973,6 @@
     }
 
     window.onload = async function() {
-      // Pastikan font sudah siap sebelum digambar ke canvas
       try {
         await Promise.race([
           Promise.all([
