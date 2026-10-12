@@ -73,6 +73,8 @@
         </button>
 
         <button id="changeLabelBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">Label: Busur</button>
+
+        <button id="ejectDiscBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">Keluarkan CD</button>
         
         <!-- File Input Hidden -->
         <input type="file" id="imageUploadInput" accept="image/*" class="hidden">
@@ -125,6 +127,16 @@
 
     // Offset geser casing saat terbuka (satu sumber nilai agar konsisten)
     const OPEN_OFFSET_X = 1.2;
+    const LID_OPEN_ANGLE = -Math.PI * 0.78;
+
+    // --- State animasi & performa ---
+    let isDiscOut = false, discOutAmt = 0, bobAmp = 1;
+    let rafId = 0, lastFrameTime = 0;
+    let shadowGroup, shadowMesh;
+    let maxPixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+    let currentPixelRatio = maxPixelRatio;
+    const perf = { frames: 0, acc: 0, ignore: 90 };
+    const smoothstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
     // PRNG ber-seed: barcode/blob/bintang tidak berubah tiap tekstur dibuat ulang
     function mulberry32(a) {
@@ -451,23 +463,128 @@
       if (old) old.dispose();
       const btn = document.getElementById('changeLabelBtn');
       if (btn) btn.textContent = 'Label: ' + lidShapes[currentLidShape].name;
+      perf.ignore = Math.max(perf.ignore, 25);
+      invalidate();
     }
 
+    // Studio gelap dengan softbox, strip light, dan tabung cahaya tipis (kilau tajam di tepi akrilik)
     function createProceduralEnvMap() {
+      const W = 1024, H = 512;
       const canvas = document.createElement('canvas');
-      canvas.width = 1024; canvas.height = 512;
+      canvas.width = W; canvas.height = H;
       const ctx = canvas.getContext('2d');
-      const grad = ctx.createLinearGradient(0, 0, 0, 512);
-      grad.addColorStop(0, '#1a1a24'); grad.addColorStop(0.5, '#050508'); grad.addColorStop(1, '#0f0f15');
-      ctx.fillStyle = grad; ctx.fillRect(0, 0, 1024, 512);
-      
-      ctx.shadowColor = 'rgba(255, 255, 255, 0.8)'; ctx.shadowBlur = 30;
-      ctx.fillStyle = '#ffffff'; ctx.fillRect(150, 150, 250, 120);
-      ctx.fillStyle = '#f8fafc'; ctx.fillRect(400, -20, 220, 80);
-      ctx.fillStyle = '#e2e8f0'; ctx.fillRect(800, 200, 100, 200);
+
+      const grad = ctx.createLinearGradient(0, 0, 0, H);
+      grad.addColorStop(0, '#222836'); grad.addColorStop(0.42, '#0b0d13');
+      grad.addColorStop(0.5, '#171b25'); grad.addColorStop(1, '#07080c');
+      ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+
+      const box = (x, y, w, h, color, blur) => {
+        ctx.shadowColor = color; ctx.shadowBlur = blur; ctx.fillStyle = color; ctx.fillRect(x, y, w, h);
+      };
+      box(250, 14, 520, 70, '#ffffff', 40);      // softbox besar di atas
+      box(120, 150, 240, 120, '#ffffff', 30);    // key light kiri
+      box(790, 190, 90, 210, '#e2ecff', 28);     // strip kanan (dingin)
+      box(560, 200, 70, 150, '#cfe3ff', 24);     // rim light belakang
+      box(440, 340, 140, 36, '#ffe6c4', 24);     // kicker hangat dari bawah
+      box(40, 120, 5, 280, '#ffffff', 10);       // tabung cahaya tipis
+      box(700, 120, 5, 280, '#ffffff', 10);
+      box(930, 140, 5, 260, '#ffffff', 10);
+      ctx.shadowBlur = 0;
+
+      const glow = ctx.createLinearGradient(0, H * 0.42, 0, H * 0.58);
+      glow.addColorStop(0, 'rgba(120,140,180,0)'); glow.addColorStop(0.5, 'rgba(120,140,180,0.12)'); glow.addColorStop(1, 'rgba(120,140,180,0)');
+      ctx.fillStyle = glow; ctx.fillRect(0, H * 0.42, W, H * 0.16);
 
       const texture = new THREE.CanvasTexture(canvas);
-      texture.mapping = THREE.EquirectangularReflectionMapping; texture.encoding = THREE.sRGBEncoding; return texture;
+      texture.mapping = THREE.EquirectangularReflectionMapping;
+      texture.encoding = THREE.sRGBEncoding;
+      return texture;
+    }
+
+    // Peta kekasaran akrilik: noda sidik jari, kabut tipis, dan goresan mikro (tileable)
+    let acrylicRoughTex = null;
+    function getAcrylicRoughnessMap() {
+      if (acrylicRoughTex) return acrylicRoughTex;
+      const S = 512;
+      const canvas = document.createElement('canvas'); canvas.width = S; canvas.height = S;
+      const ctx = canvas.getContext('2d');
+      const rand = mulberry32(4242);
+      ctx.fillStyle = 'rgb(10,10,10)'; ctx.fillRect(0, 0, S, S);
+
+      // gambar ulang di posisi tergeser agar tepi texture menyambung saat di-tile
+      const wrapDraw = (fn) => {
+        for (const ox of [-S, 0, S]) for (const oy of [-S, 0, S]) { ctx.save(); ctx.translate(ox, oy); fn(); ctx.restore(); }
+      };
+      const blob = (x, y, r, a) => {
+        const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+        g.addColorStop(0, `rgba(110,110,110,${a})`); g.addColorStop(1, 'rgba(110,110,110,0)');
+        ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2);
+      };
+      for (let i = 0; i < 5; i++) { const x = rand() * S, y = rand() * S, r = 100 + rand() * 100; wrapDraw(() => blob(x, y, r, 0.07)); }
+      for (let i = 0; i < 16; i++) { const x = rand() * S, y = rand() * S, r = 18 + rand() * 60, a = 0.10 + rand() * 0.22; wrapDraw(() => blob(x, y, r, a)); }
+
+      ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
+      for (let i = 0; i < 90; i++) {
+        const x = rand() * S, y = rand() * S;
+        const ang = i % 4 === 0 ? rand() * Math.PI : 0.6 + (rand() - 0.5) * 0.5; // sebagian besar searah (bekas lap)
+        const len = 25 + rand() * 140, w = 0.5 + rand() * 0.9, a = 0.15 + rand() * 0.35;
+        wrapDraw(() => {
+          ctx.strokeStyle = `rgba(190,190,190,${a})`; ctx.lineWidth = w;
+          ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(ang) * len, y + Math.sin(ang) * len); ctx.stroke();
+        });
+      }
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(0.5, 0.5);
+      tex.anisotropy = 4;
+      acrylicRoughTex = tex;
+      return tex;
+    }
+
+    // Gabungkan banyak BufferGeometry jadi satu (1 draw call)
+    function mergeGeometries(geos) {
+      const parts = geos.map(g => g.index ? g.toNonIndexed() : g);
+      const total = parts.reduce((n, g) => n + g.attributes.position.count, 0);
+      const pos = new Float32Array(total * 3), nor = new Float32Array(total * 3), uv = new Float32Array(total * 2);
+      let o = 0;
+      for (const g of parts) {
+        pos.set(g.attributes.position.array, o * 3);
+        nor.set(g.attributes.normal.array, o * 3);
+        if (g.attributes.uv) uv.set(g.attributes.uv.array, o * 2);
+        o += g.attributes.position.count;
+      }
+      const out = new THREE.BufferGeometry();
+      out.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      out.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+      out.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+      geos.forEach(g => g.dispose()); parts.forEach(g => g.dispose());
+      return out;
+    }
+
+    // Bayangan lembut di bawah casing (ikut rotasi, melebar saat dibuka)
+    function createGroundShadow() {
+      const c = document.createElement('canvas'); c.width = c.height = 256;
+      const g = c.getContext('2d');
+      const grad = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+      grad.addColorStop(0, 'rgba(0,0,0,0.55)'); grad.addColorStop(0.45, 'rgba(0,0,0,0.25)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = grad; g.fillRect(0, 0, 256, 256);
+      const mat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, toneMapped: false, opacity: 0.4 });
+      shadowMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat);
+      shadowMesh.rotation.x = -Math.PI / 2; shadowMesh.renderOrder = -1;
+      shadowGroup = new THREE.Group(); shadowGroup.position.y = -1.95; shadowGroup.add(shadowMesh);
+      scene.add(shadowGroup);
+    }
+
+    function updateShadow(bobY) {
+      if (!shadowGroup || !cdAssembly) return;
+      const open = Math.min(1, Math.max(0, currentLidAngle / LID_OPEN_ANGLE));
+      shadowGroup.position.x = cdAssembly.position.x;
+      shadowGroup.rotation.y = currentRotY;
+      shadowMesh.position.x = -open * 1.1;
+      shadowMesh.scale.set(3.8 + open * 2.0, 1.6 + open * 1.0, 1);
+      shadowMesh.material.opacity = 0.42 - bobY * 1.2; // makin tinggi melayang, makin samar
     }
 
     function createCDMaterial(coverTexture) {
@@ -536,10 +653,16 @@
       if (cdAssembly) scene.remove(cdAssembly);
       cdAssembly = new THREE.Group(); scene.add(cdAssembly);
 
-      const clearAcrylicMaterial = new THREE.MeshPhysicalMaterial({
-        color: 0xffffff, transmission: 1.0, opacity: 1, transparent: true, depthWrite: false, roughness: 0.03, metalness: 0.02,
-        ior: 1.52, reflectivity: 1.0, thickness: 0.15, clearcoat: 1.0, clearcoatRoughness: 0.02, side: THREE.DoubleSide
-      });
+      const acrylicRoughMap = getAcrylicRoughnessMap();
+      const acrylicBase = {
+        transmission: 1.0, opacity: 1, transparent: true, depthWrite: false, metalness: 0.02,
+        ior: 1.52, reflectivity: 1.0, side: THREE.DoubleSide, envMapIntensity: 1.15,
+        roughness: 1.0, roughnessMap: acrylicRoughMap,
+        clearcoat: 1.0, clearcoatRoughness: 1.0, clearcoatRoughnessMap: acrylicRoughMap
+      };
+      const clearAcrylicMaterial = new THREE.MeshPhysicalMaterial(Object.assign({ color: 0xffffff }, acrylicBase));
+      // Bagian tebal (rim & tray) sedikit bertint kehijauan seperti akrilik asli
+      const clearEdgeMaterial = new THREE.MeshPhysicalMaterial(Object.assign({}, acrylicBase, { color: 0xdcf1ec, transmission: 0.93 }));
 
       const caseW = 2.8, caseH = 2.65, caseD = 0.28, t = 0.04;
       const cornerRadius = 0.12, rimThick = 0.045, edgeDepth = caseD / 2;
@@ -556,7 +679,7 @@
 
       const backGroup = new THREE.Group();
       const backPlate = new THREE.Mesh(plateGeo, clearAcrylicMaterial); backPlate.position.z = -caseD/2 + t/2; backGroup.add(backPlate);
-      const backRim = new THREE.Mesh(rimGeo, clearAcrylicMaterial); backRim.position.z = -caseD/4; backGroup.add(backRim);
+      const backRim = new THREE.Mesh(rimGeo, clearEdgeMaterial); backRim.position.z = -caseD/4; backGroup.add(backRim);
 
       // Generate Textures based on current state (Procedural OR Custom Uploaded)
       frontCoverTexture = generateFrontCoverTexture(currentCoverIndex, currentCustomImage);
@@ -576,30 +699,23 @@
       const bracketDistX = caseW/2 - rimThick - 0.12, bracketDistY = caseH/2 - rimThick - 0.12;
       const bLength = 0.45, bThick = 0.06, bHeight = 0.12;
 
-      const corners = [ [1, 1], [-1, 1], [1, -1], [-1, -1] ];
-      corners.forEach(([dirX, dirY]) => {
-        const bL = new THREE.Group();
-        const hBar = new THREE.Mesh(new THREE.BoxGeometry(bLength, bThick, bHeight), clearAcrylicMaterial);
-        hBar.position.set(dirX * (bracketDistX - bLength/2 + bThick/2), dirY * bracketDistY, 0); bL.add(hBar);
-        const vBar = new THREE.Mesh(new THREE.BoxGeometry(bThick, bLength - bThick, bHeight), clearAcrylicMaterial);
-        vBar.position.set(dirX * bracketDistX, dirY * (bracketDistY - bLength/2), 0); bL.add(vBar); frameGroup.add(bL);
+      // Seluruh komponen tray digabung jadi SATU mesh (1 draw call, bukan ~17)
+      const frameParts = [];
+      [[1, 1], [-1, 1], [1, -1], [-1, -1]].forEach(([dirX, dirY]) => {
+        frameParts.push(new THREE.BoxGeometry(bLength, bThick, bHeight).translate(dirX * (bracketDistX - bLength/2 + bThick/2), dirY * bracketDistY, 0));
+        frameParts.push(new THREE.BoxGeometry(bThick, bLength - bThick, bHeight).translate(dirX * bracketDistX, dirY * (bracketDistY - bLength/2), 0));
       });
-
-      const tabs = [[1.2, 0], [-1.2, 0], [0, 1.15], [0, -1.15]];
-      tabs.forEach(([x, y]) => {
-         const tab = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.12), clearAcrylicMaterial);
-         tab.position.set(x, y, 0); frameGroup.add(tab);
+      [[1.2, 0], [-1.2, 0], [0, 1.15], [0, -1.15]].forEach(([x, y]) => {
+        frameParts.push(new THREE.BoxGeometry(0.08, 0.08, 0.12).translate(x, y, 0));
       });
-
-      const hubMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.08, 32).rotateX(Math.PI/2), clearAcrylicMaterial);
-      hubMesh.position.z = 0;
-      for(let i=0; i<4; i++) {
-          const teeth = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.12), clearAcrylicMaterial);
-          teeth.position.set(Math.cos(i * Math.PI/2) * 0.13, Math.sin(i * Math.PI/2) * 0.13, 0.03); hubMesh.add(teeth);
+      frameParts.push(new THREE.CylinderGeometry(0.18, 0.18, 0.08, 32).rotateX(Math.PI/2));
+      for (let k = 0; k < 4; k++) {
+        frameParts.push(new THREE.BoxGeometry(0.05, 0.05, 0.12).translate(Math.cos(k * Math.PI/2) * 0.13, Math.sin(k * Math.PI/2) * 0.13, 0.03));
       }
-      frameGroup.add(hubMesh); backGroup.add(frameGroup); cdAssembly.add(backGroup);
+      frameGroup.add(new THREE.Mesh(mergeGeometries(frameParts), clearEdgeMaterial));
+      backGroup.add(frameGroup); cdAssembly.add(backGroup);
 
-      cdDiscGroup = new THREE.Group(); cdDiscGroup.position.set(0, 0, frameGroup.position.z + 0.04);
+      cdDiscGroup = new THREE.Group(); cdDiscGroup.position.set(0, 0, frameGroup.position.z + 0.04); cdDiscGroup.userData.baseZ = cdDiscGroup.position.z;
       const discGeo = new THREE.CylinderGeometry(1.15, 1.15, 0.012, 64); discGeo.rotateX(Math.PI / 2);
       
       discTexture = generateDiscTexture(currentCoverIndex, currentCustomImage);
@@ -609,7 +725,7 @@
 
       caseLidGroup = new THREE.Group(); caseLidGroup.position.set(-caseW/2, 0, 0);
       const lidPlate = new THREE.Mesh(plateGeo, clearAcrylicMaterial); lidPlate.position.set(caseW/2, 0, caseD/2 - t/2); caseLidGroup.add(lidPlate);
-      const lidRim = new THREE.Mesh(rimGeo, clearAcrylicMaterial); lidRim.position.set(caseW/2, 0, caseD/4); caseLidGroup.add(lidRim);
+      const lidRim = new THREE.Mesh(rimGeo, clearEdgeMaterial); lidRim.position.set(caseW/2, 0, caseD/4); caseLidGroup.add(lidRim);
 
       // Label cetak di permukaan luar lid (ikut berputar bersama lid)
       lidLabelTexture = generateLidLabelTexture(currentCoverIndex, currentCustomImage, currentLidShape);
@@ -634,7 +750,7 @@
       camera.position.set(0, 0, 8.0);
 
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
-      renderer.setSize(window.innerWidth, window.innerHeight); renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      applyPixelRatio();
       renderer.outputEncoding = THREE.sRGBEncoding;
       renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
       container.appendChild(renderer.domElement);
@@ -645,8 +761,19 @@
       const subtleRim = new THREE.PointLight(0x60a5fa, 0.8, 12); subtleRim.position.set(-3, -3, -2); scene.add(subtleRim);
 
       document.body.style.backgroundColor = albumThemes[currentCoverIndex].pageBg;
-      buildProceduralCDAssembly(); setupInteractions(); setupUIEvents();
+      createGroundShadow(); buildProceduralCDAssembly(); setupInteractions(); setupUIEvents();
       window.addEventListener('resize', onWindowResize);
+    }
+
+    // Crop tengah 1:1 dan batasi sisi maks 2048px: hemat memori & waktu gambar ulang tekstur
+    function prepareCustomImage(img, maxSide = 2048) {
+      const size = Math.min(img.width, img.height);
+      const target = Math.min(size, maxSide);
+      const c = document.createElement('canvas'); c.width = c.height = target;
+      const cx = c.getContext('2d');
+      cx.imageSmoothingEnabled = true; cx.imageSmoothingQuality = 'high';
+      cx.drawImage(img, (img.width - size) / 2, (img.height - size) / 2, size, size, 0, 0, target, target);
+      return c;
     }
 
     function updateTextures() {
@@ -698,7 +825,7 @@
         if (Math.hypot(e.clientX - startX, e.clientY - startY) > 6) hasDragged = true;
         targetRotY += (e.clientX - prevMouseX) * 0.006;
         targetRotX = clampX(targetRotX + (e.clientY - prevMouseY) * 0.006);
-        prevMouseX = e.clientX; prevMouseY = e.clientY;
+        prevMouseX = e.clientX; prevMouseY = e.clientY; invalidate();
       }
       function endDrag(e, allowToggle) {
         if (!isDragging || e.pointerId !== activePointerId) return;
@@ -714,14 +841,28 @@
 
     function toggleCase() {
       isOpen = !isOpen;
-      targetLidAngle = isOpen ? -Math.PI * 0.78 : 0.0; cdAssembly.userData.targetPosX = isOpen ? OPEN_OFFSET_X : 0.0;
+      if (!isOpen) isDiscOut = false; // disc kembali ke tray dulu, baru lid menutup
       document.getElementById('caseStateText').innerText = isOpen ? "Tutup Casing" : "Buka Casing";
+      updateEjectButton();
+      invalidate();
+    }
+
+    function toggleDiscOut() {
+      isDiscOut = !isDiscOut;
+      if (isDiscOut && !isOpen) toggleCase(); // buka casing dulu; disc keluar setelah lid terbuka
+      updateEjectButton();
+      invalidate();
+    }
+
+    function updateEjectButton() {
+      const b = document.getElementById('ejectDiscBtn');
+      if (b) b.textContent = isDiscOut ? 'Masukkan CD' : 'Keluarkan CD';
     }
 
     function setupUIEvents() {
       document.getElementById('toggleCaseBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleCase(); });
       document.getElementById('toggleSpinBtn').addEventListener('click', (e) => {
-        e.stopPropagation(); isDiscSpinning = !isDiscSpinning;
+        e.stopPropagation(); isDiscSpinning = !isDiscSpinning; invalidate();
         const icon = document.getElementById('spinIcon'); const text = document.getElementById('spinStateText');
         if (isDiscSpinning) { icon.classList.add('animate-spin'); text.innerText = "Stop Putar"; } else { icon.classList.remove('animate-spin'); text.innerText = "Putar CD"; }
       });
@@ -745,7 +886,7 @@
          const img = new Image();
          img.onload = () => {
             URL.revokeObjectURL(url);
-            currentCustomImage = img;
+            currentCustomImage = prepareCustomImage(img);
             updateTextures();
          };
          img.onerror = () => {
@@ -762,24 +903,99 @@
         refreshLidLabel();
       });
 
-      document.getElementById('resetCamBtn').addEventListener('click', (e) => { e.stopPropagation(); targetRotX = 0.25; targetRotY = -0.45; });
+      document.getElementById('ejectDiscBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleDiscOut(); });
+
+      document.getElementById('resetCamBtn').addEventListener('click', (e) => { e.stopPropagation(); targetRotX = 0.25; targetRotY = -0.45; invalidate(); });
     }
 
-    function onWindowResize() { renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); }
+    function invalidate() {
+      if (!rafId && renderer) rafId = requestAnimationFrame(animate);
+    }
 
-    const clock = new THREE.Clock();
-    function animate() {
-      requestAnimationFrame(animate); const elapsedTime = clock.getElapsedTime();
-      currentRotX += (targetRotX - currentRotX) * 0.08; currentRotY += (targetRotY - currentRotY) * 0.08;
-      if (cdAssembly) { 
-        cdAssembly.rotation.x = currentRotX; cdAssembly.rotation.y = currentRotY; cdAssembly.position.y = Math.sin(elapsedTime * 1.6) * 0.06; 
-        if(cdAssembly.userData.targetPosX !== undefined) cdAssembly.position.x += (cdAssembly.userData.targetPosX - cdAssembly.position.x) * 0.08;
+    function applyPixelRatio() {
+      renderer.setPixelRatio(currentPixelRatio);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function onWindowResize() {
+      const prevMax = maxPixelRatio;
+      maxPixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+      currentPixelRatio = maxPixelRatio !== prevMax ? maxPixelRatio : Math.min(currentPixelRatio, maxPixelRatio);
+      perf.ignore = Math.max(perf.ignore, 30);
+      camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
+      applyPixelRatio(); invalidate();
+    }
+
+    // Resolusi dinamis: jika rata-rata < ~40 FPS, turunkan pixel ratio bertahap (min 1)
+    function adaptPixelRatio(dt) {
+      if (dt > 0.1) { perf.frames = 0; perf.acc = 0; return; } // jeda panjang (tab disembunyikan, dsb.)
+      if (perf.ignore > 0) { perf.ignore--; return; }          // abaikan lonjakan awal (kompilasi shader, upload tekstur)
+      perf.acc += dt; perf.frames++;
+      if (perf.frames >= 40) {
+        const avg = perf.acc / perf.frames;
+        perf.frames = 0; perf.acc = 0;
+        if (avg > 1 / 40 && currentPixelRatio > 1) {
+          currentPixelRatio = Math.max(1, currentPixelRatio - 0.25);
+          applyPixelRatio(); perf.ignore = 20;
+        }
       }
-      currentLidAngle += (targetLidAngle - currentLidAngle) * 0.1;
+    }
+
+    // Loop hanya berjalan saat ada yang bergerak; saat semuanya diam, render berhenti total.
+    function animate(now) {
+      rafId = 0;
+      const hadPrev = lastFrameTime > 0;
+      const rawDt = hadPrev ? (now - lastFrameTime) / 1000 : 0.016;
+      lastFrameTime = now;
+      if (hadPrev) adaptPixelRatio(rawDt);
+
+      const f = Math.min(rawDt, 0.05) * 60; // 1.0 pada 60 FPS -> gerakan sama di 30/60/120 Hz
+      const approach = (cur, tgt, rate, eps = 0.0005) => {
+        const n = cur + (tgt - cur) * (1 - Math.pow(1 - rate, f));
+        return Math.abs(tgt - n) < eps ? tgt : n;
+      };
+
+      currentRotX = approach(currentRotX, targetRotX, 0.08);
+      currentRotY = approach(currentRotY, targetRotY, 0.08);
+
+      // Lid baru menutup setelah disc kembali ke tray
+      const holdOpen = isOpen || discOutAmt > 0.12;
+      targetLidAngle = holdOpen ? LID_OPEN_ANGLE : 0.0;
+      const targetPosX = holdOpen ? OPEN_OFFSET_X : 0.0;
+      currentLidAngle = approach(currentLidAngle, targetLidAngle, 0.1);
+
+      // Disc hanya keluar setelah lid hampir terbuka penuh
+      const openProgress = currentLidAngle / LID_OPEN_ANGLE;
+      const discTarget = (isDiscOut && isOpen && openProgress > 0.85) ? 1 : 0;
+      discOutAmt = approach(discOutAmt, discTarget, 0.07, 0.0015);
+
+      const spinTarget = isDiscSpinning ? 1 : 0;
+      bobAmp = approach(bobAmp, spinTarget, 0.06, 0.002);
+      const bobY = Math.sin((now / 1000) * 1.6) * 0.06 * bobAmp;
+
+      if (cdAssembly) {
+        cdAssembly.rotation.x = currentRotX; cdAssembly.rotation.y = currentRotY;
+        cdAssembly.position.y = bobY;
+        cdAssembly.position.x = approach(cdAssembly.position.x, targetPosX, 0.08);
+      }
       if (caseLidGroup) caseLidGroup.rotation.y = currentLidAngle;
-      if (cdDiscGroup && isDiscSpinning && cdDiscMesh) cdDiscMesh.rotation.z += 0.022;
-      
+
+      if (cdDiscGroup) {
+        // Angkat lurus dari hub dulu (lift), baru naik & miring (rise)
+        const lift = smoothstep(0, 0.45, discOutAmt), rise = smoothstep(0.3, 1, discOutAmt);
+        cdDiscGroup.position.set(0, 1.15 * rise, cdDiscGroup.userData.baseZ + 0.6 * lift);
+        cdDiscGroup.rotation.x = -0.5 * rise;
+      }
+      if (cdDiscMesh && isDiscSpinning) cdDiscMesh.rotation.z += 0.022 * f;
+      updateShadow(bobY);
+
       renderer.render(scene, camera);
+
+      const animating = isDiscSpinning || currentRotX !== targetRotX || currentRotY !== targetRotY ||
+        currentLidAngle !== targetLidAngle || discOutAmt !== discTarget || bobAmp !== spinTarget ||
+        (cdAssembly && cdAssembly.position.x !== targetPosX);
+      if (animating) rafId = requestAnimationFrame(animate);
+      else lastFrameTime = 0;
     }
 
     window.onload = async function() {
@@ -794,7 +1010,7 @@
           new Promise(r => setTimeout(r, 2500))
         ]);
       } catch (_) {}
-      init(); animate();
+      init(); invalidate();
     };
   </script>
 </body>
