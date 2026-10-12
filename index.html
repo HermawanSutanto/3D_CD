@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Procedural 3D CD Jewel Case Simulation - Spotify Sync Edition</title>
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Procedural 3D CD Jewel Case - Ultimate Edition</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,7 +20,6 @@
     }
     .mono { font-family: 'Space Mono', monospace; }
     canvas { outline: none; touch-action: none; }
-    #canvas-container { touch-action: none; }
     .light-glass-panel {
       background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(20px);
@@ -44,60 +43,56 @@
         <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
       </div>
       <div>
-        <h1 class="font-bold text-sm leading-none tracking-tight accent-gradient-text">CHROMA.DISC // v4.0</h1>
-        <p class="mono text-[10px] text-slate-500 mt-0.5 tracking-wider uppercase">Spotify Sync Engine</p>
+        <h1 class="font-bold text-sm leading-none tracking-tight accent-gradient-text">CHROMA.DISC // v5.0</h1>
+        <p class="mono text-[10px] text-slate-500 mt-0.5 tracking-wider uppercase">Spotify Integration Engine</p>
       </div>
     </div>
   </header>
 
   <!-- Interactive Control Deck -->
-  <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 w-11/12 max-w-xl">
-    <div class="light-glass-panel rounded-2xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-2.5 text-xs">
-      <div class="flex flex-wrap items-center gap-2">
-        <button id="toggleCaseBtn" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold transition active:scale-95 shadow-sm flex items-center gap-2">
-          <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path>
-          </svg>
-          <span id="caseStateText">Buka Casing</span>
-        </button>
+  <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 w-11/12 max-w-4xl">
+    <div class="light-glass-panel rounded-2xl p-3 sm:p-4 flex flex-wrap items-center justify-center gap-2.5 text-xs">
+      
+      <button id="toggleCaseBtn" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold transition active:scale-95 shadow-sm flex items-center gap-2">
+        <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
+        <span id="caseStateText">Buka Casing</span>
+      </button>
 
-        <button id="toggleSpinBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200 flex items-center gap-1.5">
-          <svg class="w-4 h-4 text-emerald-600 animate-spin" id="spinIcon" style="animation-duration: 4s;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-          </svg>
-          <span id="spinStateText">Stop Putar</span>
-        </button>
+      <button id="toggleSpinBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200 flex items-center gap-1.5">
+        <svg class="w-4 h-4 text-emerald-600 animate-spin" id="spinIcon" style="animation-duration: 4s;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+        <span id="spinStateText">Stop Putar</span>
+      </button>
 
-        <button id="changeCoverBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">
-          Prosedural Cover
-        </button>
+      <button id="changeCoverBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">
+        Ganti Tema
+      </button>
 
-        <button id="ejectDiscBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">Keluarkan CD</button>
-        
-        <!-- File Input Hidden -->
-        <input type="file" id="imageUploadInput" accept="image/*" class="hidden">
-        <button id="uploadImageBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition active:scale-95 border border-slate-200 flex items-center gap-1.5 shadow-sm">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-        </button>
+      <button id="changeLabelBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">
+        Label: Busur
+      </button>
 
-        <!-- SPOTIFY INTEGRATION BUTTON -->
-        <button id="spotifySyncBtn" class="px-3.5 py-2 rounded-xl bg-[#1db954] hover:bg-[#1ed760] text-white font-bold transition active:scale-95 border border-[#1db954] shadow-sm flex items-center gap-2">
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.54.659.301 1.02zM19.32 14.1c-.3.42-.84.54-1.26.24-3.36-2.04-8.52-2.64-12.54-1.44-.48.12-1.02-.12-1.14-.6-.12-.48.12-1.02.6-1.14 4.56-1.32 10.26-.66 14.1 1.68.42.24.54.84.24 1.26zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.781-.18-.6.18-1.2.78-1.38 4.2-1.26 11.28-1.02 16.32 1.98.54.3.72 1.02.42 1.56-.24.42-.9.6-1.44.3h-.42z"/></svg>
-          <span id="spotifyBtnText">Sync Spotify</span>
-        </button>
-      </div>
+      <button id="ejectDiscBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">Keluarkan CD</button>
+      
+      <!-- File Input & Upload -->
+      <input type="file" id="imageUploadInput" accept="image/*" class="hidden">
+      <button id="uploadImageBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition active:scale-95 border border-slate-200 flex items-center gap-1.5 shadow-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+        Upload Foto
+      </button>
+
+      <!-- SPOTIFY SYNC BUTTON -->
+      <button id="spotifySyncBtn" class="px-3.5 py-2 rounded-xl bg-[#1db954] hover:bg-[#1ed760] text-white font-bold transition active:scale-95 border border-[#1db954] shadow-sm flex items-center gap-2">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.54.659.301 1.02zM19.32 14.1c-.3.42-.84.54-1.26.24-3.36-2.04-8.52-2.64-12.54-1.44-.48.12-1.02-.12-1.14-.6-.12-.48.12-1.02.6-1.14 4.56-1.32 10.26-.66 14.1 1.68.42.24.54.84.24 1.26zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.781-.18-.6.18-1.2.78-1.38 4.2-1.26 11.28-1.02 16.32 1.98.54.3.72 1.02.42 1.56-.24.42-.9.6-1.44.3h-.42z"/></svg>
+        <span id="spotifyBtnText">Sync Spotify</span>
+      </button>
+
       <button id="resetCamBtn" class="px-3 py-2 rounded-xl text-slate-500 hover:text-slate-900 transition font-medium mono">Reset</button>
-    </div>
-    
-    <div class="text-center mt-2.5">
-      <span class="mono text-[11px] text-slate-500 bg-white/90 px-3 py-1 rounded-full border border-slate-200 shadow-sm">
-        🖱️ Drag untuk memutar 3D &bull; Klik casing untuk membuka
-      </span>
     </div>
   </div>
 
   <!-- Audio Info Card Top-Right -->
-  <div class="absolute top-6 right-6 z-10 hidden sm:block">
+  <div class="absolute top-6 right-6 z-10 hidden sm:flex flex-col gap-3 items-end pointer-events-auto">
+    <!-- Info Badge -->
     <div class="light-glass-panel rounded-2xl p-3 px-4 flex items-center gap-3">
       <div class="flex items-end gap-1 h-4 w-5">
         <span class="w-1 bg-green-500 rounded-full animate-pulse h-2"></span>
@@ -110,20 +105,23 @@
         <p class="mono text-[10px] text-slate-500 uppercase" id="albumArtistDisplay">SYNTHETIX CORE</p>
       </div>
     </div>
+    
+    <!-- Spotify iFrame Player (Hidden by default, shown when synced) -->
+    <div id="spotifyEmbedContainer" class="w-72 transition-all duration-500 opacity-0 pointer-events-none translate-x-4">
+       <iframe id="spotifyIframe" src="" width="100%" height="80" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" class="rounded-xl shadow-lg border border-slate-200/20"></iframe>
+    </div>
   </div>
 
   <div id="canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
 
   <script>
     // ==========================================
-    // 1. KONFIGURASI SPOTIFY (PENTING!)
+    // 1. KONFIGURASI SPOTIFY (Token User)
     // ==========================================
-    // Menggunakan token langsung dari user
     const spotifyAccessToken = 'BQDw2jMgAOPdlZ3tCJN3oGERzBRbbEf7XiKc1TYFYaa4o9HucmSlE1eaTNAEHWbHztfjs4tw8ifcS2hAlsOgHNpE7mVXCHYHETQ-NFP5kqnqD5pYX1e3Y58jY5yp2AD_MnO84EtC-bgaXUyV-a-ufIeDbTmhKbWFEylhS-xFE0DqxeXT1cx6jKc77pyoTc3sHz8EXE-q1qbdHbTtLenhAPou8pGifHdE1bHehVPkfPzSwzcRytSdMvyGTskPsvaV4YVwEBY3Bu87U5W6nhru2TguvWDefnIeikKiu8YQVO52_JPvI2_uFPOaUb8cL7ldkzWK';
     let topTracksData = [];
     let currentTrackIndex = 0;
-
-    let customMetadata = { title: "CUSTOM MEDIA", artist: "USER IMPORT" };
+    let customMetadata = { title: "CUSTOM MEDIA", artist: "USER IMPORT", id: null };
 
     // ==========================================
     // 2. VARIABEL 3D & ENGINE
@@ -148,21 +146,19 @@
     let maxPixelRatio = Math.min(window.devicePixelRatio || 1, 2);
     let currentPixelRatio = maxPixelRatio;
     const perf = { frames: 0, acc: 0, ignore: 90 };
+    
     const smoothstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-
     function mulberry32(a) {
       return function() {
         a |= 0; a = a + 0x6D2B79F5 | 0;
-        let t = Math.imul(a ^ a >>> 15, 1 | a);
-        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
         return ((t ^ t >>> 14) >>> 0) / 4294967296;
       };
     }
 
     function makeCanvasTexture(canvas, srgb) {
       const t = new THREE.CanvasTexture(canvas);
-      t.anisotropy = 8;
-      if (srgb) t.encoding = THREE.sRGBEncoding;
+      t.anisotropy = 8; if (srgb) t.encoding = THREE.sRGBEncoding;
       return t;
     }
 
@@ -172,79 +168,50 @@
       { title: "SOLAR HORIZON", artist: "AMBER ECHOES", bg: ["#9a3412", "#e11d48", "#6d28d9"], accent: "#fef08a", pageBg: "#292524" }
     ];
 
-    function drawOverlayUI(ctx, title, artist, accent, rand) {
-      const W = 1024, H = 969; // Disesuaikan dengan rasio mika depan
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.4)"; ctx.lineWidth = 1;
-      for (let i = 0; i <= W; i += 64) {
-        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, H); ctx.stroke();
-      }
-      for (let i = 0; i <= H; i += 64) {
-        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(W, i); ctx.stroke();
-      }
-
-      ctx.strokeStyle = accent; ctx.lineWidth = 4;
-      const m = 40, s = 60;
-      ctx.beginPath(); ctx.moveTo(m+s, m); ctx.lineTo(m, m); ctx.lineTo(m, m+s); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(W-m-s, m); ctx.lineTo(W-m, m); ctx.lineTo(W-m, m+s); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(m+s, H-m); ctx.lineTo(m, H-m); ctx.lineTo(m, H-m-s); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(W-m-s, H-m); ctx.lineTo(W-m, H-m); ctx.lineTo(W-m, H-m-s); ctx.stroke();
-
-      ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 12;
-      ctx.fillStyle = "#ffffff"; ctx.font = "bold 64px 'Space Mono', monospace";
-      // Handle long titles by truncating
-      const displayTitle = title.length > 18 ? title.substring(0, 18) + "..." : title;
-      ctx.fillText(displayTitle, 60, H - 200);
-      ctx.fillStyle = accent; ctx.font = "600 28px 'Plus Jakarta Sans', sans-serif";
-      ctx.fillText(artist, 65, H - 150);
-      ctx.shadowBlur = 0;
-
-      ctx.fillStyle = "#ffffff"; ctx.fillRect(W - 210, H - 200, 150, 95);
-      ctx.fillStyle = "#000000";
-      for (let x = W - 200; x < W - 70; x += (rand() > 0.5 ? 4 : 9)) {
-        ctx.fillRect(x, H - 190, rand() * 3 + 1, 65);
-      }
-      ctx.font = "12px 'Space Mono', monospace"; ctx.fillText("8  02434  10294  9", W - 195, H - 112);
-    }
-
+    // ==========================================
+    // 3. GENERATOR TEKSTUR COVER & DISC
+    // ==========================================
     function generateFrontCoverTexture(themeIndex, customImg = null) {
-      const canvas = document.createElement('canvas');
-      canvas.width = 1024; canvas.height = 1024;
+      const canvas = document.createElement('canvas'); canvas.width = 1024; canvas.height = 1024;
       const ctx = canvas.getContext('2d');
       const rand = mulberry32(1000 + themeIndex * 17 + (customImg ? 1 : 0));
       const theme = albumThemes[themeIndex];
 
       if (customImg) {
+        // Mode Custom Image (Spotify / Upload)
         const size = Math.min(customImg.width, customImg.height);
-        const startX = (customImg.width - size) / 2;
-        const startY = (customImg.height - size) / 2;
+        const startX = (customImg.width - size) / 2; const startY = (customImg.height - size) / 2;
         ctx.drawImage(customImg, startX, startY, size, size, 0, 0, 1024, 1024);
-
+        
+        // Sedikit vignette
         const vig = ctx.createRadialGradient(512, 512, 200, 512, 512, 800);
         vig.addColorStop(0, "rgba(0,0,0,0)"); vig.addColorStop(1, "rgba(0,0,0,0.6)");
         ctx.fillStyle = vig; ctx.fillRect(0,0,1024,1024);
       } else {
+        // Mode Tema Prosedural
         const grad = ctx.createLinearGradient(0, 0, 1024, 1024);
         grad.addColorStop(0, theme.bg[0]); grad.addColorStop(0.5, theme.bg[1]); grad.addColorStop(1, theme.bg[2]);
         ctx.fillStyle = grad; ctx.fillRect(0, 0, 1024, 1024);
 
         ctx.lineWidth = 2; ctx.strokeStyle = "rgba(255, 255, 255, 0.04)";
         for(let i = -1024; i < 2048; i += 24) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + 1024, 1024); ctx.stroke(); }
-
+        
         for(let i = 0; i < 4; i++) {
           const x = rand() * 1024; const y = rand() * 1024; const r = rand() * 300 + 100;
           const blobGrad = ctx.createRadialGradient(x, y, 0, x, y, r);
           blobGrad.addColorStop(0, theme.accent + "44"); blobGrad.addColorStop(1, "transparent");
           ctx.fillStyle = blobGrad; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
         }
-      }
 
-      // HAPUS drawOverlayUI dari sini (agar teks tidak tertutup CD)
+        // Tech Details (Tanpa teks utama, hanya background estetika)
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.1)"; ctx.lineWidth = 1;
+        for (let i = 0; i <= 1024; i += 64) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 1024); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(1024, i); ctx.stroke(); }
+      }
       return makeCanvasTexture(canvas, true);
     }
 
     function generateBackCoverTexture(themeIndex, customImg = null) {
-      const canvas = document.createElement('canvas');
-      canvas.width = 1024; canvas.height = 1024;
+      const canvas = document.createElement('canvas'); canvas.width = 1024; canvas.height = 1024;
       const ctx = canvas.getContext('2d');
       const rand = mulberry32(5000 + themeIndex * 31 + (customImg ? 1 : 0));
       const theme = albumThemes[themeIndex];
@@ -253,6 +220,7 @@
       ctx.fillStyle = "#0a0f18"; ctx.fillRect(0, 0, 1024, 1024);
 
       if (customImg) {
+        // Back Cover Custom Image (Blurred)
         const size = Math.min(customImg.width, customImg.height);
         const startX = (customImg.width - size) / 2; const startY = (customImg.height - size) / 2;
         const small = document.createElement('canvas'); small.width = 48; small.height = 48;
@@ -262,70 +230,81 @@
         ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(small, 0, 0, 1024, 1024);
         ctx.fillStyle = "rgba(10, 15, 24, 0.85)"; ctx.fillRect(0,0,1024,1024);
-        
         title = customMetadata.title; artist = customMetadata.artist; accent = "#1db954"; spineBg = "#111";
       } else {
         ctx.fillStyle = "rgba(255,255,255,0.03)";
         for(let i=0; i<300; i++){ ctx.beginPath(); ctx.arc(rand()*1024, rand()*1024, rand()*1.5, 0, Math.PI*2); ctx.fill(); }
       }
 
+      // 1. Spine (Punggung Kaset)
       const spineX = 1024 - 80;
       const spineGrad = ctx.createLinearGradient(spineX, 0, 1024, 0);
       spineGrad.addColorStop(0, "#000000"); spineGrad.addColorStop(1, spineBg);
       ctx.fillStyle = spineGrad; ctx.fillRect(spineX, 0, 80, 1024);
-      ctx.save();
-      ctx.translate(spineX + 45, 980); ctx.rotate(-Math.PI / 2);
+      ctx.save(); ctx.translate(spineX + 45, 980); ctx.rotate(-Math.PI / 2);
       ctx.fillStyle = "#ffffff"; ctx.font = "bold 26px 'Space Mono', monospace";
-      const displayTitle = title.length > 20 ? title.substring(0, 20) + "..." : title;
+      const displayTitle = title.length > 25 ? title.substring(0, 25) + "..." : title;
       ctx.fillText(artist + "   —   " + displayTitle, 0, 0);
       ctx.restore();
 
+      // 2. Top Header (Identitas)
+      ctx.strokeStyle = "rgba(255,255,255,0.15)"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(120, 120); ctx.lineTo(920, 120); ctx.stroke();
+      ctx.fillStyle = accent; ctx.font = "bold 20px 'Space Mono', monospace";
+      ctx.fillText("ID: " + Math.random().toString(36).substr(2, 6).toUpperCase(), 120, 100);
+      ctx.fillText("STEREO // 33.3 RPM", 680, 100);
+
+      // 3. Tracklist dengan Dotted Line
       ctx.fillStyle = "#94a3b8"; ctx.font = "bold 28px 'Space Mono', monospace";
       ctx.fillText("INDEX // TRACKLIST", 120, 180);
 
       const tracks = customImg ?
-        [{n:"01", t:title.length > 15 ? title.substring(0,15)+"..." : title, l:"04:20"}, {n:"02", t:"EXTRACT DATA", l:"03:15"}, {n:"03", t:"SYNTHETIC RHYTHM", l:"05:50"}] :
-        [{n:"01", t:"NEON AWAKENING", l:"04:23"}, {n:"02", t:"DIGITAL HORIZONS", l:"05:12"}, {n:"03", t:"SYNTHETIC DREAMS", l:"03:45"}, {n:"04", t:"MIDNIGHT DRIFT", l:"06:01"}];
+        [{n:"01", t:title.length > 18 ? title.substring(0,18)+"..." : title, l:"03:45"}, {n:"02", t:"EXTRACT DATA", l:"02:15"}, {n:"03", t:"SYNTHETIC RHYTHM", l:"05:50"}, {n:"04", t:"AUDIO STREAM", l:"04:20"}] :
+        [{n:"01", t:"NEON AWAKENING", l:"04:23"}, {n:"02", t:"DIGITAL HORIZONS", l:"05:12"}, {n:"03", t:"SYNTHETIC DREAMS", l:"03:45"}, {n:"04", t:"MIDNIGHT DRIFT", l:"06:01"}, {n:"05", t:"SYSTEM SHUTDOWN", l:"02:30"}];
 
       for(let i = 0; i < tracks.length; i++) {
         const y = 260 + (i * 75);
         ctx.fillStyle = accent; ctx.font = "bold 32px 'Space Mono', monospace"; ctx.fillText(tracks[i].n, 120, y);
         ctx.fillStyle = "#ffffff"; ctx.font = "600 36px 'Plus Jakarta Sans', sans-serif"; ctx.fillText(tracks[i].t, 180, y);
         const titleWidth = ctx.measureText(tracks[i].t).width;
-        ctx.fillStyle = "#64748b"; ctx.font = "24px 'Space Mono', monospace"; ctx.fillText(tracks[i].l, 850, y);
+        ctx.fillStyle = "#64748b"; ctx.font = "24px 'Space Mono', monospace"; ctx.fillText(tracks[i].l, 830, y);
         ctx.strokeStyle = "rgba(255,255,255,0.15)"; ctx.setLineDash([3, 8]);
-        ctx.beginPath(); ctx.moveTo(200 + titleWidth, y - 8); ctx.lineTo(830, y - 8); ctx.stroke(); ctx.setLineDash([]);
+        ctx.beginPath(); ctx.moveTo(200 + titleWidth, y - 8); ctx.lineTo(810, y - 8); ctx.stroke(); ctx.setLineDash([]);
       }
+
+      // 4. Copyright Box & Barcode
+      ctx.strokeStyle = "rgba(255,255,255,0.2)"; ctx.lineWidth = 1; ctx.strokeRect(120, 810, 530, 120);
+      ctx.fillStyle = "#cbd5e1"; ctx.font = "14px 'Plus Jakarta Sans', sans-serif";
+      ctx.fillText("PRODUCED BY CHROMA.DISC PROCEDURAL ENGINE", 140, 845);
+      ctx.fillText("WARNING: UNAUTHORIZED DUPLICATION IS A VIOLATION", 140, 870);
+      ctx.fillText("OF APPLICABLE LAWS. ALL RIGHTS RESERVED.", 140, 895);
+      ctx.fillStyle = accent; ctx.fillText("© 2026 SYNTHETIX RECORDS", 460, 895);
+
+      ctx.fillStyle = "#ffffff"; ctx.fillRect(680, 810, 240, 120);
+      ctx.fillStyle = "#000000";
+      for (let x = 695; x < 900; x += (rand() > 0.5 ? 4 : 8)) { ctx.fillRect(x, 820, rand()*4+1, 80); }
+      ctx.font = "bold 16px 'Space Mono', monospace"; ctx.fillText("1 0293 49120 4", 730, 920);
 
       return makeCanvasTexture(canvas, true);
     }
 
     function generateDiscTexture(themeIndex, customImg = null) {
-      const canvas = document.createElement('canvas');
-      canvas.width = 1024; canvas.height = 1024;
+      const canvas = document.createElement('canvas'); canvas.width = 1024; canvas.height = 1024;
       const ctx = canvas.getContext('2d');
       const theme = albumThemes[themeIndex];
       let title = theme.title, artist = theme.artist, accent = theme.accent;
 
-      ctx.fillStyle = "#06090f";
-      ctx.fillRect(0, 0, 1024, 1024);
+      ctx.fillStyle = "#06090f"; ctx.fillRect(0, 0, 1024, 1024);
 
       if (customImg) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(512, 512, 460, 0, Math.PI * 2);
-        ctx.clip();
-
+        ctx.save(); ctx.beginPath(); ctx.arc(512, 512, 460, 0, Math.PI * 2); ctx.clip();
         const size = Math.min(customImg.width, customImg.height);
         const startX = (customImg.width - size) / 2; const startY = (customImg.height - size) / 2;
         ctx.drawImage(customImg, startX, startY, size, size, 52, 52, 920, 920);
-
         ctx.globalCompositeOperation = 'destination-out';
         ctx.beginPath(); ctx.arc(512, 512, 160, 0, Math.PI * 2); ctx.fill();
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.restore();
-
-        title = customMetadata.title; artist = customMetadata.artist; accent = "#1db954";
+        ctx.globalCompositeOperation = 'source-over'; ctx.restore();
+        title = "CUSTOM MEDIA"; artist = "SPOTIFY IMPORT"; accent = "#1db954";
       } else {
         const radialGrad = ctx.createRadialGradient(512, 512, 100, 512, 512, 500);
         radialGrad.addColorStop(0, theme.accent + "55"); radialGrad.addColorStop(1, "transparent");
@@ -334,19 +313,15 @@
 
       ctx.lineWidth = 18; ctx.strokeStyle = customImg ? "rgba(0,0,0,0.5)" : theme.bg[1];
       ctx.beginPath(); ctx.arc(512, 512, 460, 0, Math.PI*2); ctx.stroke();
-
       ctx.lineWidth = 2; ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
       ctx.beginPath(); ctx.arc(512, 512, 390, 0, Math.PI*2); ctx.stroke();
-
-      ctx.setLineDash([8, 12]);
-      ctx.beginPath(); ctx.arc(512, 512, 280, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
-
-      // RESTORED: Multiple Concentric Decorative Rings
-      for (let r = 110; r < 210; r += 20) {
+      
+      // Decorative Rings
+      ctx.setLineDash([8, 12]); ctx.beginPath(); ctx.arc(512, 512, 280, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+      for (let r = 170; r < 210; r += 20) {
         ctx.beginPath(); ctx.arc(512, 512, r, 0, Math.PI * 2);
         ctx.lineWidth = 1; ctx.strokeStyle = "rgba(255, 255, 255, 0.15)"; ctx.stroke();
       }
-      // Central Hub Marker
       ctx.beginPath(); ctx.arc(512, 512, 70, 0, Math.PI * 2);
       ctx.strokeStyle = "rgba(255, 255, 255, 0.8)"; ctx.lineWidth = 3; ctx.stroke();
 
@@ -359,117 +334,142 @@
       return makeCanvasTexture(canvas, false);
     }
 
-    // ===================== LABEL DI LID (dikosongkan untuk versi ini) =====================
-    // Kita hapus dulu teks label mika depan agar fokus ke artwork Spotify (Transparent Lid Clean)
+    // ==========================================
+    // 4. LID LABEL (Stiker di Atas Kaca Mika)
+    // ==========================================
     const LW = 1024, LH = 969;
-    let lidLabelTexture, lidLabelMesh;
-    
-    function generateLidLabelTexture() {
-      const canvas = document.createElement('canvas');
-      canvas.width = LW; canvas.height = LH;
-      const ctx = canvas.getContext('2d');
+    let lidLabelTexture, lidLabelMesh, currentLidShape = 0;
+
+    const lidShapes = [
+      { name: "Busur", barcode: "bottom", box: { x: LW - 400, y: 30, w: 370, h: 340 },
+        path(ctx) { const R = 620; ctx.moveTo(LW, 0); ctx.lineTo(LW - R, 0); ctx.arc(LW, 0, R, Math.PI, Math.PI / 2, true); ctx.closePath(); } },
+      { name: "Potong", barcode: "bottom", box: { x: LW - 480, y: LH - 360, w: 440, h: 330 },
+        path(ctx) { const x0 = LW - 520, y0 = LH - 490, c = 120; ctx.moveTo(x0 + c, y0); ctx.lineTo(LW, y0); ctx.lineTo(LW, LH); ctx.lineTo(x0, LH); ctx.lineTo(x0, y0 + c); ctx.closePath(); } },
+      { name: "Pita", barcode: "right", box: { x: 40, y: LH - 225, w: LW - 170, h: 200 },
+        path(ctx) { const y0 = LH - 250, n = 90; ctx.moveTo(0, y0); ctx.lineTo(LW - n, y0); ctx.lineTo(LW, y0 + 125); ctx.lineTo(LW - n, LH); ctx.lineTo(0, LH); ctx.closePath(); } },
+      { name: "Full Kaca", barcode: "bottom", box: { x: LW - 420, y: LH - 360, w: 380, h: 320 },
+        path(ctx) { ctx.moveTo(0,0); ctx.lineTo(LW,0); ctx.lineTo(LW,LH); ctx.lineTo(0,LH); ctx.closePath(); } }
+    ];
+
+    function hexToRgba(hex, a) { const n = parseInt(hex.slice(1), 16); return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`; }
+    function wrapLines(ctx, text, maxW) {
+      const words = text.split(' '); const lines = []; let line = '';
+      for (const w of words) { const test = line ? line + ' ' + w : w; if (line && ctx.measureText(test).width > maxW) { lines.push(line); line = w; } else { line = test; } }
+      if (line) lines.push(line); return lines;
+    }
+
+    function drawLidLabelContent(ctx, box, mode, title, artist, accent, rand) {
+      // 1. Barcode
+      const bw = 170, bh = 70, gap = 14; let bx, by, textW, textH;
+      if (mode === 'right') { bx = box.x + box.w - bw; by = box.y + (box.h - bh) / 2; textW = box.w - bw - 30; textH = box.h; }
+      else { bx = box.x + box.w - bw; by = box.y + box.h - bh; textW = box.w; textH = box.h - bh - gap; }
       
-      const themeIndex = currentCoverIndex;
-      const customImg = currentCustomImage;
-      const rand = mulberry32(1000 + themeIndex * 17 + (customImg ? 1 : 0));
-      const theme = albumThemes[themeIndex];
-      
-      let title = theme.title, artist = theme.artist, accent = theme.accent;
-      
-      if (customImg) {
-        title = customMetadata.title; 
-        artist = customMetadata.artist; 
-        accent = "#1db954"; // Spotify Green
+      ctx.fillStyle = "#ffffff"; ctx.fillRect(bx, by, bw, bh); ctx.fillStyle = "#000000";
+      for (let x = bx + 10; x < bx + bw - 10; x += (rand() > 0.5 ? 4 : 7)) ctx.fillRect(x, by + 8, rand() * 2.5 + 1, bh - 24);
+      ctx.font = "11px 'Space Mono', monospace"; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; ctx.fillText("8  02434  10294  9", bx + 12, by + bh - 5);
+
+      // 2. Audio Visualizer (Jika mode Full Kaca, gambar visualizer di atas kiri)
+      if (currentLidShape === 3) {
+         ctx.fillStyle = accent;
+         for(let i=0; i<15; i++) { let h = rand() * 50 + 10; ctx.fillRect(40 + (i*14), 40, 8, h); }
+         ctx.fillStyle = "rgba(255, 255, 255, 0.6)"; ctx.font = "14px 'Space Mono', monospace"; ctx.textBaseline = 'top';
+         ctx.fillText("SYS.REV: 5.0.44 // ID: " + Math.random().toString(36).substr(2, 8).toUpperCase(), 40, 100);
       }
-      
-      // CETAK TEKS DI SINI (Di atas mika transparan)
-      drawOverlayUI(ctx, title, artist, accent, rand);
-      
+
+      // 3. Teks Judul & Artist Auto-Fit
+      ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+      let size = 64, lines = [], artistSize = 30;
+      while (true) {
+        ctx.font = `bold ${size}px 'Space Mono', monospace`; lines = wrapLines(ctx, title, textW);
+        artistSize = Math.max(18, Math.min(34, Math.round(size * 0.55)));
+        const widest = Math.max(...lines.map(l => ctx.measureText(l).width));
+        const total = 18 + lines.length * size * 1.12 + 10 + artistSize * 1.2;
+        if ((lines.length <= 3 && widest <= textW && total <= textH) || size <= 22) break;
+        size -= 2;
+      }
+      ctx.font = `600 ${artistSize}px 'Plus Jakarta Sans', sans-serif`;
+      while (artistSize > 14 && ctx.measureText(artist).width > textW) { artistSize -= 2; ctx.font = `600 ${artistSize}px 'Plus Jakarta Sans', sans-serif`; }
+
+      const blockH = 18 + lines.length * size * 1.12 + 10 + artistSize * 1.2;
+      let y = mode === 'right' ? box.y + Math.max(0, (textH - blockH) / 2) : box.y;
+      ctx.fillStyle = accent; ctx.fillRect(box.x, y, 64, 6); y += 18;
+      ctx.fillStyle = "#ffffff"; ctx.font = `bold ${size}px 'Space Mono', monospace`;
+      for (const l of lines) { ctx.fillText(l, box.x, y); y += size * 1.12; }
+      y += 10; ctx.fillStyle = accent; ctx.font = `600 ${artistSize}px 'Plus Jakarta Sans', sans-serif`;
+      ctx.fillText(artist, box.x, y);
+    }
+
+    function generateLidLabelTexture(themeIndex, customImg = null, shapeIndex = 0) {
+      const canvas = document.createElement('canvas'); canvas.width = LW; canvas.height = LH; const ctx = canvas.getContext('2d');
+      const theme = albumThemes[themeIndex];
+      let title = theme.title, artist = theme.artist, accent = theme.accent, c0 = theme.bg[0], c1 = theme.bg[1];
+      if (customImg) { title = customMetadata.title; artist = customMetadata.artist; accent = "#1db954"; c0 = "#0f172a"; c1 = "#1e293b"; }
+      const shape = lidShapes[shapeIndex];
+      const rand = mulberry32(9000 + shapeIndex * 13 + themeIndex * 7 + (customImg ? 1 : 0));
+
+      // Jika Full Kaca (index 3), transparansi diturunkan drastis agar tidak menutupi CD sepenuhnya
+      const alpha = shapeIndex === 3 ? 0.05 : 0.92;
+
+      ctx.beginPath(); shape.path(ctx);
+      const grad = ctx.createLinearGradient(0, 0, LW, LH);
+      grad.addColorStop(0, hexToRgba(c0, alpha)); grad.addColorStop(1, hexToRgba(c1, alpha));
+      ctx.fillStyle = grad; ctx.fill();
+
+      // Outline bentuk
+      if(shapeIndex !== 3) {
+         ctx.beginPath(); shape.path(ctx);
+         ctx.lineWidth = 5; ctx.strokeStyle = accent; ctx.stroke();
+      }
+
+      // Tech Crosshairs
+      ctx.strokeStyle = accent; ctx.lineWidth = 4; const m = 40, s = 60;
+      ctx.beginPath(); ctx.moveTo(m+s, m); ctx.lineTo(m, m); ctx.lineTo(m, m+s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(LW-m-s, m); ctx.lineTo(LW-m, m); ctx.lineTo(LW-m, m+s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(m+s, LH-m); ctx.lineTo(m, LH-m); ctx.lineTo(m, LH-m-s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(LW-m-s, LH-m); ctx.lineTo(LW-m, LH-m); ctx.lineTo(LW-m, LH-m-s); ctx.stroke();
+
+      drawLidLabelContent(ctx, shape.box, shape.barcode, title, artist, accent, rand);
       return makeCanvasTexture(canvas, true);
     }
 
     function refreshLidLabel() {
       const old = lidLabelTexture;
-      lidLabelTexture = generateLidLabelTexture();
+      lidLabelTexture = generateLidLabelTexture(currentCoverIndex, currentCustomImage, currentLidShape);
       if (lidLabelMesh) { lidLabelMesh.material.map = lidLabelTexture; lidLabelMesh.material.needsUpdate = true; }
       if (old) old.dispose();
-      invalidate();
+      const btn = document.getElementById('changeLabelBtn');
+      if (btn) btn.textContent = 'Label: ' + lidShapes[currentLidShape].name;
+      perf.ignore = Math.max(perf.ignore, 25); invalidate();
     }
 
     // ==========================================
-    // 3. MATERIAL & 3D RENDERING
+    // 5. MATERIAL & RENDERING 3D (Refraction Kaca Nyata)
     // ==========================================
     function createProceduralEnvMap() {
-      const W = 1024, H = 512;
-      const canvas = document.createElement('canvas');
-      canvas.width = W; canvas.height = H;
-      const ctx = canvas.getContext('2d');
-
+      const W = 1024, H = 512; const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H; const ctx = canvas.getContext('2d');
       const grad = ctx.createLinearGradient(0, 0, 0, H);
-      grad.addColorStop(0, '#222836'); grad.addColorStop(0.42, '#0b0d13');
-      grad.addColorStop(0.5, '#171b25'); grad.addColorStop(1, '#07080c');
+      grad.addColorStop(0, '#222836'); grad.addColorStop(0.42, '#0b0d13'); grad.addColorStop(0.5, '#171b25'); grad.addColorStop(1, '#07080c');
       ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
-
-      const box = (x, y, w, h, color, blur) => {
-        ctx.shadowColor = color; ctx.shadowBlur = blur; ctx.fillStyle = color; ctx.fillRect(x, y, w, h);
-      };
-      box(250, 14, 520, 70, '#ffffff', 40);      
-      box(120, 150, 240, 120, '#ffffff', 30);    
-      box(790, 190, 90, 210, '#e2ecff', 28);     
-      box(560, 200, 70, 150, '#cfe3ff', 24);     
-      box(440, 340, 140, 36, '#ffe6c4', 24);     
-      box(40, 120, 5, 280, '#ffffff', 10);       
-      box(700, 120, 5, 280, '#ffffff', 10);
-      box(930, 140, 5, 260, '#ffffff', 10);
-      ctx.shadowBlur = 0;
-
-      const glow = ctx.createLinearGradient(0, H * 0.42, 0, H * 0.58);
-      glow.addColorStop(0, 'rgba(120,140,180,0)'); glow.addColorStop(0.5, 'rgba(120,140,180,0.12)'); glow.addColorStop(1, 'rgba(120,140,180,0)');
-      ctx.fillStyle = glow; ctx.fillRect(0, H * 0.42, W, H * 0.16);
-
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.mapping = THREE.EquirectangularReflectionMapping;
-      texture.encoding = THREE.sRGBEncoding;
-      return texture;
+      const box = (x, y, w, h, color, blur) => { ctx.shadowColor = color; ctx.shadowBlur = blur; ctx.fillStyle = color; ctx.fillRect(x, y, w, h); };
+      box(250, 14, 520, 70, '#ffffff', 40); box(120, 150, 240, 120, '#ffffff', 30); box(790, 190, 90, 210, '#e2ecff', 28); box(560, 200, 70, 150, '#cfe3ff', 24); box(440, 340, 140, 36, '#ffe6c4', 24); box(40, 120, 5, 280, '#ffffff', 10); box(700, 120, 5, 280, '#ffffff', 10); box(930, 140, 5, 260, '#ffffff', 10); ctx.shadowBlur = 0;
+      const texture = new THREE.CanvasTexture(canvas); texture.mapping = THREE.EquirectangularReflectionMapping; texture.encoding = THREE.sRGBEncoding; return texture;
     }
 
     let acrylicRoughTex = null;
     function getAcrylicRoughnessMap() {
       if (acrylicRoughTex) return acrylicRoughTex;
-      const S = 512;
-      const canvas = document.createElement('canvas'); canvas.width = S; canvas.height = S;
-      const ctx = canvas.getContext('2d');
-      const rand = mulberry32(4242);
+      const S = 512; const canvas = document.createElement('canvas'); canvas.width = S; canvas.height = S; const ctx = canvas.getContext('2d'); const rand = mulberry32(4242);
       ctx.fillStyle = 'rgb(10,10,10)'; ctx.fillRect(0, 0, S, S);
-
-      const wrapDraw = (fn) => {
-        for (const ox of [-S, 0, S]) for (const oy of [-S, 0, S]) { ctx.save(); ctx.translate(ox, oy); fn(); ctx.restore(); }
-      };
-      const blob = (x, y, r, a) => {
-        const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-        g.addColorStop(0, `rgba(110,110,110,${a})`); g.addColorStop(1, 'rgba(110,110,110,0)');
-        ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2);
-      };
+      const wrapDraw = (fn) => { for (const ox of [-S, 0, S]) for (const oy of [-S, 0, S]) { ctx.save(); ctx.translate(ox, oy); fn(); ctx.restore(); } };
+      const blob = (x, y, r, a) => { const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, `rgba(110,110,110,${a})`); g.addColorStop(1, 'rgba(110,110,110,0)'); ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); };
       for (let i = 0; i < 5; i++) { const x = rand() * S, y = rand() * S, r = 100 + rand() * 100; wrapDraw(() => blob(x, y, r, 0.07)); }
       for (let i = 0; i < 16; i++) { const x = rand() * S, y = rand() * S, r = 18 + rand() * 60, a = 0.10 + rand() * 0.22; wrapDraw(() => blob(x, y, r, a)); }
-
       ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
       for (let i = 0; i < 90; i++) {
-        const x = rand() * S, y = rand() * S;
-        const ang = i % 4 === 0 ? rand() * Math.PI : 0.6 + (rand() - 0.5) * 0.5; 
-        const len = 25 + rand() * 140, w = 0.5 + rand() * 0.9, a = 0.15 + rand() * 0.35;
-        wrapDraw(() => {
-          ctx.strokeStyle = `rgba(190,190,190,${a})`; ctx.lineWidth = w;
-          ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(ang) * len, y + Math.sin(ang) * len); ctx.stroke();
-        });
+        const x = rand() * S, y = rand() * S, ang = i % 4 === 0 ? rand() * Math.PI : 0.6 + (rand() - 0.5) * 0.5, len = 25 + rand() * 140, w = 0.5 + rand() * 0.9, a = 0.15 + rand() * 0.35;
+        wrapDraw(() => { ctx.strokeStyle = `rgba(190,190,190,${a})`; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(ang) * len, y + Math.sin(ang) * len); ctx.stroke(); });
       }
-
-      const tex = new THREE.CanvasTexture(canvas);
-      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-      tex.repeat.set(0.5, 0.5);
-      tex.anisotropy = 4;
-      acrylicRoughTex = tex;
-      return tex;
+      const tex = new THREE.CanvasTexture(canvas); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(0.5, 0.5); tex.anisotropy = 4; acrylicRoughTex = tex; return tex;
     }
 
     function mergeGeometries(geos) {
@@ -477,40 +477,25 @@
       const total = parts.reduce((n, g) => n + g.attributes.position.count, 0);
       const pos = new Float32Array(total * 3), nor = new Float32Array(total * 3), uv = new Float32Array(total * 2);
       let o = 0;
-      for (const g of parts) {
-        pos.set(g.attributes.position.array, o * 3);
-        nor.set(g.attributes.normal.array, o * 3);
-        if (g.attributes.uv) uv.set(g.attributes.uv.array, o * 2);
-        o += g.attributes.position.count;
-      }
-      const out = new THREE.BufferGeometry();
-      out.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-      out.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
-      out.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
-      geos.forEach(g => g.dispose()); parts.forEach(g => g.dispose());
-      return out;
+      for (const g of parts) { pos.set(g.attributes.position.array, o * 3); nor.set(g.attributes.normal.array, o * 3); if (g.attributes.uv) uv.set(g.attributes.uv.array, o * 2); o += g.attributes.position.count; }
+      const out = new THREE.BufferGeometry(); out.setAttribute('position', new THREE.BufferAttribute(pos, 3)); out.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); out.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+      geos.forEach(g => g.dispose()); parts.forEach(g => g.dispose()); return out;
     }
 
     function createGroundShadow() {
-      const c = document.createElement('canvas'); c.width = c.height = 256;
-      const g = c.getContext('2d');
+      const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
       const grad = g.createRadialGradient(128, 128, 0, 128, 128, 128);
       grad.addColorStop(0, 'rgba(0,0,0,0.55)'); grad.addColorStop(0.45, 'rgba(0,0,0,0.25)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
       g.fillStyle = grad; g.fillRect(0, 0, 256, 256);
-      const mat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, toneMapped: false, opacity: 0.4 });
-      shadowMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat);
+      shadowMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, opacity: 0.4 }));
       shadowMesh.rotation.x = -Math.PI / 2; shadowMesh.renderOrder = -1;
-      shadowGroup = new THREE.Group(); shadowGroup.position.y = -1.95; shadowGroup.add(shadowMesh);
-      scene.add(shadowGroup);
+      shadowGroup = new THREE.Group(); shadowGroup.position.y = -1.95; shadowGroup.add(shadowMesh); scene.add(shadowGroup);
     }
-
     function updateShadow(bobY) {
       if (!shadowGroup || !cdAssembly) return;
       const open = Math.min(1, Math.max(0, currentLidAngle / LID_OPEN_ANGLE));
-      shadowGroup.position.x = cdAssembly.position.x;
-      shadowGroup.rotation.y = currentRotY;
-      shadowMesh.position.x = -open * 1.1;
-      shadowMesh.scale.set(3.8 + open * 2.0, 1.6 + open * 1.0, 1);
+      shadowGroup.position.x = cdAssembly.position.x; shadowGroup.rotation.y = currentRotY;
+      shadowMesh.position.x = -open * 1.1; shadowMesh.scale.set(3.8 + open * 2.0, 1.6 + open * 1.0, 1);
       shadowMesh.material.opacity = 0.42 - bobY * 1.2;
     }
 
@@ -518,14 +503,7 @@
       const uniforms = { uLightPos: { value: new THREE.Vector3(4, 8, 6) }, uCoverTex: { value: coverTexture } };
       const vertexShader = `
         varying vec3 vNormal; varying vec3 vViewPosition; varying vec3 vTangent; varying vec3 vLocalPosition; varying float vSide;
-        void main() {
-          vLocalPosition = position; vSide = normal.z;
-          vNormal = normalize(normalMatrix * normal);
-          vTangent = normalMatrix * vec3(-position.y, position.x, 0.0);
-          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-          vViewPosition = -mvPosition.xyz;
-          gl_Position = projectionMatrix * mvPosition;
-        }
+        void main() { vLocalPosition = position; vSide = normal.z; vNormal = normalize(normalMatrix * normal); vTangent = normalMatrix * vec3(-position.y, position.x, 0.0); vec4 mvPosition = modelViewMatrix * vec4(position, 1.0); vViewPosition = -mvPosition.xyz; gl_Position = projectionMatrix * mvPosition; }
       `;
       const fragmentShader = `
         varying vec3 vNormal; varying vec3 vViewPosition; varying vec3 vTangent; varying vec3 vLocalPosition; varying float vSide;
@@ -534,24 +512,14 @@
         void main() {
           vec2 discUv = (vLocalPosition.xy / 2.3) + 0.5; float dist = length(discUv - vec2(0.5));
           if (dist < 0.035) discard;
-
-          vec3 N = normalize(vNormal); vec3 V = normalize(vViewPosition);
-          vec3 lightView = (viewMatrix * vec4(uLightPos, 1.0)).xyz;
-          vec3 L = normalize(lightView + vViewPosition);
+          vec3 N = normalize(vNormal); vec3 V = normalize(vViewPosition); vec3 L = normalize((viewMatrix * vec4(uLightPos, 1.0)).xyz + vViewPosition);
           float tl = length(vTangent); vec3 T = tl > 1e-5 ? vTangent / tl : vec3(0.0);
-          float diffractionShift = (dot(V, T) + dot(L, T)) * 7.5;
-          vec3 rainbow = spectralRainbow(diffractionShift + dist * 2.8);
-
+          vec3 rainbow = spectralRainbow((dot(V, T) + dot(L, T)) * 7.5 + dist * 2.8);
           vec3 silverAlu = vec3(0.92, 0.93, 0.96); vec3 H = normalize(L + V);
-          float diffuse = max(dot(N, L), 0.0);
-          float spec = pow(max(dot(N, H), 0.0), 40.0); float fresnel = pow(1.0 - max(dot(N, V), 0.0), 3.0);
-
-          bool isBack = vSide < -0.5;
-          vec3 finalColor = vec3(0.0); float alpha = 1.0;
+          float diffuse = max(dot(N, L), 0.0), spec = pow(max(dot(N, H), 0.0), 40.0), fresnel = pow(1.0 - max(dot(N, V), 0.0), 3.0);
+          bool isBack = vSide < -0.5; vec3 finalColor = vec3(0.0); float alpha = 1.0;
           if (dist < 0.08) { finalColor = vec3(0.95); alpha = 0.2 + fresnel * 0.7; }
-          else if (isBack) {
-            finalColor = mix(silverAlu, rainbow, 0.55) * (0.55 + 0.45 * diffuse) + spec * 1.2;
-          }
+          else if (isBack) { finalColor = mix(silverAlu, rainbow, 0.55) * (0.55 + 0.45 * diffuse) + spec * 1.2; }
           else if (dist < 0.16) { finalColor = mix(silverAlu, rainbow, 0.7) * (0.6 + 0.4 * diffuse); finalColor += spec * 1.5; }
           else { vec4 cover = texture2D(uCoverTex, discUv); finalColor = cover.rgb * (0.7 + 0.3 * diffuse) + spec * 0.8 + rainbow * 0.15 * fresnel; }
           if (dist > 0.492) { finalColor = silverAlu * (0.5 + 0.5 * diffuse) + spec; }
@@ -563,14 +531,7 @@
 
     function getRoundedRectShape(width, height, radius) {
       const ctx = new THREE.Shape(); const x = -width / 2, y = -height / 2;
-      ctx.moveTo(x, y + radius); ctx.lineTo(x, y + height - radius);
-      ctx.quadraticCurveTo(x, y + height, x + radius, y + height);
-      ctx.lineTo(x + width - radius, y + height);
-      ctx.quadraticCurveTo(x + width, y + height, x + width, y + height - radius);
-      ctx.lineTo(x + width, y + radius);
-      ctx.quadraticCurveTo(x + width, y, x + width - radius, y);
-      ctx.lineTo(x + radius, y);
-      ctx.quadraticCurveTo(x, y, x, y + radius); return ctx;
+      ctx.moveTo(x, y + radius); ctx.lineTo(x, y + height - radius); ctx.quadraticCurveTo(x, y + height, x + radius, y + height); ctx.lineTo(x + width - radius, y + height); ctx.quadraticCurveTo(x + width, y + height, x + width, y + height - radius); ctx.lineTo(x + width, y + radius); ctx.quadraticCurveTo(x + width, y, x + width - radius, y); ctx.lineTo(x + radius, y); ctx.quadraticCurveTo(x, y, x, y + radius); return ctx;
     }
 
     function buildProceduralCDAssembly() {
@@ -578,28 +539,23 @@
       cdAssembly = new THREE.Group(); scene.add(cdAssembly);
 
       const acrylicRoughMap = getAcrylicRoughnessMap();
-      const acrylicBase = {
-        transmission: 1.0, opacity: 1, transparent: true, depthWrite: false, metalness: 0.02,
-        ior: 1.52, reflectivity: 1.0, side: THREE.DoubleSide, envMapIntensity: 1.15,
-        roughness: 1.0, roughnessMap: acrylicRoughMap,
-        clearcoat: 1.0, clearcoatRoughness: 1.0, clearcoatRoughnessMap: acrylicRoughMap
-      };
+      const acrylicBase = { transmission: 1.0, opacity: 1, transparent: true, depthWrite: false, metalness: 0.02, ior: 1.52, reflectivity: 1.0, side: THREE.DoubleSide, envMapIntensity: 1.15, roughness: 1.0, roughnessMap: acrylicRoughMap, clearcoat: 1.0, clearcoatRoughness: 1.0, clearcoatRoughnessMap: acrylicRoughMap, thickness: 0.15 };
       const clearAcrylicMaterial = new THREE.MeshPhysicalMaterial(Object.assign({ color: 0xffffff }, acrylicBase));
       const clearEdgeMaterial = new THREE.MeshPhysicalMaterial(Object.assign({}, acrylicBase, { color: 0xdcf1ec, transmission: 0.93 }));
 
+      // Casing dimensions & rounded settings (rim dipertipis menjadi 0.045)
       const caseW = 2.8, caseH = 2.65, caseD = 0.28, t = 0.04;
       const cornerRadius = 0.12, rimThick = 0.045, edgeDepth = caseD / 2;
 
       const baseShape = getRoundedRectShape(caseW, caseH, cornerRadius);
-      const plateGeo = new THREE.ExtrudeGeometry(baseShape, { depth: t, bevelEnabled: false });
-      plateGeo.translate(0, 0, -t/2);
+      const plateGeo = new THREE.ExtrudeGeometry(baseShape, { depth: t, bevelEnabled: false }); plateGeo.translate(0, 0, -t/2);
 
       const rimShape = getRoundedRectShape(caseW, caseH, cornerRadius);
       const holeShape = getRoundedRectShape(caseW - rimThick*2, caseH - rimThick*2, Math.max(0, cornerRadius - rimThick));
       rimShape.holes.push(holeShape);
-      const rimGeo = new THREE.ExtrudeGeometry(rimShape, { depth: edgeDepth, bevelEnabled: false });
-      rimGeo.translate(0, 0, -edgeDepth/2);
+      const rimGeo = new THREE.ExtrudeGeometry(rimShape, { depth: edgeDepth, bevelEnabled: false }); rimGeo.translate(0, 0, -edgeDepth/2);
 
+      // --- BACK GROUP (Dudukan bawah bening) ---
       const backGroup = new THREE.Group();
       const backPlate = new THREE.Mesh(plateGeo, clearAcrylicMaterial); backPlate.position.z = -caseD/2 + t/2; backGroup.add(backPlate);
       const backRim = new THREE.Mesh(rimGeo, clearEdgeMaterial); backRim.position.z = -caseD/4; backGroup.add(backRim);
@@ -608,15 +564,12 @@
       backCoverTexture = generateBackCoverTexture(currentCoverIndex, currentCustomImage);
 
       const inlayGeo = new THREE.PlaneGeometry(caseW - rimThick*2 - 0.01, caseH - rimThick*2 - 0.01);
-      
       const trayOutsideMat = new THREE.MeshStandardMaterial({ map: backCoverTexture, roughness: 0.8, metalness: 0 });
-      const trayOutside = new THREE.Mesh(inlayGeo, trayOutsideMat); trayOutside.name = "trayOutside";
-      trayOutside.rotation.y = Math.PI; trayOutside.position.z = -caseD/2 + t + 0.001; backGroup.add(trayOutside);
-
+      const trayOutside = new THREE.Mesh(inlayGeo, trayOutsideMat); trayOutside.name = "trayOutside"; trayOutside.rotation.y = Math.PI; trayOutside.position.z = -caseD/2 + t + 0.001; backGroup.add(trayOutside);
       const trayInsideMat = new THREE.MeshStandardMaterial({ map: frontCoverTexture, roughness: 0.8, metalness: 0 });
-      const trayInside = new THREE.Mesh(inlayGeo, trayInsideMat); trayInside.name = "trayInside";
-      trayInside.position.z = -caseD/2 + t + 0.002; backGroup.add(trayInside);
+      const trayInside = new THREE.Mesh(inlayGeo, trayInsideMat); trayInside.name = "trayInside"; trayInside.position.z = -caseD/2 + t + 0.002; backGroup.add(trayInside);
 
+      // --- L-BRACKETS FRAME ---
       const frameGroup = new THREE.Group(); frameGroup.position.z = -caseD/2 + t + 0.015;
       const bracketDistX = caseW/2 - rimThick - 0.12, bracketDistY = caseH/2 - rimThick - 0.12;
       const bLength = 0.45, bThick = 0.06, bHeight = 0.12;
@@ -626,36 +579,28 @@
         frameParts.push(new THREE.BoxGeometry(bLength, bThick, bHeight).translate(dirX * (bracketDistX - bLength/2 + bThick/2), dirY * bracketDistY, 0));
         frameParts.push(new THREE.BoxGeometry(bThick, bLength - bThick, bHeight).translate(dirX * bracketDistX, dirY * (bracketDistY - bLength/2), 0));
       });
-      [[1.2, 0], [-1.2, 0], [0, 1.15], [0, -1.15]].forEach(([x, y]) => {
-        frameParts.push(new THREE.BoxGeometry(0.08, 0.08, 0.12).translate(x, y, 0));
-      });
+      [[1.2, 0], [-1.2, 0], [0, 1.15], [0, -1.15]].forEach(([x, y]) => { frameParts.push(new THREE.BoxGeometry(0.08, 0.08, 0.12).translate(x, y, 0)); });
       frameParts.push(new THREE.CylinderGeometry(0.18, 0.18, 0.08, 32).rotateX(Math.PI/2));
-      for (let k = 0; k < 4; k++) {
-        frameParts.push(new THREE.BoxGeometry(0.05, 0.05, 0.12).translate(Math.cos(k * Math.PI/2) * 0.13, Math.sin(k * Math.PI/2) * 0.13, 0.03));
-      }
+      for (let k = 0; k < 4; k++) frameParts.push(new THREE.BoxGeometry(0.05, 0.05, 0.12).translate(Math.cos(k * Math.PI/2) * 0.13, Math.sin(k * Math.PI/2) * 0.13, 0.03));
+      
       frameGroup.add(new THREE.Mesh(mergeGeometries(frameParts), clearEdgeMaterial));
       backGroup.add(frameGroup); cdAssembly.add(backGroup);
 
+      // --- CD DISC ---
       cdDiscGroup = new THREE.Group(); cdDiscGroup.position.set(0, 0, frameGroup.position.z + 0.04); cdDiscGroup.userData.baseZ = cdDiscGroup.position.z;
       const discGeo = new THREE.CylinderGeometry(1.15, 1.15, 0.012, 64); discGeo.rotateX(Math.PI / 2);
-      
       discTexture = generateDiscTexture(currentCoverIndex, currentCustomImage);
       if(!cdIridescenceMaterial) cdIridescenceMaterial = createCDMaterial(discTexture);
-      
       cdDiscMesh = new THREE.Mesh(discGeo, cdIridescenceMaterial); cdDiscGroup.add(cdDiscMesh); cdAssembly.add(cdDiscGroup);
 
+      // --- FRONT LID (Tutup Mika Transparan Atas) ---
       caseLidGroup = new THREE.Group(); caseLidGroup.position.set(-caseW/2, 0, 0);
       const lidPlate = new THREE.Mesh(plateGeo, clearAcrylicMaterial); lidPlate.position.set(caseW/2, 0, caseD/2 - t/2); caseLidGroup.add(lidPlate);
       const lidRim = new THREE.Mesh(rimGeo, clearEdgeMaterial); lidRim.position.set(caseW/2, 0, caseD/4); caseLidGroup.add(lidRim);
 
-      lidLabelTexture = generateLidLabelTexture();
-      lidLabelMesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(caseW, caseH),
-        new THREE.MeshBasicMaterial({ map: lidLabelTexture, transparent: true, depthWrite: false, side: THREE.DoubleSide })
-      );
-      lidLabelMesh.name = "lidLabel";
-      lidLabelMesh.position.set(caseW / 2, 0, caseD / 2 + 0.003);
-      caseLidGroup.add(lidLabelMesh);
+      lidLabelTexture = generateLidLabelTexture(currentCoverIndex, currentCustomImage, currentLidShape);
+      lidLabelMesh = new THREE.Mesh(new THREE.PlaneGeometry(caseW, caseH), new THREE.MeshBasicMaterial({ map: lidLabelTexture, transparent: true, depthWrite: false, side: THREE.DoubleSide }));
+      lidLabelMesh.name = "lidLabel"; lidLabelMesh.position.set(caseW / 2, 0, caseD / 2 + 0.003); caseLidGroup.add(lidLabelMesh);
 
       cdAssembly.add(caseLidGroup);
       targetLidAngle = isOpen ? -Math.PI * 0.78 : 0; currentLidAngle = targetLidAngle; caseLidGroup.rotation.y = currentLidAngle;
@@ -664,15 +609,10 @@
 
     function init() {
       const container = document.getElementById('canvas-container');
-      scene = new THREE.Scene();
-      scene.environment = createProceduralEnvMap();
-      camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
-      camera.position.set(0, 0, 8.0);
-
+      scene = new THREE.Scene(); scene.environment = createProceduralEnvMap();
+      camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100); camera.position.set(0, 0, 8.0);
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
-      applyPixelRatio();
-      renderer.outputEncoding = THREE.sRGBEncoding;
-      renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
+      applyPixelRatio(); renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
       container.appendChild(renderer.domElement);
 
       scene.add(new THREE.AmbientLight(0xffffff, 0.9));
@@ -686,100 +626,54 @@
     }
 
     function prepareCustomImage(img, maxSide = 2048) {
-      const size = Math.min(img.width, img.height);
-      const target = Math.min(size, maxSide);
-      const c = document.createElement('canvas'); c.width = c.height = target;
-      const cx = c.getContext('2d');
+      const size = Math.min(img.width, img.height), target = Math.min(size, maxSide);
+      const c = document.createElement('canvas'); c.width = c.height = target; const cx = c.getContext('2d');
       cx.imageSmoothingEnabled = true; cx.imageSmoothingQuality = 'high';
-      cx.drawImage(img, (img.width - size) / 2, (img.height - size) / 2, size, size, 0, 0, target, target);
-      return c;
+      cx.drawImage(img, (img.width - size) / 2, (img.height - size) / 2, size, size, 0, 0, target, target); return c;
     }
 
     function updateTextures() {
       const oldTextures = [frontCoverTexture, backCoverTexture, discTexture];
-
       frontCoverTexture = generateFrontCoverTexture(currentCoverIndex, currentCustomImage);
       backCoverTexture = generateBackCoverTexture(currentCoverIndex, currentCustomImage);
       discTexture = generateDiscTexture(currentCoverIndex, currentCustomImage);
 
-      const trayInsideMesh = scene.getObjectByName("trayInside");
-      if (trayInsideMesh) { trayInsideMesh.material.map = frontCoverTexture; trayInsideMesh.material.needsUpdate = true; }
-
-      const trayOutsideMesh = scene.getObjectByName("trayOutside");
-      if (trayOutsideMesh) { trayOutsideMesh.material.map = backCoverTexture; trayOutsideMesh.material.needsUpdate = true; }
-
-      if (cdIridescenceMaterial) { cdIridescenceMaterial.uniforms.uCoverTex.value = discTexture; }
-
-      oldTextures.forEach(t => { if (t) t.dispose(); });
-      refreshLidLabel();
+      const trayInsideMesh = scene.getObjectByName("trayInside"); if (trayInsideMesh) { trayInsideMesh.material.map = frontCoverTexture; trayInsideMesh.material.needsUpdate = true; }
+      const trayOutsideMesh = scene.getObjectByName("trayOutside"); if (trayOutsideMesh) { trayOutsideMesh.material.map = backCoverTexture; trayOutsideMesh.material.needsUpdate = true; }
+      if (cdIridescenceMaterial) cdIridescenceMaterial.uniforms.uCoverTex.value = discTexture;
+      oldTextures.forEach(t => { if (t) t.dispose(); }); refreshLidLabel();
 
       if(currentCustomImage) {
-         document.getElementById('albumTitleDisplay').innerText = customMetadata.title;
-         document.getElementById('albumArtistDisplay').innerText = customMetadata.artist;
-         // Set dark background for custom tracks
+         document.getElementById('albumTitleDisplay').innerText = customMetadata.title; document.getElementById('albumArtistDisplay').innerText = customMetadata.artist;
          document.body.style.backgroundColor = "#242424";
       } else {
          const theme = albumThemes[currentCoverIndex];
-         document.getElementById('albumTitleDisplay').innerText = theme.title;
-         document.getElementById('albumArtistDisplay').innerText = theme.artist;
+         document.getElementById('albumTitleDisplay').innerText = theme.title; document.getElementById('albumArtistDisplay').innerText = theme.artist;
          document.body.style.backgroundColor = theme.pageBg;
       }
     }
 
+    // ==========================================
+    // 6. EVENT & INTERAKSI
+    // ==========================================
     function setupInteractions() {
       const container = document.getElementById('canvas-container');
       let startX = 0, startY = 0, hasDragged = false, activePointerId = null;
       const clampX = v => Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, v));
-
-      function onPointerDown(e) {
-        if (e.pointerType === 'mouse' && e.button !== 0) return;
-        if (activePointerId !== null) return;
-        isDragging = true; activePointerId = e.pointerId;
-        prevMouseX = startX = e.clientX; prevMouseY = startY = e.clientY; hasDragged = false;
-        try { container.setPointerCapture(e.pointerId); } catch (_) {}
-      }
-      function onPointerMove(e) {
-        if (!isDragging || e.pointerId !== activePointerId) return;
-        if (Math.hypot(e.clientX - startX, e.clientY - startY) > 6) hasDragged = true;
-        targetRotY += (e.clientX - prevMouseX) * 0.006;
-        targetRotX = clampX(targetRotX + (e.clientY - prevMouseY) * 0.006);
-        prevMouseX = e.clientX; prevMouseY = e.clientY; invalidate();
-      }
-      function endDrag(e, allowToggle) {
-        if (!isDragging || e.pointerId !== activePointerId) return;
-        isDragging = false; activePointerId = null;
-        try { container.releasePointerCapture(e.pointerId); } catch (_) {}
-        if (allowToggle && !hasDragged) toggleCase();
-      }
-      container.addEventListener('pointerdown', onPointerDown);
-      window.addEventListener('pointermove', onPointerMove);
-      window.addEventListener('pointerup', e => endDrag(e, true));
-      window.addEventListener('pointercancel', e => endDrag(e, false));
+      function onPointerDown(e) { if (e.pointerType === 'mouse' && e.button !== 0) return; if (activePointerId !== null) return; isDragging = true; activePointerId = e.pointerId; prevMouseX = startX = e.clientX; prevMouseY = startY = e.clientY; hasDragged = false; try { container.setPointerCapture(e.pointerId); } catch (_) {} }
+      function onPointerMove(e) { if (!isDragging || e.pointerId !== activePointerId) return; if (Math.hypot(e.clientX - startX, e.clientY - startY) > 6) hasDragged = true; targetRotY += (e.clientX - prevMouseX) * 0.006; targetRotX = clampX(targetRotX + (e.clientY - prevMouseY) * 0.006); prevMouseX = e.clientX; prevMouseY = e.clientY; invalidate(); }
+      function endDrag(e, allowToggle) { if (!isDragging || e.pointerId !== activePointerId) return; isDragging = false; activePointerId = null; try { container.releasePointerCapture(e.pointerId); } catch (_) {} if (allowToggle && !hasDragged) toggleCase(); }
+      container.addEventListener('pointerdown', onPointerDown); window.addEventListener('pointermove', onPointerMove); window.addEventListener('pointerup', e => endDrag(e, true)); window.addEventListener('pointercancel', e => endDrag(e, false));
     }
 
     function toggleCase() {
-      isOpen = !isOpen;
-      if (!isOpen) isDiscOut = false; 
-      document.getElementById('caseStateText').innerText = isOpen ? "Tutup Casing" : "Buka Casing";
-      updateEjectButton();
-      invalidate();
+      isOpen = !isOpen; if (!isOpen) isDiscOut = false;
+      document.getElementById('caseStateText').innerText = isOpen ? "Tutup Casing" : "Buka Casing"; updateEjectButton(); invalidate();
     }
+    function toggleDiscOut() { isDiscOut = !isDiscOut; if (isDiscOut && !isOpen) toggleCase(); updateEjectButton(); invalidate(); }
+    function updateEjectButton() { const b = document.getElementById('ejectDiscBtn'); if (b) b.textContent = isDiscOut ? 'Masukkan CD' : 'Keluarkan CD'; }
 
-    function toggleDiscOut() {
-      isDiscOut = !isDiscOut;
-      if (isDiscOut && !isOpen) toggleCase(); 
-      updateEjectButton();
-      invalidate();
-    }
-
-    function updateEjectButton() {
-      const b = document.getElementById('ejectDiscBtn');
-      if (b) b.textContent = isDiscOut ? 'Masukkan CD' : 'Keluarkan CD';
-    }
-
-    // ==========================================
-    // 4. LOGIKA SPOTIFY API (Menggunakan Token Langsung)
-    // ==========================================
+    // ====== SPOTIFY API LOGIC ======
     async function applySpotifyTrack(track) {
       const trackTitle = track.name.toUpperCase();
       const trackArtist = track.artists.map(a => a.name).join(', ').toUpperCase();
@@ -787,13 +681,19 @@
 
       customMetadata.title = trackTitle;
       customMetadata.artist = trackArtist;
+      customMetadata.id = track.id; // Simpan ID lagu untuk player
       
-      const img = new Image();
-      img.crossOrigin = "anonymous"; 
+      const img = new Image(); img.crossOrigin = "anonymous"; 
       img.onload = () => {
         currentCustomImage = prepareCustomImage(img);
         updateTextures();
         document.getElementById('spotifyBtnText').innerText = `Track ${currentTrackIndex === 0 ? topTracksData.length : currentTrackIndex} Synced!`;
+        
+        // Memunculkan Spotify Embed iFrame!
+        const iframe = document.getElementById('spotifyIframe');
+        const container = document.getElementById('spotifyEmbedContainer');
+        iframe.src = `https://open.spotify.com/embed/track/${customMetadata.id}?utm_source=generator&theme=0`;
+        container.classList.remove('opacity-0', 'pointer-events-none', 'translate-x-4');
       };
       img.src = artUrl;
     }
@@ -801,188 +701,78 @@
     async function fetchAndApplyTopTracks() {
       document.getElementById('spotifyBtnText').innerText = 'Memuat...';
       try {
-        // Fetch data hanya di klik pertama untuk menghemat API call
         if (topTracksData.length === 0) {
           const res = await fetch('https://api.spotify.com/v1/me/top/tracks?time_range=long_term&limit=5', {
-            headers: { 'Authorization': 'Bearer ' + spotifyAccessToken },
-            method: 'GET'
+            headers: { 'Authorization': 'Bearer ' + spotifyAccessToken }, method: 'GET'
           });
-          
           if (!res.ok) throw new Error('Token mungkin kedaluwarsa');
-          const data = await res.json();
-          topTracksData = data.items;
+          topTracksData = (await res.json()).items;
         }
 
         if (topTracksData && topTracksData.length > 0) {
           const track = topTracksData[currentTrackIndex];
           await applySpotifyTrack(track);
-          
-          // Loop ke track berikutnya di klik selanjutnya
           currentTrackIndex = (currentTrackIndex + 1) % topTracksData.length;
-        } else {
-          document.getElementById('spotifyBtnText').innerText = 'Data Kosong';
-        }
+        } else { document.getElementById('spotifyBtnText').innerText = 'Data Kosong'; }
       } catch (err) {
         console.error("Gagal menarik data dari Spotify", err);
-        alert("Gagal memuat. Pastikan Token Spotify masih berlaku (Token Web API kadaluwarsa setelah 1 jam).");
+        alert("Gagal memuat. Pastikan Token Web API masih berlaku (Kadaluwarsa setelah 1 jam).");
         document.getElementById('spotifyBtnText').innerText = 'Sync Error';
       }
     }
 
     function setupUIEvents() {
       document.getElementById('toggleCaseBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleCase(); });
-      document.getElementById('toggleSpinBtn').addEventListener('click', (e) => {
-        e.stopPropagation(); isDiscSpinning = !isDiscSpinning; invalidate();
-        const icon = document.getElementById('spinIcon'); const text = document.getElementById('spinStateText');
-        if (isDiscSpinning) { icon.classList.add('animate-spin'); text.innerText = "Stop Putar"; } else { icon.classList.remove('animate-spin'); text.innerText = "Putar CD"; }
-      });
-      document.getElementById('changeCoverBtn').addEventListener('click', (e) => {
-        e.stopPropagation(); 
-        currentCustomImage = null; 
-        currentCoverIndex = (currentCoverIndex + 1) % albumThemes.length;
-        updateTextures();
-      });
-      
-      // RESTORED: Event Click Tombol Label
-      const labelBtn = document.getElementById('changeLabelBtn');
-      if(labelBtn) {
-        labelBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          currentLidShape = (currentLidShape + 1) % lidShapes.length;
-          refreshLidLabel();
-        });
-      }
+      document.getElementById('toggleSpinBtn').addEventListener('click', (e) => { e.stopPropagation(); isDiscSpinning = !isDiscSpinning; invalidate(); const icon = document.getElementById('spinIcon'); const text = document.getElementById('spinStateText'); if (isDiscSpinning) { icon.classList.add('animate-spin'); text.innerText = "Stop Putar"; } else { icon.classList.remove('animate-spin'); text.innerText = "Putar CD"; } });
+      document.getElementById('changeCoverBtn').addEventListener('click', (e) => { e.stopPropagation(); currentCustomImage = null; currentCoverIndex = (currentCoverIndex + 1) % albumThemes.length; document.getElementById('spotifyEmbedContainer').classList.add('opacity-0', 'pointer-events-none', 'translate-x-4'); updateTextures(); });
+      document.getElementById('changeLabelBtn').addEventListener('click', (e) => { e.stopPropagation(); currentLidShape = (currentLidShape + 1) % lidShapes.length; refreshLidLabel(); });
+      document.getElementById('ejectDiscBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleDiscOut(); });
       
       const fileInput = document.getElementById('imageUploadInput');
-      document.getElementById('uploadImageBtn').addEventListener('click', (e) => {
-        e.stopPropagation();
-        fileInput.click();
-      });
+      document.getElementById('uploadImageBtn').addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
       fileInput.addEventListener('change', (e) => {
-         const file = e.target.files[0];
-         if (!file) return;
-         const url = URL.createObjectURL(file);
-         const img = new Image();
-         img.onload = () => {
-            URL.revokeObjectURL(url);
-            // Reset metadata ke local file generic text
-            customMetadata = { title: "LOCAL UPLOAD", artist: "USER FILE" };
-            currentCustomImage = prepareCustomImage(img);
-            updateTextures();
-         };
-         img.onerror = () => {
-            URL.revokeObjectURL(url);
-            alert('Gagal memuat gambar.');
-         };
-         img.src = url;
-         fileInput.value = ''; 
+         const file = e.target.files[0]; if (!file) return;
+         const url = URL.createObjectURL(file); const img = new Image();
+         img.onload = () => { URL.revokeObjectURL(url); customMetadata = { title: "LOCAL UPLOAD", artist: "USER FILE" }; currentCustomImage = prepareCustomImage(img); document.getElementById('spotifyEmbedContainer').classList.add('opacity-0', 'pointer-events-none', 'translate-x-4'); updateTextures(); };
+         img.onerror = () => { URL.revokeObjectURL(url); alert('Gagal memuat gambar.'); }; img.src = url; fileInput.value = ''; 
       });
 
-      document.getElementById('spotifySyncBtn').addEventListener('click', (e) => {
-        e.stopPropagation();
-        fetchAndApplyTopTracks();
-      });
-
-      document.getElementById('ejectDiscBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleDiscOut(); });
+      document.getElementById('spotifySyncBtn').addEventListener('click', (e) => { e.stopPropagation(); fetchAndApplyTopTracks(); });
       document.getElementById('resetCamBtn').addEventListener('click', (e) => { e.stopPropagation(); targetRotX = 0.25; targetRotY = -0.45; invalidate(); });
     }
 
-    function invalidate() {
-      if (!rafId && renderer) rafId = requestAnimationFrame(animate);
-    }
-
-    function applyPixelRatio() {
-      renderer.setPixelRatio(currentPixelRatio);
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    }
-
-    function onWindowResize() {
-      const prevMax = maxPixelRatio;
-      maxPixelRatio = Math.min(window.devicePixelRatio || 1, 2);
-      currentPixelRatio = maxPixelRatio !== prevMax ? maxPixelRatio : Math.min(currentPixelRatio, maxPixelRatio);
-      perf.ignore = Math.max(perf.ignore, 30);
-      camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
-      applyPixelRatio(); invalidate();
-    }
-
-    function adaptPixelRatio(dt) {
-      if (dt > 0.1) { perf.frames = 0; perf.acc = 0; return; } 
-      if (perf.ignore > 0) { perf.ignore--; return; }          
-      perf.acc += dt; perf.frames++;
-      if (perf.frames >= 40) {
-        const avg = perf.acc / perf.frames;
-        perf.frames = 0; perf.acc = 0;
-        if (avg > 1 / 40 && currentPixelRatio > 1) {
-          currentPixelRatio = Math.max(1, currentPixelRatio - 0.25);
-          applyPixelRatio(); perf.ignore = 20;
-        }
-      }
-    }
+    function invalidate() { if (!rafId && renderer) rafId = requestAnimationFrame(animate); }
+    function applyPixelRatio() { renderer.setPixelRatio(currentPixelRatio); renderer.setSize(window.innerWidth, window.innerHeight); }
+    function onWindowResize() { const prevMax = maxPixelRatio; maxPixelRatio = Math.min(window.devicePixelRatio || 1, 2); currentPixelRatio = maxPixelRatio !== prevMax ? maxPixelRatio : Math.min(currentPixelRatio, maxPixelRatio); perf.ignore = Math.max(perf.ignore, 30); camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); applyPixelRatio(); invalidate(); }
+    function adaptPixelRatio(dt) { if (dt > 0.1) { perf.frames = 0; perf.acc = 0; return; } if (perf.ignore > 0) { perf.ignore--; return; } perf.acc += dt; perf.frames++; if (perf.frames >= 40) { const avg = perf.acc / perf.frames; perf.frames = 0; perf.acc = 0; if (avg > 1 / 40 && currentPixelRatio > 1) { currentPixelRatio = Math.max(1, currentPixelRatio - 0.25); applyPixelRatio(); perf.ignore = 20; } } }
 
     function animate(now) {
-      rafId = 0;
-      const hadPrev = lastFrameTime > 0;
-      const rawDt = hadPrev ? (now - lastFrameTime) / 1000 : 0.016;
-      lastFrameTime = now;
-      if (hadPrev) adaptPixelRatio(rawDt);
+      rafId = 0; const hadPrev = lastFrameTime > 0; const rawDt = hadPrev ? (now - lastFrameTime) / 1000 : 0.016; lastFrameTime = now;
+      if (hadPrev) adaptPixelRatio(rawDt); const f = Math.min(rawDt, 0.05) * 60; 
+      const approach = (cur, tgt, rate, eps = 0.0005) => { const n = cur + (tgt - cur) * (1 - Math.pow(1 - rate, f)); return Math.abs(tgt - n) < eps ? tgt : n; };
 
-      const f = Math.min(rawDt, 0.05) * 60; 
-      const approach = (cur, tgt, rate, eps = 0.0005) => {
-        const n = cur + (tgt - cur) * (1 - Math.pow(1 - rate, f));
-        return Math.abs(tgt - n) < eps ? tgt : n;
-      };
-
-      currentRotX = approach(currentRotX, targetRotX, 0.08);
-      currentRotY = approach(currentRotY, targetRotY, 0.08);
+      currentRotX = approach(currentRotX, targetRotX, 0.08); currentRotY = approach(currentRotY, targetRotY, 0.08);
 
       const holdOpen = isOpen || discOutAmt > 0.12;
-      targetLidAngle = holdOpen ? LID_OPEN_ANGLE : 0.0;
-      const targetPosX = holdOpen ? OPEN_OFFSET_X : 0.0;
+      targetLidAngle = holdOpen ? LID_OPEN_ANGLE : 0.0; const targetPosX = holdOpen ? OPEN_OFFSET_X : 0.0;
       currentLidAngle = approach(currentLidAngle, targetLidAngle, 0.1);
-
-      const openProgress = currentLidAngle / LID_OPEN_ANGLE;
-      const discTarget = (isDiscOut && isOpen && openProgress > 0.85) ? 1 : 0;
+      const openProgress = currentLidAngle / LID_OPEN_ANGLE; const discTarget = (isDiscOut && isOpen && openProgress > 0.85) ? 1 : 0;
       discOutAmt = approach(discOutAmt, discTarget, 0.07, 0.0015);
-
-      const spinTarget = isDiscSpinning ? 1 : 0;
-      bobAmp = approach(bobAmp, spinTarget, 0.06, 0.002);
+      const spinTarget = isDiscSpinning ? 1 : 0; bobAmp = approach(bobAmp, spinTarget, 0.06, 0.002);
       const bobY = Math.sin((now / 1000) * 1.6) * 0.06 * bobAmp;
 
-      if (cdAssembly) {
-        cdAssembly.rotation.x = currentRotX; cdAssembly.rotation.y = currentRotY;
-        cdAssembly.position.y = bobY;
-        cdAssembly.position.x = approach(cdAssembly.position.x, targetPosX, 0.08);
-      }
+      if (cdAssembly) { cdAssembly.rotation.x = currentRotX; cdAssembly.rotation.y = currentRotY; cdAssembly.position.y = bobY; cdAssembly.position.x = approach(cdAssembly.position.x, targetPosX, 0.08); }
       if (caseLidGroup) caseLidGroup.rotation.y = currentLidAngle;
-
-      if (cdDiscGroup) {
-        const lift = smoothstep(0, 0.45, discOutAmt), rise = smoothstep(0.3, 1, discOutAmt);
-        cdDiscGroup.position.set(0, 1.15 * rise, cdDiscGroup.userData.baseZ + 0.6 * lift);
-        cdDiscGroup.rotation.x = -0.5 * rise;
-      }
+      if (cdDiscGroup) { const lift = smoothstep(0, 0.45, discOutAmt), rise = smoothstep(0.3, 1, discOutAmt); cdDiscGroup.position.set(0, 1.15 * rise, cdDiscGroup.userData.baseZ + 0.6 * lift); cdDiscGroup.rotation.x = -0.5 * rise; }
       if (cdDiscMesh && isDiscSpinning) cdDiscMesh.rotation.z += 0.022 * f;
-      updateShadow(bobY);
+      updateShadow(bobY); renderer.render(scene, camera);
 
-      renderer.render(scene, camera);
-
-      const animating = isDiscSpinning || currentRotX !== targetRotX || currentRotY !== targetRotY ||
-        currentLidAngle !== targetLidAngle || discOutAmt !== discTarget || bobAmp !== spinTarget ||
-        (cdAssembly && cdAssembly.position.x !== targetPosX);
-      if (animating) rafId = requestAnimationFrame(animate);
-      else lastFrameTime = 0;
+      const animating = isDiscSpinning || currentRotX !== targetRotX || currentRotY !== targetRotY || currentLidAngle !== targetLidAngle || discOutAmt !== discTarget || bobAmp !== spinTarget || (cdAssembly && cdAssembly.position.x !== targetPosX);
+      if (animating) rafId = requestAnimationFrame(animate); else lastFrameTime = 0;
     }
 
     window.onload = async function() {
-      try {
-        await Promise.race([
-          Promise.all([
-            document.fonts.load("bold 72px 'Space Mono'"),
-            document.fonts.load("24px 'Space Mono'"),
-            document.fonts.load("600 32px 'Plus Jakarta Sans'")
-          ]),
-          new Promise(r => setTimeout(r, 2500))
-        ]);
-      } catch (_) {}
+      try { await Promise.race([Promise.all([document.fonts.load("bold 72px 'Space Mono'"), document.fonts.load("24px 'Space Mono'"), document.fonts.load("600 32px 'Plus Jakarta Sans'")]), new Promise(r => setTimeout(r, 2500))]); } catch (_) {}
       init(); invalidate();
     };
   </script>
