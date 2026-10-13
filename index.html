@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Procedural 3D CD Jewel Case - Ultimate Edition</title>
+  <title>Procedural 3D CD Jewel Case - MusicBrainz Edition</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,7 +28,7 @@
       box-shadow: 0 16px 36px -12px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04);
     }
     .accent-gradient-text {
-      background: linear-gradient(135deg, #1db954 20%, #4338ca 70%, #06b6d4 100%);
+      background: linear-gradient(135deg, #f97316 20%, #4338ca 70%, #06b6d4 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -40,11 +40,11 @@
   <header class="absolute top-6 left-6 z-10 pointer-events-auto">
     <div class="light-glass-panel px-4 py-2.5 rounded-2xl flex items-center gap-3">
       <div class="w-7 h-7 rounded-full bg-slate-900 flex items-center justify-center shadow-md">
-        <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+        <div class="w-2.5 h-2.5 rounded-full bg-orange-500"></div>
       </div>
       <div>
-        <h1 class="font-bold text-sm leading-none tracking-tight accent-gradient-text">CHROMA.DISC // v5.0</h1>
-        <p class="mono text-[10px] text-slate-500 mt-0.5 tracking-wider uppercase">Spotify Integration Engine</p>
+        <h1 class="font-bold text-sm leading-none tracking-tight accent-gradient-text">CHROMA.DISC // v5.1</h1>
+        <p class="mono text-[10px] text-slate-500 mt-0.5 tracking-wider uppercase">MusicBrainz Open Data Engine</p>
       </div>
     </div>
   </header>
@@ -64,7 +64,7 @@
       </button>
 
       <button id="changeCoverBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">
-        Ganti Tema
+        Tema Bawaan
       </button>
 
       <button id="changeLabelBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">
@@ -73,6 +73,12 @@
 
       <button id="ejectDiscBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">Keluarkan CD</button>
       
+      <!-- Audio Playback Toggle Button -->
+      <button id="audioPlayBtn" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition active:scale-95 shadow-sm flex items-center gap-1.5">
+        <svg id="audioIcon" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <span id="audioPlayText">Play Audio</span>
+      </button>
+
       <!-- File Input & Upload -->
       <input type="file" id="imageUploadInput" accept="image/*" class="hidden">
       <button id="uploadImageBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition active:scale-95 border border-slate-200 flex items-center gap-1.5 shadow-sm">
@@ -80,10 +86,10 @@
         Upload Foto
       </button>
 
-      <!-- SPOTIFY SYNC BUTTON -->
-      <button id="spotifySyncBtn" class="px-3.5 py-2 rounded-xl bg-[#1db954] hover:bg-[#1ed760] text-white font-bold transition active:scale-95 border border-[#1db954] shadow-sm flex items-center gap-2">
-        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.54.659.301 1.02zM19.32 14.1c-.3.42-.84.54-1.26.24-3.36-2.04-8.52-2.64-12.54-1.44-.48.12-1.02-.12-1.14-.6-.12-.48.12-1.02.6-1.14 4.56-1.32 10.26-.66 14.1 1.68.42.24.54.84.24 1.26zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.781-.18-.6.18-1.2.78-1.38 4.2-1.26 11.28-1.02 16.32 1.98.54.3.72 1.02.42 1.56-.24.42-.9.6-1.44.3h-.42z"/></svg>
-        <span id="spotifyBtnText">Sync Spotify</span>
+      <!-- MUSICBRAINZ SYNC BUTTON -->
+      <button id="mbSyncBtn" class="px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold transition active:scale-95 border border-orange-600 shadow-sm flex items-center gap-2">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
+        <span id="mbBtnText">Next Album (MusicBrainz)</span>
       </button>
 
       <button id="resetCamBtn" class="px-3 py-2 rounded-xl text-slate-500 hover:text-slate-900 transition font-medium mono">Reset</button>
@@ -92,39 +98,261 @@
 
   <!-- Audio Info Card Top-Right -->
   <div class="absolute top-6 right-6 z-10 hidden sm:flex flex-col gap-3 items-end pointer-events-auto">
-    <!-- Info Badge -->
     <div class="light-glass-panel rounded-2xl p-3 px-4 flex items-center gap-3">
       <div class="flex items-end gap-1 h-4 w-5">
-        <span class="w-1 bg-green-500 rounded-full animate-pulse h-2"></span>
-        <span class="w-1 bg-emerald-500 rounded-full animate-pulse h-4" style="animation-delay: 150ms;"></span>
-        <span class="w-1 bg-teal-500 rounded-full animate-pulse h-3" style="animation-delay: 300ms;"></span>
-        <span class="w-1 bg-cyan-400 rounded-full animate-pulse h-2" style="animation-delay: 75ms;"></span>
+        <span id="eqBar1" class="w-1 bg-orange-500 rounded-full h-2"></span>
+        <span id="eqBar2" class="w-1 bg-amber-500 rounded-full h-3"></span>
+        <span id="eqBar3" class="w-1 bg-yellow-500 rounded-full h-2"></span>
+        <span id="eqBar4" class="w-1 bg-cyan-400 rounded-full h-1"></span>
       </div>
       <div>
         <p class="text-xs font-bold text-slate-800 uppercase" id="albumTitleDisplay">NEO TOKYO '98</p>
         <p class="mono text-[10px] text-slate-500 uppercase" id="albumArtistDisplay">SYNTHETIX CORE</p>
       </div>
     </div>
-    
-    <!-- Spotify iFrame Player (Hidden by default, shown when synced) -->
-    <div id="spotifyEmbedContainer" class="w-72 transition-all duration-500 opacity-0 pointer-events-none translate-x-4">
-       <iframe id="spotifyIframe" src="" width="100%" height="80" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" class="rounded-xl shadow-lg border border-slate-200/20"></iframe>
+
+    <!-- Audio Preview Player Widget -->
+    <div id="audioWidget" class="light-glass-panel rounded-2xl p-2.5 px-3 flex items-center gap-2.5 w-64 shadow-md transition-all duration-300">
+      <button id="widgetPlayToggle" class="w-7 h-7 rounded-full bg-slate-900 hover:bg-slate-800 text-white flex items-center justify-center transition active:scale-90 flex-shrink-0">
+        <svg id="widgetPlayIcon" class="w-3.5 h-3.5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <div class="flex-1 min-w-0">
+        <p id="audioTrackName" class="text-[11px] font-bold text-slate-800 truncate leading-tight">PREVIEW AUDIO</p>
+        <p id="audioTrackStatus" class="mono text-[9px] text-slate-500 uppercase tracking-tight">iTunes Preview (30s)</p>
+        <div class="w-full bg-slate-200/80 rounded-full h-1 mt-1 overflow-hidden">
+          <div id="audioProgressBar" class="bg-emerald-500 h-1 rounded-full w-0 transition-all duration-200"></div>
+        </div>
+      </div>
+      <span id="audioTimeDisplay" class="mono text-[10px] text-slate-500 flex-shrink-0">0:00</span>
     </div>
+
+    <!-- Status Toast Notification -->
+    <div id="statusToast" class="light-glass-panel px-3.5 py-2 rounded-xl text-xs mono text-slate-600 border border-slate-200/50 hidden transition-opacity duration-300"></div>
   </div>
 
   <div id="canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
 
+  <!-- Audio Element -->
+  <audio id="audioElement" preload="auto" class="hidden"></audio>
+
   <script>
-    // ==========================================
-    // 1. KONFIGURASI SPOTIFY (Token User)
-    // ==========================================
-    const spotifyAccessToken = 'BQDw2jMgAOPdlZ3tCJN3oGERzBRbbEf7XiKc1TYFYaa4o9HucmSlE1eaTNAEHWbHztfjs4tw8ifcS2hAlsOgHNpE7mVXCHYHETQ-NFP5kqnqD5pYX1e3Y58jY5yp2AD_MnO84EtC-bgaXUyV-a-ufIeDbTmhKbWFEylhS-xFE0DqxeXT1cx6jKc77pyoTc3sHz8EXE-q1qbdHbTtLenhAPou8pGifHdE1bHehVPkfPzSwzcRytSdMvyGTskPsvaV4YVwEBY3Bu87U5W6nhru2TguvWDefnIeikKiu8YQVO52_JPvI2_uFPOaUb8cL7ldkzWK';
-    let topTracksData = [];
-    let currentTrackIndex = 0;
-    let customMetadata = { title: "CUSTOM MEDIA", artist: "USER IMPORT", id: null };
+    // ==============================================================
+    // 1. DAFTAR ALBUM MUSICBRAINZ (MBID) TERVERIFIKASI & DATA CADANGAN
+    // ==============================================================
+    const musicBrainzAlbums = [
+      {
+        mbid: "27595ef8-7cff-472e-b678-7959ffce9708", // My Chemical Romance - The Black Parade
+        fallbackTitle: "THE BLACK PARADE",
+        fallbackArtist: "MY CHEMICAL ROMANCE",
+        searchQuery: "My Chemical Romance Welcome to the Black Parade",
+        fallbackBarcode: "093624442721",
+        fallbackCover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&q=80",
+        fallbackTracks: [
+          { n: "01", t: "THE END.", l: "01:52" },
+          { n: "02", t: "DEAD!", l: "03:15" },
+          { n: "03", t: "THIS IS HOW I DISAPPEAR", l: "03:59" },
+          { n: "04", t: "THE SHARPEST LIVES", l: "03:20" },
+          { n: "05", t: "WELCOME TO THE BLACK PARADE", l: "05:11" },
+          { n: "06", t: "I DON'T LOVE YOU", l: "03:58" }
+        ]
+      },
+      {
+        mbid: "4c12e0aa-ea26-47a1-b853-b1a65bc37281", // Nirvana - Nevermind
+        fallbackTitle: "NEVERMIND",
+        fallbackArtist: "NIRVANA",
+        searchQuery: "Nirvana Smells Like Teen Spirit",
+        fallbackBarcode: "602527779034",
+        fallbackCover: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80",
+        fallbackTracks: [
+          { n: "01", t: "SMELLS LIKE TEEN SPIRIT", l: "05:01" },
+          { n: "02", t: "IN BLOOM", l: "04:14" },
+          { n: "03", t: "COME AS YOU ARE", l: "03:39" },
+          { n: "04", t: "BREED", l: "03:03" },
+          { n: "05", t: "LITHIUM", l: "04:17" }
+        ]
+      },
+      {
+        mbid: "d073287b-d1bd-4f11-a933-a4386f8cf701", // Daft Punk - Discovery
+        fallbackTitle: "DISCOVERY",
+        fallbackArtist: "DAFT PUNK",
+        searchQuery: "Daft Punk One More Time",
+        fallbackBarcode: "724384960629",
+        fallbackCover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&q=80",
+        fallbackTracks: [
+          { n: "01", t: "ONE MORE TIME", l: "05:20" },
+          { n: "02", t: "AERODYNAMIC", l: "03:27" },
+          { n: "03", t: "DIGITAL LOVE", l: "04:58" },
+          { n: "04", t: "HARDER, BETTER, FASTER", l: "03:45" },
+          { n: "05", t: "CRESCENDOLLS", l: "03:31" }
+        ]
+      },
+      {
+        mbid: "1a2a37a4-2ee5-3aa8-b1bf-4976dbb8007c", // Pink Floyd - The Dark Side of the Moon
+        fallbackTitle: "THE DARK SIDE OF THE MOON",
+        fallbackArtist: "PINK FLOYD",
+        searchQuery: "Pink Floyd Money",
+        fallbackBarcode: "724358213621",
+        fallbackCover: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80",
+        fallbackTracks: [
+          { n: "01", t: "SPEAK TO ME / BREATHE", l: "03:57" },
+          { n: "02", t: "ON THE RUN", l: "03:35" },
+          { n: "03", t: "TIME", l: "07:05" },
+          { n: "04", t: "MONEY", l: "06:22" },
+          { n: "05", t: "US AND THEM", l: "07:49" }
+        ]
+      },
+      {
+        mbid: "1834eae1-741b-3c03-9ca5-0df3decb43ea", // Radiohead - OK Computer
+        fallbackTitle: "OK COMPUTER",
+        fallbackArtist: "RADIOHEAD",
+        searchQuery: "Radiohead Karma Police",
+        fallbackBarcode: "4988006729254",
+        fallbackCover: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=800&q=80",
+        fallbackTracks: [
+          { n: "01", t: "AIRBAG", l: "04:44" },
+          { n: "02", t: "PARANOID ANDROID", l: "06:23" },
+          { n: "03", t: "SUBTERRANEAN HOMESICK", l: "04:27" },
+          { n: "04", t: "EXIT MUSIC (FOR A FILM)", l: "04:24" },
+          { n: "05", t: "KARMA POLICE", l: "04:21" }
+        ]
+      }
+    ];
+
+    let currentMbIndex = 0;
+    let customMetadata = { title: "CUSTOM MEDIA", artist: "USER IMPORT", tracklist: null, barcode: null };
 
     // ==========================================
-    // 2. VARIABEL 3D & ENGINE
+    // AUDIO ENGINE (iTunes Search API Integration)
+    // ==========================================
+    const audioEl = document.getElementById('audioElement');
+    let isAudioPlaying = false;
+    let currentPreviewUrl = null;
+    let activeTrackTitle = "NO AUDIO";
+
+    async function fetchItunesAudioPreview(term) {
+      const trackNameEl = document.getElementById('audioTrackName');
+      const trackStatusEl = document.getElementById('audioTrackStatus');
+      trackStatusEl.innerText = "Mencari di iTunes...";
+
+      try {
+        const query = encodeURIComponent(term);
+        const res = await fetch(`https://itunes.apple.com/search?term=${query}&entity=song&limit=1`);
+        if (!res.ok) throw new Error("iTunes request error");
+        const json = await res.json();
+
+        if (json.results && json.results.length > 0) {
+          const song = json.results[0];
+          currentPreviewUrl = song.previewUrl;
+          activeTrackTitle = song.trackName.toUpperCase();
+          trackNameEl.innerText = activeTrackTitle;
+          trackStatusEl.innerText = `iTunes 30s • ${song.artistName.toUpperCase()}`;
+          audioEl.src = currentPreviewUrl;
+          
+          showToast(`Lagu dimuat: ${song.trackName} (iTunes Preview)`);
+          
+          // Autoplay jika disc sedang berputar
+          if (isDiscSpinning) {
+            playAudio();
+          }
+        } else {
+          trackStatusEl.innerText = "Audio tidak ditemukan";
+          audioEl.src = "";
+          currentPreviewUrl = null;
+        }
+      } catch (e) {
+        console.warn("Gagal memuat iTunes audio:", e);
+        trackStatusEl.innerText = "Preview audio gagal dimuat";
+      }
+    }
+
+    function playAudio() {
+      if (!audioEl.src) return;
+      audioEl.play().then(() => {
+        isAudioPlaying = true;
+        updateAudioUI(true);
+        if (!isDiscSpinning) {
+          toggleSpin();
+        }
+      }).catch(err => {
+        console.log("Autoplay diblokir oleh browser sampai ada interaksi user:", err);
+        isAudioPlaying = false;
+        updateAudioUI(false);
+      });
+    }
+
+    function pauseAudio() {
+      audioEl.pause();
+      isAudioPlaying = false;
+      updateAudioUI(false);
+    }
+
+    function toggleAudioPlayback() {
+      if (isAudioPlaying) {
+        pauseAudio();
+      } else {
+        if (audioEl.src) {
+          playAudio();
+        } else {
+          showToast("Silakan klik 'Next Album' untuk memuat lagu.");
+        }
+      }
+    }
+
+    function updateAudioUI(playing) {
+      const audioIcon = document.getElementById('audioIcon');
+      const audioPlayText = document.getElementById('audioPlayText');
+      const widgetPlayIcon = document.getElementById('widgetPlayIcon');
+      const eqBars = [document.getElementById('eqBar1'), document.getElementById('eqBar2'), document.getElementById('eqBar3'), document.getElementById('eqBar4')];
+
+      if (playing) {
+        audioIcon.innerHTML = `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
+        audioPlayText.innerText = "Pause";
+        widgetPlayIcon.innerHTML = `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
+        eqBars.forEach((bar, idx) => {
+          bar.classList.add('animate-pulse');
+          bar.style.animationDuration = `${0.35 + (idx * 0.15)}s`;
+        });
+      } else {
+        audioIcon.innerHTML = `<path d="M8 5v14l11-7z"/>`;
+        audioPlayText.innerText = "Play Audio";
+        widgetPlayIcon.innerHTML = `<path d="M8 5v14l11-7z"/>`;
+        eqBars.forEach(bar => {
+          bar.classList.remove('animate-pulse');
+          bar.style.height = "6px";
+        });
+      }
+    }
+
+    audioEl.addEventListener('timeupdate', () => {
+      if (!audioEl.duration) return;
+      const pct = (audioEl.currentTime / audioEl.duration) * 100;
+      document.getElementById('audioProgressBar').style.width = pct + '%';
+      const curMin = Math.floor(audioEl.currentTime / 60);
+      const curSec = Math.floor(audioEl.currentTime % 60).toString().padStart(2, '0');
+      document.getElementById('audioTimeDisplay').innerText = `${curMin}:${curSec}`;
+    });
+
+    audioEl.addEventListener('ended', () => {
+      isAudioPlaying = false;
+      updateAudioUI(false);
+      document.getElementById('audioProgressBar').style.width = '0%';
+    });
+
+    // Helper untuk menampilkan status info di UI tanpa alert()
+    function showToast(message, duration = 3000) {
+      const toast = document.getElementById('statusToast');
+      if (!toast) return;
+      toast.innerText = message;
+      toast.classList.remove('hidden');
+      toast.classList.add('opacity-100');
+      clearTimeout(toast._timeout);
+      toast._timeout = setTimeout(() => {
+        toast.classList.add('hidden');
+      }, duration);
+    }
+
+    // ==========================================
+    // 2. VARIABEL 3D & ENGINE STATE
     // ==========================================
     let scene, camera, renderer;
     let cdAssembly, caseLidGroup, cdDiscGroup, cdDiscMesh;
@@ -178,17 +406,14 @@
       const theme = albumThemes[themeIndex];
 
       if (customImg) {
-        // Mode Custom Image (Spotify / Upload)
         const size = Math.min(customImg.width, customImg.height);
         const startX = (customImg.width - size) / 2; const startY = (customImg.height - size) / 2;
         ctx.drawImage(customImg, startX, startY, size, size, 0, 0, 1024, 1024);
         
-        // Sedikit vignette
         const vig = ctx.createRadialGradient(512, 512, 200, 512, 512, 800);
         vig.addColorStop(0, "rgba(0,0,0,0)"); vig.addColorStop(1, "rgba(0,0,0,0.6)");
         ctx.fillStyle = vig; ctx.fillRect(0,0,1024,1024);
       } else {
-        // Mode Tema Prosedural
         const grad = ctx.createLinearGradient(0, 0, 1024, 1024);
         grad.addColorStop(0, theme.bg[0]); grad.addColorStop(0.5, theme.bg[1]); grad.addColorStop(1, theme.bg[2]);
         ctx.fillStyle = grad; ctx.fillRect(0, 0, 1024, 1024);
@@ -203,7 +428,6 @@
           ctx.fillStyle = blobGrad; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
         }
 
-        // Tech Details (Tanpa teks utama, hanya background estetika)
         ctx.strokeStyle = "rgba(255, 255, 255, 0.1)"; ctx.lineWidth = 1;
         for (let i = 0; i <= 1024; i += 64) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 1024); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(1024, i); ctx.stroke(); }
       }
@@ -220,7 +444,6 @@
       ctx.fillStyle = "#0a0f18"; ctx.fillRect(0, 0, 1024, 1024);
 
       if (customImg) {
-        // Back Cover Custom Image (Blurred)
         const size = Math.min(customImg.width, customImg.height);
         const startX = (customImg.width - size) / 2; const startY = (customImg.height - size) / 2;
         const small = document.createElement('canvas'); small.width = 48; small.height = 48;
@@ -230,43 +453,44 @@
         ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(small, 0, 0, 1024, 1024);
         ctx.fillStyle = "rgba(10, 15, 24, 0.85)"; ctx.fillRect(0,0,1024,1024);
-        title = customMetadata.title; artist = customMetadata.artist; accent = "#1db954"; spineBg = "#111";
+        title = customMetadata.title; artist = customMetadata.artist; accent = "#f97316"; spineBg = "#111";
       } else {
         ctx.fillStyle = "rgba(255,255,255,0.03)";
         for(let i=0; i<300; i++){ ctx.beginPath(); ctx.arc(rand()*1024, rand()*1024, rand()*1.5, 0, Math.PI*2); ctx.fill(); }
       }
 
-      // 1. Spine (Punggung Kaset)
+      // 1. Spine
       const spineX = 1024 - 80;
       const spineGrad = ctx.createLinearGradient(spineX, 0, 1024, 0);
       spineGrad.addColorStop(0, "#000000"); spineGrad.addColorStop(1, spineBg);
       ctx.fillStyle = spineGrad; ctx.fillRect(spineX, 0, 80, 1024);
       ctx.save(); ctx.translate(spineX + 45, 980); ctx.rotate(-Math.PI / 2);
-      ctx.fillStyle = "#ffffff"; ctx.font = "bold 26px 'Space Mono', monospace";
+      ctx.fillStyle = "#ffffff"; ctx.font = "bold 24px 'Space Mono', monospace";
       const displayTitle = title.length > 25 ? title.substring(0, 25) + "..." : title;
       ctx.fillText(artist + "   —   " + displayTitle, 0, 0);
       ctx.restore();
 
-      // 2. Top Header (Identitas)
+      // 2. Top Header
       ctx.strokeStyle = "rgba(255,255,255,0.15)"; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(120, 120); ctx.lineTo(920, 120); ctx.stroke();
       ctx.fillStyle = accent; ctx.font = "bold 20px 'Space Mono', monospace";
-      ctx.fillText("ID: " + Math.random().toString(36).substr(2, 6).toUpperCase(), 120, 100);
-      ctx.fillText("STEREO // 33.3 RPM", 680, 100);
+      ctx.fillText("CAT: " + (customMetadata.barcode || Math.random().toString(36).substr(2, 6).toUpperCase()), 120, 100);
+      ctx.fillText("MUSICBRAINZ // OPEN AUDIO", 600, 100);
 
-      // 3. Tracklist dengan Dotted Line
+      // 3. Tracklist dari MusicBrainz
       ctx.fillStyle = "#94a3b8"; ctx.font = "bold 28px 'Space Mono', monospace";
       ctx.fillText("INDEX // TRACKLIST", 120, 180);
 
-      const tracks = customImg ?
-        [{n:"01", t:title.length > 18 ? title.substring(0,18)+"..." : title, l:"03:45"}, {n:"02", t:"EXTRACT DATA", l:"02:15"}, {n:"03", t:"SYNTHETIC RHYTHM", l:"05:50"}, {n:"04", t:"AUDIO STREAM", l:"04:20"}] :
+      const tracks = (customImg && customMetadata.tracklist) ? customMetadata.tracklist.slice(0, 7) :
         [{n:"01", t:"NEON AWAKENING", l:"04:23"}, {n:"02", t:"DIGITAL HORIZONS", l:"05:12"}, {n:"03", t:"SYNTHETIC DREAMS", l:"03:45"}, {n:"04", t:"MIDNIGHT DRIFT", l:"06:01"}, {n:"05", t:"SYSTEM SHUTDOWN", l:"02:30"}];
 
       for(let i = 0; i < tracks.length; i++) {
-        const y = 260 + (i * 75);
-        ctx.fillStyle = accent; ctx.font = "bold 32px 'Space Mono', monospace"; ctx.fillText(tracks[i].n, 120, y);
-        ctx.fillStyle = "#ffffff"; ctx.font = "600 36px 'Plus Jakarta Sans', sans-serif"; ctx.fillText(tracks[i].t, 180, y);
-        const titleWidth = ctx.measureText(tracks[i].t).width;
+        const y = 250 + (i * 72);
+        ctx.fillStyle = accent; ctx.font = "bold 28px 'Space Mono', monospace"; ctx.fillText(tracks[i].n, 120, y);
+        ctx.fillStyle = "#ffffff"; ctx.font = "600 32px 'Plus Jakarta Sans', sans-serif"; 
+        const tName = tracks[i].t.length > 22 ? tracks[i].t.substring(0, 22) + "..." : tracks[i].t;
+        ctx.fillText(tName, 180, y);
+        const titleWidth = ctx.measureText(tName).width;
         ctx.fillStyle = "#64748b"; ctx.font = "24px 'Space Mono', monospace"; ctx.fillText(tracks[i].l, 830, y);
         ctx.strokeStyle = "rgba(255,255,255,0.15)"; ctx.setLineDash([3, 8]);
         ctx.beginPath(); ctx.moveTo(200 + titleWidth, y - 8); ctx.lineTo(810, y - 8); ctx.stroke(); ctx.setLineDash([]);
@@ -275,15 +499,16 @@
       // 4. Copyright Box & Barcode
       ctx.strokeStyle = "rgba(255,255,255,0.2)"; ctx.lineWidth = 1; ctx.strokeRect(120, 810, 530, 120);
       ctx.fillStyle = "#cbd5e1"; ctx.font = "14px 'Plus Jakarta Sans', sans-serif";
-      ctx.fillText("PRODUCED BY CHROMA.DISC PROCEDURAL ENGINE", 140, 845);
-      ctx.fillText("WARNING: UNAUTHORIZED DUPLICATION IS A VIOLATION", 140, 870);
-      ctx.fillText("OF APPLICABLE LAWS. ALL RIGHTS RESERVED.", 140, 895);
-      ctx.fillStyle = accent; ctx.fillText("© 2026 SYNTHETIX RECORDS", 460, 895);
+      ctx.fillText("METADATA POWERED BY MUSICBRAINZ OPEN DATABASE", 140, 845);
+      ctx.fillText("AUDIO PREVIEWS VIA ITUNES SEARCH API", 140, 870);
+      ctx.fillText("OPEN DATA COMMONS PUBLIC DOMAIN DEDICATION", 140, 895);
+      ctx.fillStyle = accent; ctx.fillText("© ARCHIVE DATA ENGINE", 460, 895);
 
       ctx.fillStyle = "#ffffff"; ctx.fillRect(680, 810, 240, 120);
       ctx.fillStyle = "#000000";
       for (let x = 695; x < 900; x += (rand() > 0.5 ? 4 : 8)) { ctx.fillRect(x, 820, rand()*4+1, 80); }
-      ctx.font = "bold 16px 'Space Mono', monospace"; ctx.fillText("1 0293 49120 4", 730, 920);
+      ctx.font = "bold 15px 'Space Mono', monospace"; 
+      ctx.fillText(customMetadata.barcode ? customMetadata.barcode.substring(0, 13) : "1 0293 49120 4", 710, 920);
 
       return makeCanvasTexture(canvas, true);
     }
@@ -304,7 +529,7 @@
         ctx.globalCompositeOperation = 'destination-out';
         ctx.beginPath(); ctx.arc(512, 512, 160, 0, Math.PI * 2); ctx.fill();
         ctx.globalCompositeOperation = 'source-over'; ctx.restore();
-        title = "CUSTOM MEDIA"; artist = "SPOTIFY IMPORT"; accent = "#1db954";
+        title = customMetadata.title; artist = customMetadata.artist; accent = "#f97316";
       } else {
         const radialGrad = ctx.createRadialGradient(512, 512, 100, 512, 512, 500);
         radialGrad.addColorStop(0, theme.accent + "55"); radialGrad.addColorStop(1, "transparent");
@@ -316,7 +541,6 @@
       ctx.lineWidth = 2; ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
       ctx.beginPath(); ctx.arc(512, 512, 390, 0, Math.PI*2); ctx.stroke();
       
-      // Decorative Rings
       ctx.setLineDash([8, 12]); ctx.beginPath(); ctx.arc(512, 512, 280, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
       for (let r = 170; r < 210; r += 20) {
         ctx.beginPath(); ctx.arc(512, 512, r, 0, Math.PI * 2);
@@ -326,16 +550,16 @@
       ctx.strokeStyle = "rgba(255, 255, 255, 0.8)"; ctx.lineWidth = 3; ctx.stroke();
 
       ctx.fillStyle = "#ffffff"; ctx.textAlign = "center"; ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 8;
-      ctx.font = "bold 56px 'Space Mono', monospace"; 
+      ctx.font = "bold 52px 'Space Mono', monospace"; 
       const displayTitle = title.length > 14 ? title.substring(0, 14) + "..." : title;
       ctx.fillText(displayTitle, 512, 200); ctx.shadowBlur = 0;
-      ctx.fillStyle = accent; ctx.font = "600 36px 'Plus Jakarta Sans', sans-serif"; ctx.fillText(artist, 512, 260);
+      ctx.fillStyle = accent; ctx.font = "600 34px 'Plus Jakarta Sans', sans-serif"; ctx.fillText(artist, 512, 260);
 
       return makeCanvasTexture(canvas, false);
     }
 
     // ==========================================
-    // 4. LID LABEL (Stiker di Atas Kaca Mika)
+    // 4. LID LABEL (Stiker Depan)
     // ==========================================
     const LW = 1024, LH = 969;
     let lidLabelTexture, lidLabelMesh, currentLidShape = 0;
@@ -359,24 +583,22 @@
     }
 
     function drawLidLabelContent(ctx, box, mode, title, artist, accent, rand) {
-      // 1. Barcode
       const bw = 170, bh = 70, gap = 14; let bx, by, textW, textH;
       if (mode === 'right') { bx = box.x + box.w - bw; by = box.y + (box.h - bh) / 2; textW = box.w - bw - 30; textH = box.h; }
       else { bx = box.x + box.w - bw; by = box.y + box.h - bh; textW = box.w; textH = box.h - bh - gap; }
       
       ctx.fillStyle = "#ffffff"; ctx.fillRect(bx, by, bw, bh); ctx.fillStyle = "#000000";
       for (let x = bx + 10; x < bx + bw - 10; x += (rand() > 0.5 ? 4 : 7)) ctx.fillRect(x, by + 8, rand() * 2.5 + 1, bh - 24);
-      ctx.font = "11px 'Space Mono', monospace"; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; ctx.fillText("8  02434  10294  9", bx + 12, by + bh - 5);
+      ctx.font = "11px 'Space Mono', monospace"; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; 
+      ctx.fillText(customMetadata.barcode ? customMetadata.barcode.substring(0, 13) : "8  02434  10294  9", bx + 12, by + bh - 5);
 
-      // 2. Audio Visualizer (Jika mode Full Kaca, gambar visualizer di atas kiri)
       if (currentLidShape === 3) {
          ctx.fillStyle = accent;
          for(let i=0; i<15; i++) { let h = rand() * 50 + 10; ctx.fillRect(40 + (i*14), 40, 8, h); }
          ctx.fillStyle = "rgba(255, 255, 255, 0.6)"; ctx.font = "14px 'Space Mono', monospace"; ctx.textBaseline = 'top';
-         ctx.fillText("SYS.REV: 5.0.44 // ID: " + Math.random().toString(36).substr(2, 8).toUpperCase(), 40, 100);
+         ctx.fillText("SYS.REV: 5.1 // MBID: " + (musicBrainzAlbums[currentMbIndex]?.mbid.substring(0, 8) || "N/A"), 40, 100);
       }
 
-      // 3. Teks Judul & Artist Auto-Fit
       ctx.textBaseline = 'top'; ctx.textAlign = 'left';
       let size = 64, lines = [], artistSize = 30;
       while (true) {
@@ -403,11 +625,10 @@
       const canvas = document.createElement('canvas'); canvas.width = LW; canvas.height = LH; const ctx = canvas.getContext('2d');
       const theme = albumThemes[themeIndex];
       let title = theme.title, artist = theme.artist, accent = theme.accent, c0 = theme.bg[0], c1 = theme.bg[1];
-      if (customImg) { title = customMetadata.title; artist = customMetadata.artist; accent = "#1db954"; c0 = "#0f172a"; c1 = "#1e293b"; }
+      if (customImg) { title = customMetadata.title; artist = customMetadata.artist; accent = "#f97316"; c0 = "#0f172a"; c1 = "#1e293b"; }
       const shape = lidShapes[shapeIndex];
       const rand = mulberry32(9000 + shapeIndex * 13 + themeIndex * 7 + (customImg ? 1 : 0));
 
-      // Jika Full Kaca (index 3), transparansi diturunkan drastis agar tidak menutupi CD sepenuhnya
       const alpha = shapeIndex === 3 ? 0.05 : 0.92;
 
       ctx.beginPath(); shape.path(ctx);
@@ -415,13 +636,11 @@
       grad.addColorStop(0, hexToRgba(c0, alpha)); grad.addColorStop(1, hexToRgba(c1, alpha));
       ctx.fillStyle = grad; ctx.fill();
 
-      // Outline bentuk
       if(shapeIndex !== 3) {
          ctx.beginPath(); shape.path(ctx);
          ctx.lineWidth = 5; ctx.strokeStyle = accent; ctx.stroke();
       }
 
-      // Tech Crosshairs
       ctx.strokeStyle = accent; ctx.lineWidth = 4; const m = 40, s = 60;
       ctx.beginPath(); ctx.moveTo(m+s, m); ctx.lineTo(m, m); ctx.lineTo(m, m+s); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(LW-m-s, m); ctx.lineTo(LW-m, m); ctx.lineTo(LW-m, m+s); ctx.stroke();
@@ -443,7 +662,7 @@
     }
 
     // ==========================================
-    // 5. MATERIAL & RENDERING 3D (Refraction Kaca Nyata)
+    // 5. MATERIAL & LOGIKA 3D
     // ==========================================
     function createProceduralEnvMap() {
       const W = 1024, H = 512; const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H; const ctx = canvas.getContext('2d');
@@ -543,7 +762,6 @@
       const clearAcrylicMaterial = new THREE.MeshPhysicalMaterial(Object.assign({ color: 0xffffff }, acrylicBase));
       const clearEdgeMaterial = new THREE.MeshPhysicalMaterial(Object.assign({}, acrylicBase, { color: 0xdcf1ec, transmission: 0.93 }));
 
-      // Casing dimensions & rounded settings (rim dipertipis menjadi 0.045)
       const caseW = 2.8, caseH = 2.65, caseD = 0.28, t = 0.04;
       const cornerRadius = 0.12, rimThick = 0.045, edgeDepth = caseD / 2;
 
@@ -555,7 +773,7 @@
       rimShape.holes.push(holeShape);
       const rimGeo = new THREE.ExtrudeGeometry(rimShape, { depth: edgeDepth, bevelEnabled: false }); rimGeo.translate(0, 0, -edgeDepth/2);
 
-      // --- BACK GROUP (Dudukan bawah bening) ---
+      // Back Group
       const backGroup = new THREE.Group();
       const backPlate = new THREE.Mesh(plateGeo, clearAcrylicMaterial); backPlate.position.z = -caseD/2 + t/2; backGroup.add(backPlate);
       const backRim = new THREE.Mesh(rimGeo, clearEdgeMaterial); backRim.position.z = -caseD/4; backGroup.add(backRim);
@@ -569,7 +787,7 @@
       const trayInsideMat = new THREE.MeshStandardMaterial({ map: frontCoverTexture, roughness: 0.8, metalness: 0 });
       const trayInside = new THREE.Mesh(inlayGeo, trayInsideMat); trayInside.name = "trayInside"; trayInside.position.z = -caseD/2 + t + 0.002; backGroup.add(trayInside);
 
-      // --- L-BRACKETS FRAME ---
+      // Frame L-brackets
       const frameGroup = new THREE.Group(); frameGroup.position.z = -caseD/2 + t + 0.015;
       const bracketDistX = caseW/2 - rimThick - 0.12, bracketDistY = caseH/2 - rimThick - 0.12;
       const bLength = 0.45, bThick = 0.06, bHeight = 0.12;
@@ -586,14 +804,14 @@
       frameGroup.add(new THREE.Mesh(mergeGeometries(frameParts), clearEdgeMaterial));
       backGroup.add(frameGroup); cdAssembly.add(backGroup);
 
-      // --- CD DISC ---
+      // CD Disc
       cdDiscGroup = new THREE.Group(); cdDiscGroup.position.set(0, 0, frameGroup.position.z + 0.04); cdDiscGroup.userData.baseZ = cdDiscGroup.position.z;
       const discGeo = new THREE.CylinderGeometry(1.15, 1.15, 0.012, 64); discGeo.rotateX(Math.PI / 2);
       discTexture = generateDiscTexture(currentCoverIndex, currentCustomImage);
       if(!cdIridescenceMaterial) cdIridescenceMaterial = createCDMaterial(discTexture);
       cdDiscMesh = new THREE.Mesh(discGeo, cdIridescenceMaterial); cdDiscGroup.add(cdDiscMesh); cdAssembly.add(cdDiscGroup);
 
-      // --- FRONT LID (Tutup Mika Transparan Atas) ---
+      // Front Lid
       caseLidGroup = new THREE.Group(); caseLidGroup.position.set(-caseW/2, 0, 0);
       const lidPlate = new THREE.Mesh(plateGeo, clearAcrylicMaterial); lidPlate.position.set(caseW/2, 0, caseD/2 - t/2); caseLidGroup.add(lidPlate);
       const lidRim = new THREE.Mesh(rimGeo, clearEdgeMaterial); lidRim.position.set(caseW/2, 0, caseD/4); caseLidGroup.add(lidRim);
@@ -620,8 +838,8 @@
       const softFill = new THREE.DirectionalLight(0xe0e7ff, 0.6); softFill.position.set(-5, 4, 3); scene.add(softFill);
       const subtleRim = new THREE.PointLight(0x60a5fa, 0.8, 12); subtleRim.position.set(-3, -3, -2); scene.add(subtleRim);
 
-      document.body.style.backgroundColor = albumThemes[currentCoverIndex].pageBg;
-      createGroundShadow(); buildProceduralCDAssembly(); setupInteractions(); setupUIEvents();
+      createGroundShadow();
+      buildProceduralCDAssembly(); setupInteractions(); setupUIEvents();
       window.addEventListener('resize', onWindowResize);
     }
 
@@ -645,7 +863,7 @@
 
       if(currentCustomImage) {
          document.getElementById('albumTitleDisplay').innerText = customMetadata.title; document.getElementById('albumArtistDisplay').innerText = customMetadata.artist;
-         document.body.style.backgroundColor = "#242424";
+         document.body.style.backgroundColor = "#18181b";
       } else {
          const theme = albumThemes[currentCoverIndex];
          document.getElementById('albumTitleDisplay').innerText = theme.title; document.getElementById('albumArtistDisplay').innerText = theme.artist;
@@ -653,8 +871,126 @@
       }
     }
 
+    // ==============================================================
+    // 6. IMPLEMENTASI FETCH API MUSICBRAINZ + ITUNES AUDIO PREVIEW
+    // ==============================================================
+    async function fetchMusicBrainzAlbum(albumConfig) {
+      const btnText = document.getElementById('mbBtnText');
+      const mbid = albumConfig.mbid;
+      btnText.innerText = "Mengambil Data...";
+      showToast(`Mengambil data MBID: ${mbid.substring(0, 8)}...`);
+
+      try {
+        // 1. Request Metadata Album ke MusicBrainz API (Format JSON)
+        const mbRes = await fetch(`https://musicbrainz.org/ws/2/release/${mbid}?inc=recordings+artists&fmt=json`, {
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+
+        if (!mbRes.ok) {
+          throw new Error(`MusicBrainz Error: ${mbRes.status}`);
+        }
+        
+        const data = await mbRes.json();
+
+        // 2. Olah Metadata (Title, Artist, Barcode, Tracklist)
+        const albumTitle = (data.title || albumConfig.fallbackTitle).toUpperCase();
+        const artistName = (data['artist-credit']?.[0]?.name || albumConfig.fallbackArtist).toUpperCase();
+        const barcode = data.barcode || albumConfig.fallbackBarcode;
+
+        let tracklist = [];
+        let firstTrackName = "";
+        if (data.media && data.media[0] && data.media[0].tracks && data.media[0].tracks.length > 0) {
+          firstTrackName = data.media[0].tracks[0].title;
+          tracklist = data.media[0].tracks.slice(0, 6).map((t, idx) => {
+            const min = Math.floor((t.length || 180000) / 60000);
+            const sec = Math.floor(((t.length || 180000) % 60000) / 1000).toString().padStart(2, '0');
+            return {
+              n: String(idx + 1).padStart(2, '0'),
+              t: (t.title || `TRACK ${idx + 1}`).toUpperCase(),
+              l: `${min}:${sec}`
+            };
+          });
+        } else {
+          tracklist = albumConfig.fallbackTracks;
+          firstTrackName = albumConfig.fallbackTracks[0].t;
+        }
+
+        customMetadata = {
+          title: albumTitle,
+          artist: artistName,
+          barcode: barcode,
+          tracklist: tracklist
+        };
+
+        // 3. Ambil Cover Art dari Cover Art Archive
+        const coverUrl = `https://coverartarchive.org/release/${mbid}/front-500.jpg`;
+        btnText.innerText = "Memuat Cover...";
+
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          currentCustomImage = prepareCustomImage(img);
+          updateTextures();
+          const shortTitle = albumTitle.length > 15 ? albumTitle.substring(0, 15) + "..." : albumTitle;
+          btnText.innerText = `Loaded: ${shortTitle}`;
+          showToast(`Berhasil sinkron: ${albumTitle}`);
+
+          // 4. Sinkronisasi Audio Preview melalui iTunes API
+          const searchTerm = albumConfig.searchQuery || `${artistName} ${firstTrackName}`;
+          fetchItunesAudioPreview(searchTerm);
+        };
+        img.onerror = () => {
+          console.warn("Cover Art Archive tidak merespons, memuat fallback artwork.");
+          const fallbackImg = new Image();
+          fallbackImg.crossOrigin = "anonymous";
+          fallbackImg.onload = () => {
+            currentCustomImage = prepareCustomImage(fallbackImg);
+            updateTextures();
+            btnText.innerText = `Loaded (HQ Art)`;
+            showToast(`Data dimuat dengan fallback cover: ${albumTitle}`);
+            
+            // Tetap fetch iTunes audio preview
+            const searchTerm = albumConfig.searchQuery || `${artistName} ${firstTrackName}`;
+            fetchItunesAudioPreview(searchTerm);
+          };
+          fallbackImg.onerror = () => {
+            currentCustomImage = null;
+            updateTextures();
+            btnText.innerText = `Loaded (Procedural)`;
+          };
+          fallbackImg.src = albumConfig.fallbackCover;
+        };
+        img.src = coverUrl;
+
+      } catch (err) {
+        console.warn("Gagal terhubung ke MusicBrainz API, mengaktifkan data fallback lokal:", err);
+        
+        customMetadata = {
+          title: albumConfig.fallbackTitle,
+          artist: albumConfig.fallbackArtist,
+          barcode: albumConfig.fallbackBarcode,
+          tracklist: albumConfig.fallbackTracks
+        };
+
+        const fallbackImg = new Image();
+        fallbackImg.crossOrigin = "anonymous";
+        fallbackImg.onload = () => {
+          currentCustomImage = prepareCustomImage(fallbackImg);
+          updateTextures();
+          btnText.innerText = `Offline: ${albumConfig.fallbackTitle.substring(0, 14)}`;
+          showToast(`Offline mode aktif untuk ${albumConfig.fallbackTitle}`);
+
+          // Fetch preview audio untuk fallback track
+          fetchItunesAudioPreview(albumConfig.searchQuery);
+        };
+        fallbackImg.src = albumConfig.fallbackCover;
+      }
+    }
+
     // ==========================================
-    // 6. EVENT & INTERAKSI
+    // 7. EVENT & INTERAKSI
     // ==========================================
     function setupInteractions() {
       const container = document.getElementById('canvas-container');
@@ -673,71 +1009,60 @@
     function toggleDiscOut() { isDiscOut = !isDiscOut; if (isDiscOut && !isOpen) toggleCase(); updateEjectButton(); invalidate(); }
     function updateEjectButton() { const b = document.getElementById('ejectDiscBtn'); if (b) b.textContent = isDiscOut ? 'Masukkan CD' : 'Keluarkan CD'; }
 
-    // ====== SPOTIFY API LOGIC ======
-    async function applySpotifyTrack(track) {
-      const trackTitle = track.name.toUpperCase();
-      const trackArtist = track.artists.map(a => a.name).join(', ').toUpperCase();
-      const artUrl = track.album.images[0].url; 
-
-      customMetadata.title = trackTitle;
-      customMetadata.artist = trackArtist;
-      customMetadata.id = track.id; // Simpan ID lagu untuk player
-      
-      const img = new Image(); img.crossOrigin = "anonymous"; 
-      img.onload = () => {
-        currentCustomImage = prepareCustomImage(img);
-        updateTextures();
-        document.getElementById('spotifyBtnText').innerText = `Track ${currentTrackIndex === 0 ? topTracksData.length : currentTrackIndex} Synced!`;
-        
-        // Memunculkan Spotify Embed iFrame!
-        const iframe = document.getElementById('spotifyIframe');
-        const container = document.getElementById('spotifyEmbedContainer');
-        iframe.src = `https://open.spotify.com/embed/track/${customMetadata.id}?utm_source=generator&theme=0`;
-        container.classList.remove('opacity-0', 'pointer-events-none', 'translate-x-4');
-      };
-      img.src = artUrl;
-    }
-
-    async function fetchAndApplyTopTracks() {
-      document.getElementById('spotifyBtnText').innerText = 'Memuat...';
-      try {
-        if (topTracksData.length === 0) {
-          const res = await fetch('https://api.spotify.com/v1/me/top/tracks?time_range=long_term&limit=5', {
-            headers: { 'Authorization': 'Bearer ' + spotifyAccessToken }, method: 'GET'
-          });
-          if (!res.ok) throw new Error('Token mungkin kedaluwarsa');
-          topTracksData = (await res.json()).items;
-        }
-
-        if (topTracksData && topTracksData.length > 0) {
-          const track = topTracksData[currentTrackIndex];
-          await applySpotifyTrack(track);
-          currentTrackIndex = (currentTrackIndex + 1) % topTracksData.length;
-        } else { document.getElementById('spotifyBtnText').innerText = 'Data Kosong'; }
-      } catch (err) {
-        console.error("Gagal menarik data dari Spotify", err);
-        alert("Gagal memuat. Pastikan Token Web API masih berlaku (Kadaluwarsa setelah 1 jam).");
-        document.getElementById('spotifyBtnText').innerText = 'Sync Error';
+    function toggleSpin() {
+      isDiscSpinning = !isDiscSpinning; 
+      invalidate(); 
+      const icon = document.getElementById('spinIcon'); 
+      const text = document.getElementById('spinStateText'); 
+      if (isDiscSpinning) { 
+        icon.classList.add('animate-spin'); 
+        text.innerText = "Stop Putar"; 
+        if (!isAudioPlaying && audioEl.src) playAudio();
+      } else { 
+        icon.classList.remove('animate-spin'); 
+        text.innerText = "Putar CD"; 
+        if (isAudioPlaying) pauseAudio();
       }
     }
 
     function setupUIEvents() {
       document.getElementById('toggleCaseBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleCase(); });
-      document.getElementById('toggleSpinBtn').addEventListener('click', (e) => { e.stopPropagation(); isDiscSpinning = !isDiscSpinning; invalidate(); const icon = document.getElementById('spinIcon'); const text = document.getElementById('spinStateText'); if (isDiscSpinning) { icon.classList.add('animate-spin'); text.innerText = "Stop Putar"; } else { icon.classList.remove('animate-spin'); text.innerText = "Putar CD"; } });
-      document.getElementById('changeCoverBtn').addEventListener('click', (e) => { e.stopPropagation(); currentCustomImage = null; currentCoverIndex = (currentCoverIndex + 1) % albumThemes.length; document.getElementById('spotifyEmbedContainer').classList.add('opacity-0', 'pointer-events-none', 'translate-x-4'); updateTextures(); });
+      document.getElementById('toggleSpinBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleSpin(); });
+      document.getElementById('changeCoverBtn').addEventListener('click', (e) => { e.stopPropagation(); currentCustomImage = null; currentCoverIndex = (currentCoverIndex + 1) % albumThemes.length; updateTextures(); });
       document.getElementById('changeLabelBtn').addEventListener('click', (e) => { e.stopPropagation(); currentLidShape = (currentLidShape + 1) % lidShapes.length; refreshLidLabel(); });
       document.getElementById('ejectDiscBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleDiscOut(); });
       
+      // Audio playback triggers
+      document.getElementById('audioPlayBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleAudioPlayback(); });
+      document.getElementById('widgetPlayToggle').addEventListener('click', (e) => { e.stopPropagation(); toggleAudioPlayback(); });
+
       const fileInput = document.getElementById('imageUploadInput');
       document.getElementById('uploadImageBtn').addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
       fileInput.addEventListener('change', (e) => {
          const file = e.target.files[0]; if (!file) return;
          const url = URL.createObjectURL(file); const img = new Image();
-         img.onload = () => { URL.revokeObjectURL(url); customMetadata = { title: "LOCAL UPLOAD", artist: "USER FILE" }; currentCustomImage = prepareCustomImage(img); document.getElementById('spotifyEmbedContainer').classList.add('opacity-0', 'pointer-events-none', 'translate-x-4'); updateTextures(); };
-         img.onerror = () => { URL.revokeObjectURL(url); alert('Gagal memuat gambar.'); }; img.src = url; fileInput.value = ''; 
+         img.onload = () => { 
+           URL.revokeObjectURL(url); 
+           customMetadata = { title: "MY CUSTOM DISC", artist: "LOCAL USER", tracklist: null, barcode: null }; 
+           currentCustomImage = prepareCustomImage(img); 
+           updateTextures(); 
+           showToast("Foto kustom berhasil dipasang!");
+         };
+         img.onerror = () => { 
+           URL.revokeObjectURL(url); 
+           showToast("Gagal memuat gambar dari perangkat."); 
+         }; 
+         img.src = url; fileInput.value = ''; 
       });
 
-      document.getElementById('spotifySyncBtn').addEventListener('click', (e) => { e.stopPropagation(); fetchAndApplyTopTracks(); });
+      // Tombol MusicBrainz Sync
+      document.getElementById('mbSyncBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const selected = musicBrainzAlbums[currentMbIndex];
+        fetchMusicBrainzAlbum(selected);
+        currentMbIndex = (currentMbIndex + 1) % musicBrainzAlbums.length;
+      });
+
       document.getElementById('resetCamBtn').addEventListener('click', (e) => { e.stopPropagation(); targetRotX = 0.25; targetRotY = -0.45; invalidate(); });
     }
 
