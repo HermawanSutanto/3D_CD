@@ -2,338 +2,677 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Procedural 3D CD Jewel Case - MusicBrainz Edition v8.1</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CHROMA.DISC // Model CD-957 Hi-Fi Reference Console</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --studio-accent: #f59e0b;
+      --studio-accent-rgb: 245, 158, 11;
+      --studio-copper: #d4875e;
+      --chassis-bg: rgba(14, 17, 24, 0.88);
+      --chassis-border: rgba(212, 135, 94, 0.28);
+      --oled-bg: #05070b;
+      --oled-text: #fb923c;
+    }
+    body.rig-midnight {
+      --studio-accent: #22d3ee;
+      --studio-accent-rgb: 34, 211, 238;
+      --studio-copper: #38bdf8;
+      --chassis-bg: rgba(9, 13, 24, 0.90);
+      --chassis-border: rgba(34, 211, 238, 0.28);
+      --oled-text: #22d3ee;
+    }
+    body.rig-lounge {
+      --studio-accent: #fbbf24;
+      --studio-accent-rgb: 251, 191, 36;
+      --studio-copper: #ea580c;
+      --chassis-bg: rgba(24, 17, 15, 0.90);
+      --chassis-border: rgba(234, 88, 12, 0.32);
+      --oled-text: #fbbf24;
+    }
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       overflow: hidden;
-      background-color: #8fa0b5;
+      background-color: #12151e;
       transition: background 0.8s ease;
       user-select: none;
       -webkit-user-select: none;
+      touch-action: none;
+      color: #e2e8f0;
     }
     .mono { font-family: 'Space Mono', monospace; }
-    canvas { outline: none; touch-action: none; }
-    .light-glass-panel {
-      background: rgba(255, 255, 255, 0.86);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(15, 23, 42, 0.08);
-      box-shadow: 0 16px 36px -12px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04);
+    canvas { outline: none; touch-action: none; display: block; }
+
+    /* Brushed Anodized Hardware Chassis Panel */
+    .hw-chassis {
+      background: linear-gradient(165deg, rgba(26, 31, 44, 0.92) 0%, var(--chassis-bg) 100%);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid var(--chassis-border);
+      box-shadow:
+        0 22px 48px -12px rgba(0, 0, 0, 0.72),
+        inset 0 1px 0 rgba(255, 255, 255, 0.10),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.5);
     }
-    .accent-gradient-text {
-      background: linear-gradient(135deg, #f97316 20%, #4338ca 70%, #06b6d4 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+
+    /* Recessed Matrix OLED Screen */
+    .oled-screen {
+      background-color: var(--oled-bg);
+      background-image:
+        radial-gradient(rgba(var(--studio-accent-rgb), 0.08) 1px, transparent 0),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.65) 0%, rgba(15, 23, 42, 0.15) 100%);
+      background-size: 3px 3px, 100% 100%;
+      border: 1px solid rgba(var(--studio-accent-rgb), 0.28);
+      box-shadow:
+        inset 0 3px 10px rgba(0, 0, 0, 0.95),
+        0 1px 0 rgba(255, 255, 255, 0.06);
+      color: var(--oled-text);
     }
-    .custom-scroll::-webkit-scrollbar { width: 4px; }
-    .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: rgba(15, 23, 42, 0.2); border-radius: 99px; }
+    .oled-glow {
+      color: var(--oled-text);
+      text-shadow: 0 0 10px rgba(var(--studio-accent-rgb), 0.55);
+    }
+
+    /* Tactile Physical Hardware Buttons */
+    .hw-btn {
+      background: linear-gradient(180deg, #283044 0%, #171c28 100%);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      box-shadow:
+        0 3px 6px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      color: #cbd5e1;
+      transition: all 0.15s ease;
+    }
+    .hw-btn:hover {
+      background: linear-gradient(180deg, #323c54 0%, #1e2536 100%);
+      color: #ffffff;
+      border-color: rgba(var(--studio-accent-rgb), 0.45);
+    }
+    .hw-btn:active {
+      transform: translateY(1px);
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.65);
+    }
+    .hw-btn-copper {
+      background: linear-gradient(180deg, #d98a5f 0%, #a85d38 100%);
+      border: 1px solid rgba(255, 224, 194, 0.35);
+      box-shadow:
+        0 4px 12px rgba(212, 135, 94, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      color: #090b10;
+    }
+    .hw-btn-copper:hover {
+      background: linear-gradient(180deg, #e5986e 0%, #b96a43 100%);
+      color: #000000;
+    }
+    .hw-btn-active {
+      background: linear-gradient(180deg, rgba(var(--studio-accent-rgb), 0.24) 0%, rgba(var(--studio-accent-rgb), 0.10) 100%);
+      border-color: var(--studio-accent);
+      color: var(--studio-accent);
+      box-shadow: 0 0 14px rgba(var(--studio-accent-rgb), 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    /* Corner Chassis Screws */
+    .screw-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 9999px;
+      background: radial-gradient(circle at 30% 30%, #64748b, #1e293b);
+      border: 1px solid rgba(0, 0, 0, 0.7);
+      box-shadow: inset 0 0.5px 0.5px rgba(255, 255, 255, 0.3);
+    }
+
+    .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+    .custom-scroll::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.25); }
+    .custom-scroll::-webkit-scrollbar-thumb { background: rgba(212, 135, 94, 0.45); border-radius: 99px; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     kbd {
       font-family: 'Space Mono', monospace;
       font-size: 9px;
-      padding: 1px 4px;
+      padding: 1px 5px;
       border-radius: 4px;
-      background: rgba(15, 23, 42, 0.08);
-      border: 1px solid rgba(15, 23, 42, 0.15);
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: var(--studio-accent);
+    }
+    .ui-Chrome {
+      transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    body.zen-active .ui-Chrome {
+      opacity: 0;
+      pointer-events: none !important;
+      transform: translateY(10px) scale(0.98);
+    }
+    @keyframes spinSlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .spin-disc-slow {
+      animation: spinSlow 9s linear infinite;
+    }
+    #splashScreen {
+      transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.75s ease;
+    }
+    #splashScreen.splash-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
     }
   </style>
 </head>
-<body class="w-screen h-screen text-slate-800">
+<body class="w-screen h-screen overflow-hidden select-none">
 
-  <!-- Floating Tooltip for Rack Hover -->
-  <div id="rackTooltip" class="fixed z-30 pointer-events-none hidden px-3 py-1.5 rounded-xl bg-slate-900/90 text-white shadow-xl backdrop-blur-md border border-white/10 transition-opacity duration-150">
-    <p id="rackTooltipSlot" class="mono text-[9px] text-cyan-400 uppercase tracking-wider">SLOT 01</p>
-    <p id="rackTooltipTitle" class="text-xs font-bold leading-tight">ALBUM TITLE</p>
-    <p id="rackTooltipArtist" class="mono text-[10px] text-slate-300">ARTIST</p>
+  <!-- ===================================================================== -->
+  <!-- AUDIOPHILE HARDWARE BOOT SPLASH SCREEN                                -->
+  <!-- ===================================================================== -->
+  <div id="splashScreen" class="fixed inset-0 z-[100] flex items-center justify-center bg-[#080a0f]/95 backdrop-blur-2xl p-4">
+    <div class="hw-chassis rounded-3xl p-6 sm:p-8 max-w-md w-full flex flex-col items-center text-center relative overflow-hidden border border-amber-500/30">
+      <!-- Decorative Corner Screws -->
+      <span class="screw-dot absolute top-3.5 left-3.5"></span>
+      <span class="screw-dot absolute top-3.5 right-3.5"></span>
+      <span class="screw-dot absolute bottom-3.5 left-3.5"></span>
+      <span class="screw-dot absolute bottom-3.5 right-3.5"></span>
+
+      <!-- Top Model Badge -->
+      <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-black/50 border border-white/10 mb-5">
+        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+        <span class="mono text-[10px] tracking-widest text-amber-300/90 uppercase">MODEL CD-957 // REFERENCE DECK</span>
+      </div>
+
+      <!-- Animated Optical CD Turntable Emblem -->
+      <div class="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full flex items-center justify-center mb-5 shadow-2xl" style="background: radial-gradient(circle, #1e293b 0%, #090d16 70%); border: 2px solid rgba(212, 135, 94, 0.45);">
+        <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full spin-disc-slow flex items-center justify-center" style="background: conic-gradient(from 0deg, rgba(245,158,11,0.18), rgba(34,211,238,0.22), rgba(236,72,153,0.18), rgba(245,158,11,0.18)); border: 1px solid rgba(255,255,255,0.18);">
+          <div class="w-9 h-9 rounded-full bg-[#090b10] border-2 border-[#d4875e] flex items-center justify-center shadow-inner">
+            <i class="fa-solid fa-compact-disc text-amber-400 text-sm"></i>
+          </div>
+        </div>
+        <div class="absolute -bottom-1.5 px-2.5 py-0.5 rounded bg-[#d4875e] text-[#090b10] mono text-[9px] font-bold tracking-wider uppercase shadow">
+          24-BIT / 96KHZ DSP
+        </div>
+      </div>
+
+      <!-- Brand Title & Subtitle -->
+      <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white uppercase">CHROMA.DISC STUDIO</h1>
+      <p class="mono text-[11px] text-slate-400 mt-1">Interactive 3D Jewel Case & Top-Loading CD Console</p>
+
+      <!-- OLED Diagnostic Boot Box -->
+      <div class="oled-screen w-full rounded-2xl p-3.5 mt-5 text-left mono text-[10px] space-y-2">
+        <div class="flex items-center justify-between border-b border-amber-500/20 pb-1.5">
+          <span class="text-slate-400"><i class="fa-solid fa-microchip mr-1.5 text-amber-400"></i>OPTICAL SERVO</span>
+          <span id="splashStatusText" class="oled-glow font-bold">CALIBRATING LASER...</span>
+        </div>
+        <div class="grid grid-cols-3 gap-1.5 text-[9px] text-slate-400 pt-0.5">
+          <div class="bg-white/5 rounded px-2 py-1"><i class="fa-solid fa-layer-group mr-1 text-amber-400"></i>14-SLOT RACK</div>
+          <div class="bg-white/5 rounded px-2 py-1"><i class="fa-solid fa-sliders mr-1 text-amber-400"></i>BIQUAD DSP</div>
+          <div class="bg-white/5 rounded px-2 py-1"><i class="fa-solid fa-Database mr-1 text-amber-400"></i>MUSICBRAINZ</div>
+        </div>
+        <div class="w-full bg-black/80 h-1.5 rounded-full overflow-hidden border border-white/10">
+          <div id="splashProgressFill" class="h-full bg-gradient-to-r from-amber-500 via-orange-400 to-cyan-400 w-1/3 transition-all duration-500"></div>
+        </div>
+      </div>
+
+      <!-- Power On Action Button -->
+      <button id="enterStudioBtn" class="hw-btn-copper w-full py-3 px-5 rounded-2xl font-bold text-xs sm:text-sm uppercase tracking-wider mt-5 flex items-center justify-center gap-2.5 transition active:scale-95 cursor-pointer">
+        <i class="fa-solid fa-power-off"></i>
+        <span>Power On Studio Deck</span>
+      </button>
+      <p class="mono text-[9px] text-slate-500 mt-2.5">Mengaktifkan Web Audio Synthesizer & 3D Turntable Stage</p>
+    </div>
   </div>
 
-  <!-- Modal Shareable URL Link & Cartridge -->
-  <div id="shareRackModal" class="fixed inset-0 z-40 hidden items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
-    <div class="light-glass-panel rounded-3xl p-5 max-w-md w-full shadow-2xl flex flex-col gap-3">
-      <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
-        <div>
-          <h2 class="text-sm font-bold text-slate-900 uppercase tracking-tight">Tautan & Cartridge Rak (v8.1)</h2>
-          <p class="mono text-[10px] text-slate-500">Bagikan via URL Parameter (?rack=...) atau Kode</p>
+  <!-- Floating Tooltip for Rack Hover -->
+  <div id="rackTooltip" class="fixed z-40 pointer-events-none hidden px-3.5 py-2.5 rounded-xl hw-chassis text-white transition-opacity duration-150">
+    <div class="flex items-center gap-1.5">
+      <i class="fa-solid fa-compact-disc text-[10px] text-amber-400"></i>
+      <p id="rackTooltipSlot" class="mono text-[9px] text-amber-400 uppercase tracking-widest">SLOT 01</p>
+    </div>
+    <p id="rackTooltipTitle" class="text-xs font-bold leading-tight mt-0.5 text-white">ALBUM TITLE</p>
+    <p id="rackTooltipArtist" class="mono text-[10px] text-slate-400">ARTIST</p>
+  </div>
+
+  <!-- Zen Mode Minimal Floating Pill -->
+  <div id="zenOverlayBar" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 hidden items-center gap-3 sm:gap-4 px-4 sm:px-5 py-2.5 rounded-2xl hw-chassis text-white w-[92vw] sm:w-auto max-w-md justify-between">
+    <div class="flex items-center gap-3 min-w-0">
+      <div class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse flex-shrink-0"></div>
+      <div class="text-left min-w-0">
+        <p id="zenTrackTitle" class="text-xs font-bold tracking-wide uppercase truncate oled-glow">CHROMA.DISC // ZEN SHOWCASE</p>
+        <p id="zenArtistSub" class="mono text-[10px] text-slate-400 uppercase truncate">AUDIOPHILE DESKTOP TURNTABLE</p>
+      </div>
+    </div>
+    <button id="exitZenBtn" class="hw-btn px-3 py-1.5 rounded-xl text-[10px] mono font-bold uppercase transition flex-shrink-0 flex items-center gap-1.5">
+      <i class="fa-solid fa-xmark"></i>
+      <span>Exit (Z)</span>
+    </button>
+  </div>
+
+  <!-- Modal Shareable URL Link, Custom Rack Title & Slot Swap -->
+  <div id="shareRackModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-md p-3 sm:p-4">
+    <div class="hw-chassis rounded-3xl p-4 sm:p-5 max-w-md w-full shadow-2xl flex flex-col gap-3.5 max-h-[90vh] overflow-y-auto custom-scroll text-slate-200">
+      <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+            <i class="fa-solid fa-sliders text-xs"></i>
+          </div>
+          <div>
+            <h2 class="text-xs sm:text-sm font-bold text-white uppercase tracking-tight">Rack Console & Share URL</h2>
+            <p class="mono text-[9px] text-slate-400">Kustomisasi Nama Rak, Tukar Slot & Bagikan Tautan</p>
+          </div>
         </div>
-        <button id="closeShareModalBtn" class="w-7 h-7 rounded-lg bg-slate-900/5 hover:bg-slate-900/15 text-xs mono font-bold">✕</button>
+        <button id="closeShareModalBtn" class="hw-btn w-8 h-8 rounded-xl text-xs mono font-bold flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Custom Rack Title -->
+      <div class="flex flex-col gap-1">
+        <span class="mono text-[9px] font-bold text-slate-400 uppercase"><i class="fa-solid fa-tag mr-1 text-amber-400"></i>Nama Koleksi Rak Kustom</span>
+        <div class="flex items-center gap-1.5">
+          <input id="customRackTitleInput" type="text" maxlength="36" placeholder="Contoh: Late Night Coding Mix — Budi" class="w-full rounded-xl bg-black/50 border border-white/15 px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
+          <button id="saveRackTitleBtn" class="hw-btn-copper py-2 px-3.5 rounded-xl text-xs font-bold transition flex-shrink-0">
+            Simpan
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Slot Reorder / Swap -->
+      <div class="flex flex-col gap-1.5 bg-black/35 p-3 rounded-2xl border border-white/10">
+        <span class="mono text-[9px] font-bold text-slate-400 uppercase"><i class="fa-solid fa-right-left mr-1 text-amber-400"></i>Tukar Posisi Slot Rak (Slot Reorder)</span>
+        <div class="flex items-center gap-1.5">
+          <select id="swapSlotA" class="bg-slate-900 border border-white/15 text-slate-200 rounded-xl px-2 py-1.5 text-xs mono font-bold flex-1 min-w-0"></select>
+          <i class="fa-solid fa-arrows-left-right text-xs text-amber-400"></i>
+          <select id="swapSlotB" class="bg-slate-900 border border-white/15 text-slate-200 rounded-xl px-2 py-1.5 text-xs mono font-bold flex-1 min-w-0"></select>
+          <button id="execSwapSlotsBtn" class="hw-btn py-1.5 px-3 rounded-xl text-xs font-semibold transition flex-shrink-0">
+            Tukar
+          </button>
+        </div>
       </div>
 
       <!-- Shareable URL Input Box -->
       <div class="flex flex-col gap-1">
         <div class="flex items-center justify-between">
-          <span class="mono text-[9px] font-bold text-indigo-700 uppercase">TAUTAN LANGSUNG (SHAREABLE URL)</span>
+          <span class="mono text-[9px] font-bold text-amber-400 uppercase"><i class="fa-solid fa-link mr-1"></i>Tautan Langsung (Shareable URL)</span>
           <span id="urlLengthBadge" class="mono text-[9px] text-slate-400">0 chars</span>
         </div>
         <div class="flex items-center gap-1.5">
-          <input id="rackShareUrlInput" type="text" readonly class="w-full rounded-xl bg-indigo-50/70 border border-indigo-200 px-2.5 py-2 mono text-[10px] text-indigo-950 focus:outline-none" value="">
-          <button id="copyShareUrlBtn" class="py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition active:scale-95 flex-shrink-0">
-            Salin URL
+          <input id="rackShareUrlInput" type="text" readonly class="oled-screen w-full rounded-xl px-3 py-2 mono text-[10px] focus:outline-none" value="">
+          <button id="copyShareUrlBtn" class="hw-btn-copper py-2 px-3.5 rounded-xl text-xs font-bold transition flex-shrink-0 flex items-center gap-1.5">
+            <i class="fa-regular fa-copy"></i>
+            <span>Salin</span>
           </button>
         </div>
       </div>
 
       <!-- Compact Cartridge Code Box -->
       <div class="flex flex-col gap-1">
-        <span class="mono text-[9px] font-bold text-slate-500 uppercase">ATAU TEMPEL URL / KODE CARTRIDGE</span>
-        <textarea id="rackCartridgeTextarea" rows="3" class="w-full rounded-xl bg-slate-900/5 border border-slate-300/70 p-2.5 mono text-[10px] text-slate-700 focus:outline-none focus:border-slate-900" placeholder="Tempel URL lengkap (?rack=...) atau kode cartridge di sini..."></textarea>
+        <span class="mono text-[9px] font-bold text-slate-400 uppercase">Atau Tempel URL / Kode Cartridge</span>
+        <textarea id="rackCartridgeTextarea" rows="2" class="w-full rounded-xl bg-black/50 border border-white/15 p-2.5 mono text-[10px] text-slate-200 focus:outline-none focus:border-amber-400" placeholder="Tempel URL lengkap (?rack=...) atau kode cartridge di sini..."></textarea>
       </div>
 
-      <div class="flex items-center justify-between gap-2">
-        <button id="copyCartridgeBtn" class="flex-1 py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition active:scale-95">
-          Salin Kode Saja
+      <div class="flex items-center justify-between gap-2 pt-1">
+        <button id="copyCartridgeBtn" class="hw-btn flex-1 py-2.5 px-3 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-code"></i>
+          <span>Salin Kode</span>
         </button>
-        <button id="importCartridgeBtn" class="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition active:scale-95">
-          Muat ke Rak
+        <button id="importCartridgeBtn" class="hw-btn-copper flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-download"></i>
+          <span>Muat ke Rak</span>
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Header Branding + Live Search + Curated Rack Presets -->
-  <header class="absolute top-5 left-5 z-20 pointer-events-auto flex flex-col gap-2 max-w-xs sm:max-w-sm w-80">
-    <div class="light-glass-panel px-4 py-2.5 rounded-2xl flex items-center justify-between gap-2">
-      <div class="flex items-center gap-2.5">
-        <div class="w-7 h-7 rounded-full bg-slate-900 flex items-center justify-center shadow-md">
-          <div class="w-2.5 h-2.5 rounded-full bg-orange-500 transition-transform duration-75" id="bassPulseDot"></div>
-        </div>
-        <div>
-          <h1 class="font-bold text-sm leading-none tracking-tight accent-gradient-text">CHROMA.DISC // v8.1</h1>
-          <p class="mono text-[9px] text-slate-500 mt-0.5 tracking-wider uppercase">URL Share & Japanese Obi Edition</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-1">
-        <button id="sfxToggleBtn" title="Toggle Efek Suara Mekanis" class="px-2 py-1 rounded-lg bg-slate-900/5 hover:bg-slate-900/10 text-[10px] mono font-semibold text-slate-700 transition">
-          SFX: ON
-        </button>
-        <button id="hotkeyHelpBtn" title="Tampilkan Shortcut Keyboard (?)" class="w-6 h-6 rounded-lg bg-slate-900/5 hover:bg-slate-900/10 text-[11px] mono font-bold text-slate-700 transition flex items-center justify-center">
-          ?
-        </button>
-      </div>
-    </div>
-
-    <!-- Live Search Input + Slot Target -->
-    <div class="relative">
-      <form id="liveSearchForm" class="light-glass-panel p-1.5 pl-3 rounded-2xl flex items-center gap-1.5">
-        <svg class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-        <input id="liveSearchInput" type="text" placeholder="Cari album / artis..." class="bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none w-full">
-        <select id="searchSlotSelect" title="Pilih Slot Rak Tujuan" class="bg-slate-900/5 text-[10px] mono font-semibold text-slate-700 rounded-lg px-1.5 py-1 focus:outline-none cursor-pointer">
-          <option value="next">Next</option>
-          <option value="0">S-01</option>
-          <option value="1">S-02</option>
-          <option value="2">S-03</option>
-          <option value="3">S-04</option>
-          <option value="4">S-05</option>
-          <option value="5">S-06</option>
-          <option value="6">S-07</option>
-          <option value="7">S-08</option>
-          <option value="8">S-09</option>
-          <option value="9">S-10</option>
-          <option value="10">S-11</option>
-          <option value="11">S-12</option>
-          <option value="12">S-13</option>
-          <option value="13">S-14</option>
-        </select>
-        <button type="submit" id="liveSearchBtn" class="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-semibold transition active:scale-95 flex-shrink-0">
-          Cari
-        </button>
-      </form>
-
-      <!-- Search Results Picker Dropdown -->
-      <div id="searchResultsDropdown" class="hidden absolute top-full left-0 right-0 mt-1.5 light-glass-panel rounded-2xl p-2 shadow-2xl z-30 flex-col gap-1 max-h-60 overflow-y-auto custom-scroll">
-        <div class="flex items-center justify-between px-2 py-1 border-b border-slate-200/60">
-          <span class="mono text-[9px] font-bold text-slate-500 uppercase">PILIH HASIL ALBUM</span>
-          <button id="closeSearchDropdownBtn" class="text-[10px] mono text-slate-400 hover:text-slate-800">TUTUP ✕</button>
-        </div>
-        <div id="searchResultsList" class="flex flex-col gap-1 mt-1"></div>
-      </div>
-    </div>
-
-    <!-- Collection Management Bar (Curated Presets + Share URL + Jukebox) -->
-    <div class="light-glass-panel px-2.5 py-1.5 rounded-xl flex flex-wrap items-center justify-between gap-1.5 text-[10px] mono">
-      <select id="rackPresetSelect" title="Pilih Tema Kurasi Rak 14-Slot" class="bg-slate-900/5 hover:bg-slate-900/10 text-slate-700 font-bold rounded-lg px-2 py-1 focus:outline-none cursor-pointer">
-        <option value="default">Rak: Default Eclectic</option>
-        <option value="britpop">Rak: 90s Alternative & Rock</option>
-        <option value="electronic">Rak: Electronic & Synth</option>
-        <option value="classical">Rak: Classical Masterpieces</option>
-      </select>
-      <div class="flex items-center gap-1">
-        <button id="shareRackBtn" title="Buat Tautan URL Koleksi Rak (?rack=...)" class="px-2 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-700 font-bold transition">
-          🔗 TAUTAN RAK
-        </button>
-        <button id="jukeboxToggleBtn" title="Auto-Play & Auto-Changer 14-Disc" class="px-2 py-1 rounded-lg bg-slate-900/5 hover:bg-slate-900/10 text-slate-700 font-bold transition">
-          JUKEBOX: OFF
-        </button>
-      </div>
-    </div>
-
-    <!-- Quick Inspection Camera Angle Bar (1-4) -->
-    <div class="light-glass-panel px-2.5 py-1.5 rounded-xl flex items-center justify-between gap-1 text-[10px] mono">
-      <span class="text-slate-400 font-bold pl-1">KAMERA:</span>
-      <div class="flex items-center gap-1">
-        <button data-cam="front" class="camPresetBtn px-2 py-0.5 rounded-md bg-slate-900 text-white font-bold transition" title="Sudut 3/4 Klasik (Shortcut: 1)">1:Depan</button>
-        <button data-cam="back" class="camPresetBtn px-2 py-0.5 rounded-md bg-slate-900/5 hover:bg-slate-900/10 text-slate-700 font-bold transition" title="Baca Tracklist Belakang (Shortcut: 2)">2:Belakang</button>
-        <button data-cam="spine" class="camPresetBtn px-2 py-0.5 rounded-md bg-slate-900/5 hover:bg-slate-900/10 text-slate-700 font-bold transition" title="Inspeksi Punggung & Obi Strip (Shortcut: 3)">3:Spine</button>
-        <button data-cam="rack" class="camPresetBtn px-2 py-0.5 rounded-md bg-slate-900/5 hover:bg-slate-900/10 text-slate-700 font-bold transition" title="Fokus ke Rak Koleksi (Shortcut: 4)">4:Rak</button>
-      </div>
-    </div>
-
-    <!-- Keyboard Shortcuts Helper Popover -->
-    <div id="hotkeyPopover" class="hidden light-glass-panel rounded-2xl p-3 text-[11px] flex-col gap-1.5 shadow-xl">
-      <div class="flex items-center justify-between border-b border-slate-200/70 pb-1">
-        <span class="mono text-[10px] font-bold text-slate-700 uppercase">KEYBOARD DECK SHORTCUTS</span>
-        <span class="mono text-[9px] text-slate-400">SCROLL = ZOOM</span>
-      </div>
-      <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px]">
-        <div class="flex justify-between"><span>Play / Pause</span><kbd>Space</kbd></div>
-        <div class="flex justify-between"><span>Buka Casing</span><kbd>O</kbd></div>
-        <div class="flex justify-between"><span>Eject CD</span><kbd>E</kbd></div>
-        <div class="flex justify-between"><span>Kamera 1-4</span><kbd>1</kbd>-<kbd>4</kbd></div>
-        <div class="flex justify-between"><span>Slot Sblm/Brkt</span><kbd>←</kbd><kbd>→</kbd></div>
-        <div class="flex justify-between"><span>Toggle Obi</span><kbd>J</kbd></div>
-      </div>
-    </div>
-  </header>
-
-  <!-- Interactive Control Deck -->
-  <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 w-11/12 max-w-6xl">
-    <div class="light-glass-panel rounded-2xl p-2 sm:p-3 flex flex-wrap items-center justify-center gap-1.5 text-xs">
+  <!-- ===================================================================== -->
+  <!-- TOP HUD AREA: HI-FI HARDWARE CONSOLE & OLED MONITOR DECK              -->
+  <!-- ===================================================================== -->
+  <div class="ui-Chrome fixed top-2.5 sm:top-4 inset-x-2.5 sm:inset-x-4 z-30 pointer-events-none flex flex-col lg:flex-row lg:items-start lg:justify-between gap-2">
+    
+    <!-- LEFT COLUMN: HARDWARE BRANDING, CAMERA SELECTOR & RACK BROWSER -->
+    <div class="pointer-events-auto flex flex-col gap-1.5 w-full lg:w-[360px] max-w-full">
       
-      <button id="toggleCaseBtn" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold transition active:scale-95 shadow-sm flex items-center gap-1.5">
-        <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
-        <span id="caseStateText">Buka Casing</span>
+      <!-- Main Hardware Header Unit -->
+      <div class="hw-chassis px-3 py-2.5 rounded-2xl flex items-center justify-between gap-2 relative">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-xl bg-black/60 border border-amber-500/40 flex items-center justify-center shadow-inner flex-shrink-0">
+            <i class="fa-solid fa-record-vinyl text-amber-400 text-sm transition-transform duration-75" id="bassPulseDot"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <h1 class="font-bold text-xs sm:text-sm leading-none tracking-wider text-white uppercase truncate">CHROMA.DISC</h1>
+              <span class="mono text-[8px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">CD-957</span>
+            </div>
+            <p id="customRackHeaderBanner" class="mono text-[9px] text-slate-400 mt-0.5 tracking-wider uppercase truncate">Audiophile Studio Deck</p>
+          </div>
+        </div>
+
+        <!-- Top Right Hardware Switches -->
+        <div class="flex items-center gap-1 flex-shrink-0">
+          <!-- Mobile Toggle Search & Rack Drawer -->
+          <button id="mobileSearchToggleBtn" title="Buka Pencarian & Pengaturan Rak" class="lg:hidden hw-btn-copper px-2.5 py-1.5 rounded-xl text-[10px] mono font-bold flex items-center gap-1.5">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <span>Rak</span>
+          </button>
+
+          <button id="sfxToggleBtn" title="Toggle Efek Suara Mekanis" class="hw-btn px-2.5 py-1.5 rounded-xl text-[10px] mono font-semibold flex items-center gap-1">
+            <i class="fa-solid fa-volume-high text-amber-400"></i>
+            <span>SFX</span>
+          </button>
+          <button id="zenModeBtn" title="Mode Zen Screensaver Audiophile (Shortcut: Z)" class="hw-btn px-2.5 py-1.5 rounded-xl text-[10px] mono font-bold flex items-center gap-1">
+            <i class="fa-solid fa-expand text-amber-400"></i>
+            <span class="hidden sm:inline">ZEN</span>
+          </button>
+          <button id="hotkeyHelpBtn" title="Tampilkan Shortcut Keyboard (?)" class="hidden sm:flex hw-btn w-7 h-7 rounded-xl text-[11px] mono font-bold items-center justify-center">
+            <i class="fa-regular fa-keyboard"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Camera Angle Selector Bar (1-5) -->
+      <div class="hw-chassis px-2.5 py-1.5 rounded-2xl flex items-center justify-between gap-1.5 text-[10px] mono overflow-x-auto no-scrollbar">
+        <span class="text-slate-400 font-bold pl-1 flex-shrink-0 hidden sm:flex items-center gap-1">
+          <i class="fa-solid fa-video text-amber-400 text-[9px]"></i>
+          <span>VIEW:</span>
+        </span>
+        <div class="flex items-center gap-1 w-full sm:w-auto justify-between sm:justify-end">
+          <button data-cam="front" class="camPresetBtn hw-btn hw-btn-active px-2 py-1 rounded-lg font-bold transition whitespace-nowrap flex-1 sm:flex-initial text-center" title="Sudut 3/4 Klasik (Shortcut: 1)">1:Front</button>
+          <button data-cam="back" class="camPresetBtn hw-btn px-2 py-1 rounded-lg font-bold transition whitespace-nowrap flex-1 sm:flex-initial text-center" title="Baca Tracklist Belakang (Shortcut: 2)">2:Back</button>
+          <button data-cam="spine" class="camPresetBtn hw-btn px-2 py-1 rounded-lg font-bold transition whitespace-nowrap flex-1 sm:flex-initial text-center" title="Inspeksi Punggung & Obi Strip (Shortcut: 3)">3:Spine</button>
+          <button data-cam="rack" class="camPresetBtn hw-btn px-2 py-1 rounded-lg font-bold transition whitespace-nowrap flex-1 sm:flex-initial text-center" title="Fokus ke Rak Koleksi (Shortcut: 4)">4:Rack</button>
+          <button data-cam="player" class="camPresetBtn hw-btn px-2 py-1 rounded-lg font-bold transition whitespace-nowrap flex-1 sm:flex-initial text-center" title="Fokus ke Audiophile CD Player (Shortcut: 5)">5:Deck</button>
+        </div>
+      </div>
+
+      <!-- Collapsible Search & Rack Management Drawer -->
+      <div id="leftSearchDrawer" class="hidden lg:flex flex-col gap-1.5">
+        <!-- Live Search Input + Slot Target -->
+        <div class="relative">
+          <form id="liveSearchForm" class="hw-chassis p-1.5 pl-3 rounded-2xl flex items-center gap-1.5">
+            <i class="fa-solid fa-magnifying-glass text-xs text-amber-400 flex-shrink-0"></i>
+            <input id="liveSearchInput" type="text" placeholder="Cari album / artis di database..." class="bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none w-full min-w-0">
+            <select id="searchSlotSelect" title="Pilih Slot Rak Tujuan" class="bg-black/50 border border-white/10 text-[10px] mono font-semibold text-amber-300 rounded-xl px-1.5 py-1.5 focus:outline-none cursor-pointer flex-shrink-0">
+              <option value="next">Next</option>
+              <option value="0">S-01</option>
+              <option value="1">S-02</option>
+              <option value="2">S-03</option>
+              <option value="3">S-04</option>
+              <option value="4">S-05</option>
+              <option value="5">S-06</option>
+              <option value="6">S-07</option>
+              <option value="7">S-08</option>
+              <option value="8">S-09</option>
+              <option value="9">S-10</option>
+              <option value="10">S-11</option>
+              <option value="11">S-12</option>
+              <option value="12">S-13</option>
+              <option value="13">S-14</option>
+            </select>
+            <button type="submit" id="liveSearchBtn" class="hw-btn-copper px-3 py-1.5 rounded-xl text-[11px] font-bold transition flex-shrink-0">
+              Cari
+            </button>
+          </form>
+
+          <!-- Search Results Picker Dropdown -->
+          <div id="searchResultsDropdown" class="hidden absolute top-full left-0 right-0 mt-1.5 hw-chassis rounded-2xl p-2 shadow-2xl z-40 flex-col gap-1 max-h-60 overflow-y-auto custom-scroll">
+            <div class="flex items-center justify-between px-2 py-1 border-b border-white/10">
+              <span class="mono text-[9px] font-bold text-amber-400 uppercase"><i class="fa-solid fa-compact-disc mr-1"></i>Pilih Hasil Album</span>
+              <button id="closeSearchDropdownBtn" class="text-[10px] mono text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="searchResultsList" class="flex flex-col gap-1 mt-1"></div>
+          </div>
+        </div>
+
+        <!-- Collection Management Bar -->
+        <div class="hw-chassis px-2.5 py-2 rounded-2xl flex items-center justify-between gap-1.5 text-[10px] mono">
+          <div class="flex items-center gap-1.5 flex-1 min-w-0 bg-black/40 border border-white/10 rounded-xl px-2 py-1">
+            <i class="fa-solid fa-box-archive text-amber-400 text-[10px]"></i>
+            <select id="rackPresetSelect" title="Pilih Tema Kurasi Rak 14-Slot" class="bg-transparent text-slate-200 font-bold focus:outline-none cursor-pointer w-full truncate">
+              <option value="default" class="bg-slate-900">Rack: Default Eclectic</option>
+              <option value="britpop" class="bg-slate-900">Rack: 90s Alt & Rock</option>
+              <option value="electronic" class="bg-slate-900">Rack: Electronic & Synth</option>
+              <option value="classical" class="bg-slate-900">Rack: Classical Master</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-1 flex-shrink-0">
+            <button id="shareRackBtn" title="Atur Nama Rak, Tukar Slot & Salin URL (?rack=...)" class="hw-btn px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1">
+              <i class="fa-solid fa-share-nodes text-amber-400"></i>
+              <span>URL</span>
+            </button>
+            <button id="jukeboxToggleBtn" title="Auto-Play & Auto-Changer 14-Disc" class="hw-btn px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1">
+              <i class="fa-solid fa-repeat text-amber-400"></i>
+              <span>AUTO: OFF</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Keyboard Shortcuts Helper Popover -->
+      <div id="hotkeyPopover" class="hidden hw-chassis rounded-2xl p-3 text-[11px] flex-col gap-1.5 shadow-xl text-slate-300">
+        <div class="flex items-center justify-between border-b border-white/10 pb-1">
+          <span class="mono text-[10px] font-bold text-amber-400 uppercase"><i class="fa-regular fa-keyboard mr-1"></i>Hardware Hotkeys</span>
+          <span class="mono text-[9px] text-slate-400">SCROLL = ZOOM</span>
+        </div>
+        <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px]">
+          <div class="flex justify-between"><span>Play / Pause</span><kbd>Space</kbd></div>
+          <div class="flex justify-between"><span>Open Case</span><kbd>O</kbd></div>
+          <div class="flex justify-between"><span>Load Deck</span><kbd>E</kbd></div>
+          <div class="flex justify-between"><span>Camera 1-5</span><kbd>1</kbd>-<kbd>5</kbd></div>
+          <div class="flex justify-between"><span>Prev / Next Slot</span><kbd>←</kbd><kbd>→</kbd></div>
+          <div class="flex justify-between"><span>Zen Mode</span><kbd>Z</kbd></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: HI-FI OLED MONITOR DISPLAY & TRACKLIST DECK -->
+    <div class="pointer-events-auto flex flex-col gap-1.5 w-full lg:w-[340px] max-w-full items-stretch">
+      
+      <!-- Audiophile OLED Matrix Monitor Unit -->
+      <div class="hw-chassis rounded-2xl p-2.5 sm:p-3 flex flex-col gap-2 shadow-2xl relative">
+        
+        <!-- Top Chassis Status Strip -->
+        <div class="flex items-center justify-between gap-2 px-0.5">
+          <div class="flex items-center gap-2">
+            <span id="colorSwatchDot" title="Dynamic Stage Color Extracted" class="w-2 h-2 rounded-full bg-amber-400 shadow"></span>
+            <span class="mono text-[9px] tracking-widest text-slate-400 uppercase font-bold">PCM DIGITAL AUDIO</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span id="slotBadge" class="mono text-[9px] font-bold px-2 py-0.5 rounded bg-black/60 border border-white/10 text-amber-400">SLOT 01</span>
+            <button id="headerTracklistToggleBtn" title="Buka/Tutup Daftar Lagu & Buklet" class="hw-btn px-2 py-0.5 rounded text-[9px] mono font-bold flex items-center gap-1">
+              <i class="fa-solid fa-list-ol text-amber-400"></i>
+              <span>TRACKS</span>
+              <i id="tracklistChevron" class="fa-solid fa-chevron-down text-[8px]"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Recessed Matrix OLED Readout Screen -->
+        <div class="oled-screen rounded-xl p-2.5 sm:p-3 flex flex-col gap-2">
+          <!-- Row 1: Spectrum Analyzer + Album & Artist Readout -->
+          <div class="flex items-center justify-between gap-2.5">
+            <div class="flex items-end gap-0.5 h-5 w-6 flex-shrink-0 bg-black/50 p-1 rounded border border-white/5">
+              <span id="eqBar1" class="w-1 bg-amber-500 rounded-sm h-1.5 transition-all duration-75"></span>
+              <span id="eqBar2" class="w-1 bg-orange-400 rounded-sm h-2.5 transition-all duration-75"></span>
+              <span id="eqBar3" class="w-1 bg-amber-300 rounded-sm h-1.5 transition-all duration-75"></span>
+              <span id="eqBar4" class="w-1 bg-cyan-400 rounded-sm h-1 transition-all duration-75"></span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-xs font-bold uppercase truncate leading-tight oled-glow tracking-wide" id="albumTitleDisplay">NEO TOKYO '98</p>
+              <p class="mono text-[10px] text-amber-200/70 uppercase truncate leading-tight mt-0.5" id="albumArtistDisplay">SYNTHETIX CORE</p>
+            </div>
+          </div>
+
+          <!-- Row 2: Track Scrubber & Time Counter inside OLED -->
+          <div id="audioWidget" class="flex items-center gap-2.5 pt-2 border-t border-amber-500/20">
+            <button id="widgetPlayToggle" class="hw-btn-copper w-8 h-8 rounded-lg flex items-center justify-center transition active:scale-90 flex-shrink-0">
+              <i id="widgetPlayIcon" class="fa-solid fa-play text-xs"></i>
+            </button>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-1">
+                <p id="audioTrackName" class="mono text-[10px] font-bold text-amber-100 truncate leading-tight">SELECT TRACK BELOW</p>
+                <span id="audioTimeDisplay" class="mono text-[10px] font-bold oled-glow flex-shrink-0">0:00</span>
+              </div>
+              <p id="audioTrackStatus" class="mono text-[8px] text-slate-400 uppercase tracking-wider truncate mt-0.5">OPTICAL STANDBY // 44.1KHZ</p>
+              <div id="audioProgressContainer" class="w-full bg-black/90 border border-white/10 rounded-full h-1.5 mt-1.5 overflow-hidden cursor-pointer" title="Klik untuk geser waktu lagu">
+                <div id="audioProgressBar" class="bg-gradient-to-r from-amber-500 to-cyan-400 h-full rounded-full w-0 transition-all duration-100"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Tracklist & Booklet Credits Drawer -->
+      <div id="tracklistDrawer" class="hidden lg:flex hw-chassis rounded-2xl p-3 w-full shadow-2xl flex-col gap-2">
+        <div class="flex items-center justify-between border-b border-white/10 pb-1.5">
+          <div class="flex gap-1">
+            <button id="tabTracksBtn" class="hw-btn hw-btn-active px-2.5 py-1 rounded-lg text-[10px] mono font-bold transition flex items-center gap-1.5">
+              <i class="fa-solid fa-music text-[9px]"></i>
+              <span>TRACKLIST</span>
+            </button>
+            <button id="tabBookletBtn" class="hw-btn px-2.5 py-1 rounded-lg text-[10px] mono font-bold transition flex items-center gap-1.5">
+              <i class="fa-solid fa-book-open text-[9px]"></i>
+              <span>LINER NOTES</span>
+            </button>
+          </div>
+          <span class="mono text-[9px] text-amber-400/90" id="drawerReleaseYear">SLOT 01</span>
+        </div>
+
+        <!-- Track Selector View -->
+        <div id="drawerTracksView" class="flex flex-col gap-1 max-h-36 sm:max-h-44 overflow-y-auto custom-scroll pr-1"></div>
+
+        <!-- Booklet / Inlay Notes View -->
+        <div id="drawerBookletView" class="hidden flex-col gap-2 text-[11px] text-slate-300 max-h-36 sm:max-h-44 overflow-y-auto custom-scroll pr-1">
+          <div class="oled-screen p-2.5 rounded-xl mono text-[10px] leading-relaxed">
+            <p class="oled-glow font-bold mb-1" id="bookletHeader">// LINER NOTES & CREDITS</p>
+            <p id="bookletDetails" class="text-slate-300">Format: Compact Disc Digital Audio (CD-DA)<br>Catalog Barcode: 001158107519<br>Country: Worldwide Release</p>
+          </div>
+          <p class="text-[10px] text-slate-400 leading-snug">
+            <i class="fa-solid fa-circle-info text-amber-400 mr-1"></i>Klik tombol <b>Load Deck</b> atau ketuk langsung unit CD Player di sebelah kanan meja untuk memindahkan CD ke pemutar.
+          </p>
+        </div>
+      </div>
+
+      <!-- Status Toast Notification -->
+      <div id="statusToast" class="hw-chassis px-3.5 py-2 rounded-xl text-[10px] mono text-amber-300 font-semibold hidden transition-opacity duration-300 shadow-lg text-center lg:text-right border border-amber-500/30"></div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- BOTTOM CONTROL DOCK: HI-FI HARDWARE TRANSPORT & STUDIO FX CONSOLE     -->
+  <!-- ===================================================================== -->
+  <div class="ui-Chrome fixed bottom-2.5 sm:bottom-4 left-1/2 -translate-x-1/2 z-30 w-[96vw] max-w-4xl flex flex-col items-center gap-1.5 pointer-events-none">
+    
+    <!-- Secondary Studio Customizer Drawer (Collapsible Hardware Switches) -->
+    <div id="studioToolsDrawer" class="hidden pointer-events-auto w-full hw-chassis rounded-2xl p-2.5 sm:p-3 flex-wrap items-center justify-center gap-1.5 text-[11px] shadow-2xl">
+      <!-- Japanese Edition Obi Strip Toggle -->
+      <button id="obiToggleBtn" title="Pasang/Lepas Sabuk Kertas Edisi Jepang (Obi Strip)" class="hw-btn hw-btn-active px-2.5 py-1.5 rounded-xl font-semibold flex items-center gap-1.5">
+        <i class="fa-solid fa-ribbon"></i>
+        <span>Obi: ON</span>
       </button>
 
-      <button id="toggleSpinBtn" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200 flex items-center gap-1.5">
-        <svg class="w-3.5 h-3.5 text-emerald-600 animate-spin" id="spinIcon" style="animation-duration: 4s;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-        <span id="spinStateText">Stop Putar</span>
+      <!-- Iconic Hype Stickers & Promo Badges -->
+      <button id="hypeStickerBtn" title="Pasang Stiker Sampul Ikonik (Parental Advisory / Gold Seal / Promo)" class="hw-btn px-2.5 py-1.5 rounded-xl font-semibold flex items-center gap-1.5">
+        <i class="fa-solid fa-certificate text-amber-400"></i>
+        <span>Hype: Off</span>
       </button>
 
-      <!-- 1. Japanese Edition Obi Strip Toggle -->
-      <button id="obiToggleBtn" title="Pasang/Lepas Sabuk Kertas Edisi Jepang (Obi Strip)" class="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold transition active:scale-95 border border-rose-200">
-        🇯🇵 Obi: ON
+      <!-- Real-Time Web Audio DSP Filter -->
+      <button id="dspModeBtn" title="Efek Filter Audio Real-Time (Hi-Fi / 90s Boombox Bass / Lo-Fi Walkman)" class="hw-btn px-2.5 py-1.5 rounded-xl font-semibold flex items-center gap-1.5">
+        <i class="fa-solid fa-wave-square text-cyan-400"></i>
+        <span>DSP: Hi-Fi</span>
       </button>
 
-      <!-- Hyper-Tactile Case Material & Tint Selector -->
-      <button id="caseTintBtn" title="Ganti Warna Casing & Baki (Jewel Case Tint)" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">
-        Casing: Clear
+      <!-- Anti-Skip / CD Scratch Glitch Trigger -->
+      <button id="cdGlitchBtn" title="Simulasi Efek Guncangan CD Player Portabel (Buffer Stutter)" class="hw-btn px-2.5 py-1.5 rounded-xl font-semibold flex items-center gap-1.5">
+        <i class="fa-solid fa-bolt text-rose-400"></i>
+        <span>Glitch</span>
       </button>
 
-      <!-- 4. Gold / Silver / CD-R Marker Mixtape Toggle -->
-      <button id="discFinishBtn" title="Ganti Lapisan Kepingan CD atau Mode CD-R Spidol" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">
-        CD: Silver
+      <!-- Case Tint -->
+      <button id="caseTintBtn" title="Ganti Warna Casing & Baki (Jewel Case Tint)" class="hw-btn px-2.5 py-1.5 rounded-xl font-medium flex items-center gap-1.5">
+        <i class="fa-solid fa-swatchbook text-amber-400"></i>
+        <span>Case: Clear</span>
+      </button>
+
+      <!-- Gold / Silver / CD-R Marker Mixtape Toggle -->
+      <button id="discFinishBtn" title="Ganti Lapisan Kepingan CD atau Mode CD-R Spidol" class="hw-btn px-2.5 py-1.5 rounded-xl font-medium flex items-center gap-1.5">
+        <i class="fa-solid fa-compact-disc text-amber-400"></i>
+        <span>CD: Silver</span>
       </button>
 
       <!-- Mint vs Vintage vs Signed Autograph Foil -->
-      <button id="caseWearBtn" title="Ubah Kondisi Casing / Tanda Tangan Artis (Autograph)" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">
-        Kondisi: Mint
+      <button id="caseWearBtn" title="Ubah Kondisi Casing / Tanda Tangan Artis (Autograph)" class="hw-btn px-2.5 py-1.5 rounded-xl font-medium flex items-center gap-1.5">
+        <i class="fa-solid fa-signature text-amber-400"></i>
+        <span>Wear: Mint</span>
       </button>
 
-      <!-- 5. Studio Lighting Rig & Floating Dust Motes -->
-      <button id="studioLightBtn" title="Ubah Pencahayaan Studio & Partikel Debu" class="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 font-semibold transition active:scale-95 border border-amber-200">
-        Studio: Daylight
+      <!-- Studio Lighting Rig & Floating Dust Motes -->
+      <button id="studioLightBtn" title="Ubah Pencahayaan Meja Studio & Partikel Debu" class="hw-btn px-2.5 py-1.5 rounded-xl font-semibold flex items-center gap-1.5">
+        <i class="fa-solid fa-lightbulb text-amber-400"></i>
+        <span>Rig: Daylight</span>
       </button>
 
-      <button id="changeLabelBtn" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">
-        Label: Busur
+      <button id="changeLabelBtn" class="hw-btn px-2.5 py-1.5 rounded-xl font-medium flex items-center gap-1.5">
+        <i class="fa-solid fa-vector-square text-amber-400"></i>
+        <span>Label: Busur</span>
       </button>
 
-      <button id="ejectDiscBtn" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">Keluarkan CD</button>
-
-      <button id="toggleDrawerBtn" class="px-2.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold transition active:scale-95 border border-indigo-200 flex items-center gap-1">
-        <span>Tracklist</span>
-      </button>
-      
-      <!-- Audio Playback Toggle Button -->
-      <button id="audioPlayBtn" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition active:scale-95 shadow-sm flex items-center gap-1.5">
-        <svg id="audioIcon" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        <span id="audioPlayText">Play</span>
+      <button id="toggleSpinBtn" class="hw-btn px-2.5 py-1.5 rounded-xl font-medium flex items-center gap-1.5">
+        <i class="fa-solid fa-rotate text-emerald-400 animate-spin" id="spinIcon" style="animation-duration: 4s;"></i>
+        <span id="spinStateText">Stop Spin</span>
       </button>
 
       <!-- File Input & Upload -->
       <input type="file" id="imageUploadInput" accept="image/*" class="hidden">
-      <button id="uploadImageBtn" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition active:scale-95 border border-slate-200 flex items-center gap-1 shadow-sm">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-        Upload
-      </button>
-
-      <!-- MUSICBRAINZ SYNC BUTTON -->
-      <button id="mbSyncBtn" class="px-3 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold transition active:scale-95 border border-orange-600 shadow-sm flex items-center gap-1.5">
-        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
-        <span id="mbBtnText">Next Album</span>
+      <button id="uploadImageBtn" class="hw-btn px-2.5 py-1.5 rounded-xl font-semibold flex items-center gap-1.5">
+        <i class="fa-solid fa-upload text-amber-400"></i>
+        <span>Upload Cover</span>
       </button>
     </div>
-  </div>
 
-  <!-- Audio Info Card & Interactive Tracklist / Booklet Drawer Top-Right -->
-  <div class="absolute top-5 right-5 z-10 flex flex-col gap-2 items-end pointer-events-auto max-w-xs w-72">
-    <div class="light-glass-panel rounded-2xl p-3 px-4 flex items-center justify-between gap-3 w-full">
-      <div class="flex items-center gap-3 min-w-0">
-        <div class="flex items-end gap-1 h-5 w-6 flex-shrink-0">
-          <span id="eqBar1" class="w-1 bg-orange-500 rounded-full h-1.5 transition-all duration-75"></span>
-          <span id="eqBar2" class="w-1 bg-amber-500 rounded-full h-2.5 transition-all duration-75"></span>
-          <span id="eqBar3" class="w-1 bg-yellow-500 rounded-full h-1.5 transition-all duration-75"></span>
-          <span id="eqBar4" class="w-1 bg-cyan-400 rounded-full h-1 transition-all duration-75"></span>
-        </div>
-        <div class="min-w-0">
-          <p class="text-xs font-bold text-slate-800 uppercase truncate" id="albumTitleDisplay">NEO TOKYO '98</p>
-          <p class="mono text-[10px] text-slate-500 uppercase truncate" id="albumArtistDisplay">SYNTHETIX CORE</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-1.5 flex-shrink-0">
-        <span id="colorSwatchDot" title="Dynamic Stage Color Extracted" class="w-3 h-3 rounded-full border border-white shadow-sm bg-cyan-400"></span>
-        <span id="slotBadge" class="mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-900 text-cyan-400">SLOT 01</span>
-      </div>
-    </div>
-
-    <!-- Audio Preview Player Widget -->
-    <div id="audioWidget" class="light-glass-panel rounded-2xl p-2.5 px-3 flex items-center gap-2.5 w-full shadow-md transition-all duration-300">
-      <button id="widgetPlayToggle" class="w-8 h-8 rounded-full bg-slate-900 hover:bg-slate-800 text-white flex items-center justify-center transition active:scale-90 flex-shrink-0">
-        <svg id="widgetPlayIcon" class="w-3.5 h-3.5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    <!-- Primary Tactile Hardware Transport Bar -->
+    <div class="pointer-events-auto hw-chassis rounded-2xl p-1.5 sm:p-2 flex items-center justify-between sm:justify-center gap-1 sm:gap-2 w-full sm:w-auto shadow-2xl overflow-x-auto no-scrollbar relative">
+      
+      <!-- 1. Buka / Tutup Casing -->
+      <button id="toggleCaseBtn" class="hw-btn px-3 sm:px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 flex-1 sm:flex-initial whitespace-nowrap">
+        <i class="fa-solid fa-box-open text-amber-400"></i>
+        <span id="caseStateText">Open Case</span>
       </button>
-      <div class="flex-1 min-w-0">
-        <p id="audioTrackName" class="text-[11px] font-bold text-slate-800 truncate leading-tight">PILIH LAGU DI BAWAH</p>
-        <p id="audioTrackStatus" class="mono text-[9px] text-slate-500 uppercase tracking-tight truncate">Klik Track / Scroll untuk Zoom</p>
-        <div id="audioProgressContainer" class="w-full bg-slate-200/90 rounded-full h-1.5 mt-1 overflow-hidden cursor-pointer" title="Klik untuk geser waktu lagu">
-          <div id="audioProgressBar" class="bg-emerald-500 h-1.5 rounded-full w-0 transition-all duration-100"></div>
-        </div>
-      </div>
-      <span id="audioTimeDisplay" class="mono text-[10px] text-slate-600 flex-shrink-0">0:00</span>
+
+      <!-- 2. Load CD into Audiophile Top-Loading Player -->
+      <button id="ejectDiscBtn" title="Masukkan Kepingan CD ke Unit Audiophile CD Player di Meja (Shortcut: E)" class="hw-btn-copper px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 flex-1 sm:flex-initial whitespace-nowrap">
+        <i class="fa-solid fa-Eject"></i>
+        <span>Load Deck</span>
+      </button>
+
+      <!-- 3. Audio Playback Toggle Button -->
+      <button id="audioPlayBtn" class="hw-btn px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 flex-1 sm:flex-initial whitespace-nowrap border-emerald-500/30">
+        <i id="audioIcon" class="fa-solid fa-play text-emerald-400"></i>
+        <span id="audioPlayText">Play</span>
+      </button>
+
+      <!-- 4. Next Album (MusicBrainz) -->
+      <button id="mbSyncBtn" class="hw-btn px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 flex-1 sm:flex-initial whitespace-nowrap">
+        <i class="fa-solid fa-forward-step text-amber-400"></i>
+        <span id="mbBtnText">Next Disc</span>
+      </button>
+
+      <!-- 5. Toggle Studio Customizer Drawer -->
+      <button id="toggleStudioToolsBtn" title="Buka Menu Kustomisasi Casing, Obi Strip, Stiker Hype, DSP & Pencahayaan Studio" class="hw-btn px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 flex-shrink-0 whitespace-nowrap">
+        <i class="fa-solid fa-sliders text-amber-400"></i>
+        <span class="hidden xs:inline">FX / Custom</span>
+        <i id="studioToolsChevron" class="fa-solid fa-chevron-up text-[9px]"></i>
+      </button>
+
+      <!-- 6. Desktop Tracklist Toggle Shortcut -->
+      <button id="toggleDrawerBtn" class="hidden sm:flex hw-btn px-3 py-2 rounded-xl text-xs font-semibold items-center gap-1.5 flex-shrink-0 whitespace-nowrap">
+        <i class="fa-solid fa-list-ul text-amber-400"></i>
+        <span>Tracks</span>
+      </button>
     </div>
-
-    <!-- Interactive Tracklist & Booklet Credits Drawer -->
-    <div id="tracklistDrawer" class="light-glass-panel rounded-2xl p-3 w-full shadow-lg transition-all duration-300 flex flex-col gap-2">
-      <div class="flex items-center justify-between border-b border-slate-200/70 pb-1.5">
-        <div class="flex gap-1.5">
-          <button id="tabTracksBtn" class="px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[10px] mono font-bold transition">TRACKLIST</button>
-          <button id="tabBookletBtn" class="px-2.5 py-1 rounded-lg bg-transparent hover:bg-slate-200/60 text-slate-600 text-[10px] mono font-bold transition">BUKLET INLAY</button>
-        </div>
-        <span class="mono text-[9px] text-slate-400" id="drawerReleaseYear">SLOT 01</span>
-      </div>
-
-      <!-- Track Selector View -->
-      <div id="drawerTracksView" class="flex flex-col gap-1 max-h-40 overflow-y-auto custom-scroll pr-1"></div>
-
-      <!-- Booklet / Inlay Notes View -->
-      <div id="drawerBookletView" class="hidden flex-col gap-2 text-[11px] text-slate-700 max-h-40 overflow-y-auto custom-scroll pr-1">
-        <div class="p-2.5 rounded-xl bg-slate-900 text-slate-100 mono text-[10px] leading-relaxed">
-          <p class="text-orange-400 font-bold mb-1" id="bookletHeader">// LINER NOTES & CREDITS</p>
-          <p id="bookletDetails">Format: Compact Disc Digital Audio (CD-DA)<br>Catalog Barcode: 001158107519<br>Country: Worldwide Release</p>
-        </div>
-        <p class="text-[10px] text-slate-500 leading-snug">
-          💡 <b>Tips Kamera:</b> Klik tombol <b>2:Belakang</b> atau <b>3:Spine</b> di kiri atas untuk menginspeksi daftar lagu cetak dan pita Obi Jepang.
-        </p>
-      </div>
-    </div>
-
-    <!-- Status Toast Notification -->
-    <div id="statusToast" class="light-glass-panel px-3.5 py-2 rounded-xl text-xs mono text-slate-700 border border-slate-200/50 hidden transition-opacity duration-300"></div>
   </div>
 
   <div id="canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
@@ -345,7 +684,7 @@
     // ==============================================================
     // 1. DEFAULT 14 ALBUM MUSICBRAINZ & CURATED RACK PRESETS
     // ==============================================================
-    const RACK_STORAGE_KEY = 'CHROMA_DISC_CUSTOM_RACK_V8';
+    const RACK_STORAGE_KEY = 'CHROMA_DISC_CUSTOM_RACK_V9';
 
     const defaultMusicBrainzAlbums = [
       {
@@ -542,7 +881,6 @@
       }
     ];
 
-    // Tema Kurasi Rak (Curated Rack Presets)
     const curatedRackThemes = {
       britpop: [
         ["OASIS", "MORNING GLORY", "Oasis Wonderwall"],
@@ -595,10 +933,11 @@
     };
 
     let musicBrainzAlbums = JSON.parse(JSON.stringify(defaultMusicBrainzAlbums));
+    let customRackName = "";
     let loadedFromUrlParam = false;
 
     // ==============================================================
-    // 1A. SMART URL PARAMETER (?rack=...) ENCODER & DECODER
+    // 1A. SMART URL PARAMETER (?rack=...&title=...) ENCODER & DECODER
     // ==============================================================
     function compressCoverUrl(url) {
       if (!url) return "";
@@ -619,12 +958,11 @@
       return u;
     }
 
-    // Menghasilkan token Base64 URL-Safe yang sangat ringkas (Delta Encoding)
     function encodeRackToCompactToken() {
       const deltaSlots = musicBrainzAlbums.map((alb, idx) => {
         const def = defaultMusicBrainzAlbums[idx];
         const isUnchanged = !alb.isLiveSearch && alb.mbid === def.mbid && alb.fallbackTitle === def.fallbackTitle && alb.fallbackArtist === def.fallbackArtist;
-        if (isUnchanged) return 0; // Cukup 1 karakter '0' jika slot masih default!
+        if (isUnchanged) return 0;
         return [
           alb.fallbackTitle,
           alb.fallbackArtist,
@@ -635,9 +973,9 @@
         ];
       });
 
-      const jsonStr = JSON.stringify(deltaSlots);
+      const payload = customRackName ? { n: customRackName, s: deltaSlots } : deltaSlots;
+      const jsonStr = JSON.stringify(payload);
       const b64 = btoa(unescape(encodeURIComponent(jsonStr)));
-      // Ubah ke Base64 URL-safe tanpa karakter +, /, =
       return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     }
 
@@ -645,7 +983,6 @@
       if (!rawInput || !rawInput.trim()) return null;
       let token = rawInput.trim();
 
-      // Jika user menempelkan URL lengkap (misal https://.../?rack=xyz), ekstrak parameter rack-nya
       if (token.includes("rack=")) {
         try {
           const qPart = token.split("?")[1] || token;
@@ -654,18 +991,21 @@
         } catch (_) {}
       }
 
-      // Kembalikan dari Base64 URL-safe ke Base64 standar
       let b64 = token.replace(/-/g, '+').replace(/_/g, '/');
       while (b64.length % 4 !== 0) b64 += '=';
 
-      const decoded = JSON.parse(decodeURIComponent(escape(atob(b64))));
-      if (!Array.isArray(decoded) || decoded.length !== 14) return null;
+      const parsed = JSON.parse(decodeURIComponent(escape(atob(b64))));
+      const slotList = Array.isArray(parsed) ? parsed : (parsed && Array.isArray(parsed.s) ? parsed.s : null);
+      if (!slotList || slotList.length !== 14) return null;
+
+      if (parsed && typeof parsed.n === 'string') {
+        customRackName = parsed.n;
+      }
 
       return defaultMusicBrainzAlbums.map((base, idx) => {
-        const item = decoded[idx];
+        const item = slotList[idx];
         if (item === 0 || !item) return JSON.parse(JSON.stringify(base));
 
-        // Format Baru v8.1 (Array Tuple Ringkas)
         if (Array.isArray(item)) {
           const [t, a, q, cTok, isLive, m] = item;
           const title = t || base.fallbackTitle;
@@ -684,7 +1024,6 @@
           });
         }
 
-        // Backward Compatibility v8.0 (Object {t, a, q, c, m, l})
         return Object.assign({}, base, {
           fallbackTitle: item.t || base.fallbackTitle,
           fallbackArtist: item.a || base.fallbackArtist,
@@ -694,6 +1033,19 @@
           isLiveSearch: Boolean(item.l)
         });
       });
+    }
+
+    function updateCustomRackBannerUI() {
+      const bannerEl = document.getElementById('customRackHeaderBanner');
+      const inputEl = document.getElementById('customRackTitleInput');
+      if (bannerEl) {
+        bannerEl.innerText = customRackName
+          ? `RACK // ${customRackName}`
+          : "Audiophile Studio Deck";
+      }
+      if (inputEl && document.activeElement !== inputEl) {
+        inputEl.value = customRackName;
+      }
     }
 
     function buildShareableRackUrl() {
@@ -711,7 +1063,6 @@
     }
 
     function loadRackFromUrlOrStorage() {
-      // Prioritas 1: Cek apakah ada parameter ?rack=... di URL saat halaman dibuka
       try {
         const params = new URLSearchParams(window.location.search);
         const rackParam = params.get('rack');
@@ -728,12 +1079,14 @@
         console.warn("Gagal mem-parsing parameter URL ?rack=:", e);
       }
 
-      // Prioritas 2: Muat dari localStorage
       try {
         const raw = localStorage.getItem(RACK_STORAGE_KEY);
         if (!raw) return;
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length === 14) {
+        if (parsed && Array.isArray(parsed.albums) && parsed.albums.length === 14) {
+          musicBrainzAlbums = parsed.albums;
+          customRackName = parsed.rackName || "";
+        } else if (Array.isArray(parsed) && parsed.length === 14) {
           musicBrainzAlbums = parsed;
         }
       } catch (e) {
@@ -743,7 +1096,11 @@
 
     function saveRackToStorage(updateAddressBar = true) {
       try {
-        localStorage.setItem(RACK_STORAGE_KEY, JSON.stringify(musicBrainzAlbums));
+        localStorage.setItem(RACK_STORAGE_KEY, JSON.stringify({
+          rackName: customRackName,
+          albums: musicBrainzAlbums
+        }));
+        updateCustomRackBannerUI();
         if (updateAddressBar) syncBrowserUrlBar();
       } catch (e) {
         console.warn("Gagal menyimpan rak:", e);
@@ -753,8 +1110,10 @@
     function applyCuratedRackPreset(presetKey) {
       if (presetKey === 'default') {
         musicBrainzAlbums = JSON.parse(JSON.stringify(defaultMusicBrainzAlbums));
+        customRackName = "";
       } else if (curatedRackThemes[presetKey]) {
         const list = curatedRackThemes[presetKey];
+        customRackName = `KOLEKSI ${presetKey.toUpperCase()}`;
         musicBrainzAlbums = defaultMusicBrainzAlbums.map((base, idx) => {
           const [artist, title, query] = list[idx];
           return Object.assign({}, base, {
@@ -772,7 +1131,7 @@
       }
       saveRackToStorage(true);
       buildDesktopAcrylicRack();
-      showToast(`Tema Rak "${presetKey.toUpperCase()}" dimuat & URL diperbarui!`);
+      showToast(`Tema Rak "${presetKey.toUpperCase()}" dimuat!`);
       startRackSwap(0);
       invalidate();
     }
@@ -793,13 +1152,21 @@
     let jukeboxAutoMode = false;
 
     // ==============================================================
-    // 1B. PROCEDURAL MECHANICAL SOUND ENGINE & WEB AUDIO VISUALIZER
+    // 1B. PROCEDURAL MECHANICAL SOUND ENGINE & WEB AUDIO DSP FILTER
     // ==============================================================
     let audioCtx = null;
     let analyserNode = null;
     let mediaSourceNode = null;
+    let dspBiquadFilter = null;
     let freqDataArray = null;
     let sfxEnabled = true;
+
+    let currentDspModeIndex = 0;
+    const dspModes = [
+      { name: "Hi-Fi", type: "allpass", freq: 1000, gain: 0, q: 1 },
+      { name: "90s Bass", type: "lowshelf", freq: 115, gain: 8.5, q: 1 },
+      { name: "Walkman Lo-Fi", type: "bandpass", freq: 1150, gain: 0, q: 1.9 }
+    ];
 
     function ensureAudioContext() {
       if (!audioCtx) {
@@ -820,12 +1187,47 @@
         analyserNode.fftSize = 64;
         analyserNode.smoothingTimeConstant = 0.78;
         freqDataArray = new Uint8Array(analyserNode.frequencyBinCount);
+
+        dspBiquadFilter = ctx.createBiquadFilter();
+        applyDspFilterParams();
+
         mediaSourceNode = ctx.createMediaElementSource(audioEl);
-        mediaSourceNode.connect(analyserNode);
+        mediaSourceNode.connect(dspBiquadFilter);
+        dspBiquadFilter.connect(analyserNode);
         analyserNode.connect(ctx.destination);
       } catch (e) {
         console.warn("Visualizer menggunakan mode simulasi ritme:", e);
       }
+    }
+
+    function applyDspFilterParams() {
+      const mode = dspModes[currentDspModeIndex];
+      if (dspBiquadFilter && audioCtx) {
+        dspBiquadFilter.type = mode.type;
+        dspBiquadFilter.frequency.setValueAtTime(mode.freq, audioCtx.currentTime);
+        dspBiquadFilter.Q.setValueAtTime(mode.q, audioCtx.currentTime);
+        dspBiquadFilter.gain.setValueAtTime(mode.gain, audioCtx.currentTime);
+      }
+      const btn = document.getElementById('dspModeBtn');
+      if (btn) btn.innerHTML = `<i class="fa-solid fa-wave-square text-cyan-400"></i><span>DSP: ${mode.name}</span>`;
+    }
+
+    function triggerAntiSkipGlitch() {
+      playMechanicalSFX('glitch');
+      showToast("Anti-Skip Buffer Stutter! (Simulasi Guncangan Optik)", 1800);
+      if (cdDiscMesh) {
+        cdDiscMesh.rotation.z -= 0.45;
+      }
+      if (audioEl && isAudioPlaying && audioEl.duration) {
+        const savedTime = audioEl.currentTime;
+        let count = 0;
+        const glitchInt = setInterval(() => {
+          count++;
+          audioEl.currentTime = Math.max(0, savedTime - 0.14);
+          if (count >= 3) clearInterval(glitchInt);
+        }, 70);
+      }
+      invalidate();
     }
 
     function playMechanicalSFX(type) {
@@ -887,14 +1289,27 @@
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(520, now);
-        osc.frequency.exponentialRampToValueAtTime(980, now + 0.07);
-        gain.gain.setValueAtTime(0.15, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        osc.frequency.setValueAtTime(480, now);
+        osc.frequency.exponentialRampToValueAtTime(1120, now + 0.09);
+        gain.gain.setValueAtTime(0.16, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.10);
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start(now);
-        osc.stop(now + 0.085);
+        osc.stop(now + 0.105);
+      } else if (type === 'glitch') {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.setValueAtTime(920, now + 0.03);
+        osc.frequency.setValueAtTime(310, now + 0.06);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.12);
       }
     }
 
@@ -904,7 +1319,7 @@
     const audioEl = document.getElementById('audioElement');
     let isAudioPlaying = false;
     let currentPreviewUrl = null;
-    let activeTrackTitle = "NO AUDIO";
+    let activeTrackTitle = "READY";
 
     async function fetchItunesAudioPreview(term, autoPlayAfterLoad = false) {
       const trackNameEl = document.getElementById('audioTrackName');
@@ -924,6 +1339,8 @@
           trackNameEl.innerText = activeTrackTitle;
           trackStatusEl.innerText = `iTunes 30s • ${song.artistName.toUpperCase()}`;
           audioEl.src = currentPreviewUrl;
+          updateZenBannerText();
+          updatePlayerOledDisplay(0);
           
           showToast(`Lagu dimuat: ${song.trackName}`);
           
@@ -944,6 +1361,15 @@
     function playAudio() {
       if (!audioEl.src) return;
       connectVisualizerToAudioElement();
+      // Otomatis pindahkan CD ke Audiophile Player saat lagu diputar!
+      if (!isDiscOut && rackSwapState === 'IDLE') {
+        isDiscOut = true;
+        if (!isOpen) {
+          isOpen = true;
+          document.getElementById('caseStateText').innerText = "Close Case";
+        }
+        updateEjectButton();
+      }
       audioEl.play().then(() => {
         isAudioPlaying = true;
         updateAudioUI(true);
@@ -960,6 +1386,7 @@
       audioEl.pause();
       isAudioPlaying = false;
       updateAudioUI(false);
+      updatePlayerOledDisplay(audioEl.currentTime || 0);
     }
 
     function toggleAudioPlayback() {
@@ -987,16 +1414,23 @@
       const eqBars = [document.getElementById('eqBar1'), document.getElementById('eqBar2'), document.getElementById('eqBar3'), document.getElementById('eqBar4')];
 
       if (playing) {
-        audioIcon.innerHTML = `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
-        audioPlayText.innerText = "Pause";
-        widgetPlayIcon.innerHTML = `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
+        if (audioIcon) audioIcon.className = "fa-solid fa-pause text-amber-400";
+        if (audioPlayText) audioPlayText.innerText = "Pause";
+        if (widgetPlayIcon) widgetPlayIcon.className = "fa-solid fa-pause text-xs";
       } else {
-        audioIcon.innerHTML = `<path d="M8 5v14l11-7z"/>`;
-        audioPlayText.innerText = "Play";
-        widgetPlayIcon.innerHTML = `<path d="M8 5v14l11-7z"/>`;
+        if (audioIcon) audioIcon.className = "fa-solid fa-play text-emerald-400";
+        if (audioPlayText) audioPlayText.innerText = "Play";
+        if (widgetPlayIcon) widgetPlayIcon.className = "fa-solid fa-play text-xs";
         eqBars.forEach(bar => { if (bar) bar.style.height = "6px"; });
       }
       renderTracklistDrawer();
+    }
+
+    function updateZenBannerText() {
+      const zTitle = document.getElementById('zenTrackTitle');
+      const zSub = document.getElementById('zenArtistSub');
+      if (zTitle) zTitle.innerText = `${activeTrackTitle || customMetadata.title}`;
+      if (zSub) zSub.innerText = `${customMetadata.artist} — ${customMetadata.title}`;
     }
 
     function renderTracklistDrawer() {
@@ -1013,15 +1447,18 @@
         const isCurrent = idx === activeTrackIndex;
         const btn = document.createElement('button');
         btn.className = `w-full text-left px-2.5 py-1.5 rounded-xl flex items-center justify-between gap-2 transition ${
-          isCurrent ? 'bg-slate-900 text-white shadow-sm' : 'hover:bg-slate-200/70 text-slate-700'
+          isCurrent
+            ? 'oled-screen font-bold'
+            : 'hover:bg-white/5 text-slate-300 border border-transparent'
         }`;
         btn.innerHTML = `
           <div class="flex items-center gap-2 min-w-0">
-            <span class="mono text-[10px] ${isCurrent ? 'text-orange-400 font-bold' : 'text-slate-400'}">${tr.n || String(idx + 1).padStart(2, '0')}</span>
-            <span class="text-[11px] font-semibold truncate">${tr.t}</span>
+            <span class="mono text-[10px] ${isCurrent ? 'text-amber-400 font-bold' : 'text-slate-500'}">${tr.n || String(idx + 1).padStart(2, '0')}</span>
+            <span class="text-[11px] font-semibold truncate ${isCurrent ? 'oled-glow' : 'text-slate-200'}">${tr.t}</span>
           </div>
           <div class="flex items-center gap-1.5 flex-shrink-0">
-            <span class="mono text-[10px] ${isCurrent ? 'text-cyan-300' : 'text-slate-400'}">${tr.l || '03:30'}</span>
+            ${isCurrent ? '<i class="fa-solid fa-volume-high text-[9px] text-amber-400"></i>' : ''}
+            <span class="mono text-[10px] ${isCurrent ? 'text-amber-300' : 'text-slate-500'}">${tr.l || '03:30'}</span>
           </div>
         `;
         btn.addEventListener('click', (e) => {
@@ -1029,6 +1466,7 @@
           activeTrackIndex = idx;
           playMechanicalSFX('rackHover');
           renderTracklistDrawer();
+          updatePlayerOledDisplay(0);
           fetchItunesAudioPreview(`${artist} ${tr.t}`, true);
         });
         container.appendChild(btn);
@@ -1050,21 +1488,29 @@
           <b>Jumlah Lagu:</b> ${tracks.length} Tracks
         `;
       }
+      updateZenBannerText();
     }
 
+    let _lastOledSec = -1;
     audioEl.addEventListener('timeupdate', () => {
       if (!audioEl.duration) return;
       const pct = (audioEl.currentTime / audioEl.duration) * 100;
       document.getElementById('audioProgressBar').style.width = pct + '%';
       const curMin = Math.floor(audioEl.currentTime / 60);
-      const curSec = Math.floor(audioEl.currentTime % 60).toString().padStart(2, '0');
+      const secInt = Math.floor(audioEl.currentTime % 60);
+      const curSec = secInt.toString().padStart(2, '0');
       document.getElementById('audioTimeDisplay').innerText = `${curMin}:${curSec}`;
+      if (secInt !== _lastOledSec) {
+        _lastOledSec = secInt;
+        updatePlayerOledDisplay(audioEl.currentTime);
+      }
     });
 
     audioEl.addEventListener('ended', () => {
       isAudioPlaying = false;
       updateAudioUI(false);
       document.getElementById('audioProgressBar').style.width = '0%';
+      updatePlayerOledDisplay(0);
 
       if (jukeboxAutoMode) {
         const tracks = (customMetadata && customMetadata.tracklist && customMetadata.tracklist.length > 0)
@@ -1098,12 +1544,16 @@
     }
 
     // ==========================================
-    // 2. VARIABEL 3D & v8.1 STUDIO / OBI STATE
+    // 2. VARIABEL 3D, MEJA STUDIO & CD PLAYER
     // ==========================================
     let scene, camera, renderer;
     let cdAssembly, caseLidGroup, cdDiscGroup, cdDiscMesh;
     let obiStripGroup = null, obiStripMesh = null, obiStripTexture = null;
     let studioDustPoints = null;
+    let studioEnvironmentGroup = null;
+    let cdPlayerUnitGroup = null, cdPlayerLidPivot = null, cdPlayerSpindleMesh = null, cdPlayerOledMesh = null;
+    let cdPlayerHitMeshes = [];
+    let currentPlayerLidAngle = 0.0;
 
     let trayInsideMesh = null, trayOutsideMesh = null;
     let clearAcrylicMaterialRef = null, clearEdgeMaterialRef = null;
@@ -1116,15 +1566,22 @@
     let isDragging = false, prevMouseX = 0, prevMouseY = 0;
     let isScrubbingDisc = false;
     
-    let targetRotX = 0.25, targetRotY = -0.45;
-    let currentRotX = 0.25, currentRotY = -0.45;
-    let targetCamX = 0.0, currentCamX = 0.0;
-    let targetCamY = 0.0, currentCamY = 0.0;
-    let targetCamZ = 8.0, currentCamZ = 8.0;
+    let targetRotX = 0.28, targetRotY = -0.38;
+    let currentRotX = 0.28, currentRotY = -0.38;
+    let targetCamX = 0.35, currentCamX = 0.35;
+    let targetCamY = 0.25, currentCamY = 0.25;
+    let targetCamZ = 8.4, currentCamZ = 8.4;
+    let activeCameraPreset = 'front';
     let currentCustomImage = null;
     let dynamicAccentColor = "#22d3ee";
 
     let isObiEnabled = true;
+    let isZenMode = false;
+    let zenOrbitClock = 0;
+
+    // 3. Hype Stickers State (#3)
+    let currentHypeStickerIndex = 0;
+    const hypeStickerNames = ["Off", "Explicit", "Gold Seal", "Promo Red"];
 
     let currentCaseTintIndex = 0;
     const caseTintPresets = [
@@ -1148,13 +1605,21 @@
 
     let currentStudioRigIndex = 0;
     const studioLightingRigs = [
-      { name: "Daylight", ambColor: 0xffffff, ambInt: 0.9, keyColor: 0xffffff, keyInt: 1.4, fillColor: 0xe0e7ff, fillInt: 0.6, rimColor: 0x60a5fa, bgOverride: null, dustOpacity: 0.32 },
-      { name: "Midnight Neon", ambColor: 0x1e1b4b, ambInt: 0.55, keyColor: 0x22d3ee, keyInt: 1.65, fillColor: 0xf43f5e, fillInt: 1.15, rimColor: 0xa855f7, bgOverride: "#090d16", dustOpacity: 0.65 },
-      { name: "Vinyl Lounge", ambColor: 0xfffbeb, ambInt: 0.7, keyColor: 0xfbbf24, keyInt: 1.5, fillColor: 0xea580c, fillInt: 0.8, rimColor: 0xfde047, bgOverride: "#271c19", dustOpacity: 0.55 }
+      { name: "Daylight", ambColor: 0xffffff, ambInt: 0.95, keyColor: 0xffffff, keyInt: 1.45, fillColor: 0xe0e7ff, fillInt: 0.65, rimColor: 0x60a5fa, bgOverride: null, dustOpacity: 0.32 },
+      { name: "Midnight Neon", ambColor: 0x1e1b4b, ambInt: 0.6, keyColor: 0x22d3ee, keyInt: 1.65, fillColor: 0xf43f5e, fillInt: 1.15, rimColor: 0xa855f7, bgOverride: "#090d16", dustOpacity: 0.65 },
+      { name: "Vinyl Lounge", ambColor: 0xfffbeb, ambInt: 0.75, keyColor: 0xfbbf24, keyInt: 1.55, fillColor: 0xea580c, fillInt: 0.85, rimColor: 0xfde047, bgOverride: "#1c1412", dustOpacity: 0.55 }
     ];
 
-    const OPEN_OFFSET_X = 1.2;
+    const OPEN_OFFSET_X = 0.65;
     const LID_OPEN_ANGLE = -Math.PI * 0.78;
+
+    // Posisi Dunia Unit Audiophile CD Player di Meja Sebelah Kanan
+    const PLAYER_WORLD_POS = new THREE.Vector3(3.45, -1.62, -0.65);
+    const PLAYER_PLATTER_WORLD = new THREE.Vector3(3.45, -1.35, -0.65);
+    const _tempPlayerLocalTarget = new THREE.Vector3();
+    const _qCaseInv = new THREE.Quaternion();
+    const _qFlatDisc = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0));
+    const _qIdentity = new THREE.Quaternion();
 
     let isDiscOut = false, discOutAmt = 0, bobAmp = 1;
     let rafId = 0, isAnimatingFrame = false, lastFrameTime = 0;
@@ -1182,7 +1647,7 @@
     const STAGE_SCALE = 1.0;
     const RACK_ROT_X = -0.03;
     const RACK_ROT_Y = 0.45;
-    const showcaseRotX = 0.25, showcaseRotY = -0.45;
+    const showcaseRotX = 0.28, showcaseRotY = -0.38;
     let ghostPulseClock = 0;
     let _swapAlbumConfig = null;
     let pendingAlbumDataReady = false;
@@ -1265,6 +1730,10 @@
 
     function applyStudioLightingRig() {
       const rig = studioLightingRigs[currentStudioRigIndex];
+      document.body.classList.remove('rig-midnight', 'rig-lounge');
+      if (currentStudioRigIndex === 1) document.body.classList.add('rig-midnight');
+      if (currentStudioRigIndex === 2) document.body.classList.add('rig-lounge');
+
       if (ambientLightRef) {
         ambientLightRef.color.setHex(rig.ambColor);
         ambientLightRef.intensity = rig.ambInt;
@@ -1291,7 +1760,8 @@
       } else {
         document.body.style.backgroundColor = albumThemes[currentCoverIndex].pageBg;
       }
-      document.getElementById('studioLightBtn').innerText = `Studio: ${rig.name}`;
+      const btn = document.getElementById('studioLightBtn');
+      if (btn) btn.innerHTML = `<i class="fa-solid fa-lightbulb text-amber-400"></i><span>Rig: ${rig.name}</span>`;
       invalidate();
     }
 
@@ -1329,7 +1799,7 @@
     }
 
     const albumThemes = [
-      { title: "NEO TOKYO '98", artist: "SYNTHETIX CORE", bg: ["#1e3a8a", "#4338ca", "#db2777"], accent: "#22d3ee", pageBg: "#8fa0b5" },
+      { title: "NEO TOKYO '98", artist: "SYNTHETIX CORE", bg: ["#1e3a8a", "#4338ca", "#db2777"], accent: "#22d3ee", pageBg: "#1e2433" },
       { title: "MINIMAL DRIFT", artist: "ARCHITECTURAL", bg: ["#020617", "#1e293b", "#475569"], accent: "#facc15", pageBg: "#cbd5e1" },
       { title: "SOLAR HORIZON", artist: "AMBER ECHOES", bg: ["#9a3412", "#e11d48", "#6d28d9"], accent: "#fef08a", pageBg: "#292524" }
     ];
@@ -1637,7 +2107,7 @@
     }
 
     // ==============================================================
-    // 4. LID LABEL, VINTAGE STICKERS & ARTIST AUTOGRAPH FOIL
+    // 4. LID LABEL, HYPE STICKERS & ARTIST AUTOGRAPH FOIL
     // ==============================================================
     const LW = 1024, LH = 969;
     let lidLabelTexture, lidLabelMesh, currentLidShape = 0;
@@ -1731,6 +2201,95 @@
       ctx.restore();
     }
 
+    function drawIconicHypeSticker(ctx, mode) {
+      if (mode === 0) return;
+      ctx.save();
+
+      if (mode === 1) {
+        // Parental Advisory Explicit Content (Kiri Bawah)
+        const x = 185, y = LH - 195, w = 250, h = 140;
+        ctx.fillStyle = "#ffffff";
+        ctx.shadowColor = "rgba(0,0,0,0.45)";
+        ctx.shadowBlur = 12;
+        ctx.fillRect(x, y, w, h);
+        ctx.shadowBlur = 0;
+
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 6;
+        ctx.strokeRect(x + 4, y + 4, w - 8, h - 8);
+
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(x + 8, y + 42, w - 16, 52);
+
+        ctx.textAlign = "center";
+        ctx.font = "bold 24px 'Space Mono', monospace";
+        ctx.fillStyle = "#000000";
+        ctx.fillText("PARENTAL", x + w / 2, y + 32);
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 36px 'Plus Jakarta Sans', sans-serif";
+        ctx.fillText("ADVISORY", x + w / 2, y + 80);
+
+        ctx.fillStyle = "#000000";
+        ctx.font = "bold 19px 'Space Mono', monospace";
+        ctx.fillText("EXPLICIT CONTENT", x + w / 2, y + 122);
+      } else if (mode === 2) {
+        // Gold Record Collector Seal
+        const cx = 275, cy = LH - 165, r = 105;
+        const g = ctx.createRadialGradient(cx - 25, cy - 25, 10, cx, cy, r);
+        g.addColorStop(0, "#fef08a");
+        g.addColorStop(0.55, "#eab308");
+        g.addColorStop(1, "#a16207");
+
+        ctx.fillStyle = g;
+        ctx.shadowColor = "rgba(0,0,0,0.5)";
+        ctx.shadowBlur = 14;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.strokeStyle = "#422006";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r - 10, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = "#1c1917";
+        ctx.textAlign = "center";
+        ctx.font = "bold 16px 'Space Mono', monospace";
+        ctx.fillText("★ AUDIOPHILE ★", cx, cy - 34);
+        ctx.font = "bold 24px 'Plus Jakarta Sans', sans-serif";
+        ctx.fillText("COLLECTOR'S", cx, cy - 4);
+        ctx.fillText("GOLD EDITION", cx, cy + 24);
+        ctx.font = "bold 14px 'Space Mono', monospace";
+        ctx.fillText("24-BIT REMASTERED", cx, cy + 52);
+      } else if (mode === 3) {
+        // Promo Sample "Not For Sale" Red Sticker
+        ctx.translate(290, 210);
+        ctx.rotate(-0.18);
+        ctx.fillStyle = "#dc2626";
+        ctx.shadowColor = "rgba(0,0,0,0.45)";
+        ctx.shadowBlur = 10;
+        ctx.fillRect(-155, -55, 310, 110);
+        ctx.shadowBlur = 0;
+
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(-147, -47, 294, 94);
+
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+        ctx.font = "bold 20px 'Space Mono', monospace";
+        ctx.fillText("PROMOTIONAL COPY", 0, -14);
+        ctx.font = "bold 28px 'Plus Jakarta Sans', sans-serif";
+        ctx.fillText("NOT FOR SALE", 0, 20);
+        ctx.font = "bold 13px 'Space Mono', monospace";
+        ctx.fillText("RADIO STATION ARCHIVE", 0, 40);
+      }
+      ctx.restore();
+    }
+
     function drawLidLabelContent(ctx, box, mode, title, artist, accent, rand) {
       const bw = 170, bh = 70, gap = 14; let bx, by, textW, textH;
       if (mode === 'right') { bx = box.x + box.w - bw; by = box.y + (box.h - bh) / 2; textW = box.w - bw - 30; textH = box.h; }
@@ -1745,7 +2304,7 @@
          ctx.fillStyle = accent;
          for(let i=0; i<15; i++) { let h = rand() * 50 + 10; ctx.fillRect(40 + (i*14), 40, 8, h); }
          ctx.fillStyle = "rgba(255, 255, 255, 0.6)"; ctx.font = "14px 'Space Mono', monospace"; ctx.textBaseline = 'top';
-         ctx.fillText("SYS.REV: 8.1 // MBID: " + (musicBrainzAlbums[currentSlotIndex]?.mbid?.substring(0, 8) || "CUSTOM"), 40, 100);
+         ctx.fillText("SYS.REV: 9.0 // MBID: " + (musicBrainzAlbums[currentSlotIndex]?.mbid?.substring(0, 8) || "CUSTOM"), 40, 100);
       }
 
       ctx.textBaseline = 'top'; ctx.textAlign = 'left';
@@ -1774,6 +2333,8 @@
       } else if (caseWearMode === 2) {
         drawArtistAutographFoil(ctx, artist);
       }
+
+      drawIconicHypeSticker(ctx, currentHypeStickerIndex);
     }
 
     let _labelCanvas = null, _labelCtx = null;
@@ -1822,7 +2383,7 @@
         lidLabelMesh.material.map = lidLabelTexture;
       }
       const btn = document.getElementById('changeLabelBtn');
-      if (btn) btn.textContent = 'Label: ' + lidShapes[currentLidShape].name;
+      if (btn) btn.innerHTML = `<i class="fa-solid fa-vector-square text-amber-400"></i><span>Label: ${lidShapes[currentLidShape].name}</span>`;
       perf.ignore = Math.max(perf.ignore, 25); invalidate();
     }
 
@@ -1840,8 +2401,8 @@
         clearEdgeMaterialRef.transmission = preset.edgeTransmission;
         clearEdgeMaterialRef.needsUpdate = true;
       }
-      document.getElementById('caseTintBtn').innerText = `Casing: ${preset.name}`;
-      document.getElementById('caseWearBtn').innerText = `Kondisi: ${caseWearNames[caseWearMode]}`;
+      document.getElementById('caseTintBtn').innerHTML = `<i class="fa-solid fa-swatchbook text-amber-400"></i><span>Case: ${preset.name}</span>`;
+      document.getElementById('caseWearBtn').innerHTML = `<i class="fa-solid fa-signature text-amber-400"></i><span>Wear: ${caseWearNames[caseWearMode]}</span>`;
       refreshLidLabel();
     }
 
@@ -1851,7 +2412,7 @@
         cdIridescenceMaterial.uniforms.uBaseMetal.value.copy(finish.vec);
       }
       generateDiscTexture(currentCoverIndex, currentCustomImage);
-      document.getElementById('discFinishBtn').innerText = `CD: ${finish.name}`;
+      document.getElementById('discFinishBtn').innerHTML = `<i class="fa-solid fa-compact-disc text-amber-400"></i><span>CD: ${finish.name}</span>`;
       invalidate();
     }
 
@@ -1860,54 +2421,96 @@
       if (obiStripGroup) obiStripGroup.visible = isObiEnabled;
       const btn = document.getElementById('obiToggleBtn');
       if (btn) {
-        btn.innerText = isObiEnabled ? "🇯🇵 Obi: ON" : "🇯🇵 Obi: OFF";
+        btn.innerHTML = `<i class="fa-solid fa-ribbon"></i><span>Obi: ${isObiEnabled ? 'ON' : 'OFF'}</span>`;
         btn.className = isObiEnabled
-          ? "px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold transition active:scale-95 border border-rose-200"
-          : "px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-500 font-medium transition active:scale-95 border border-slate-200";
+          ? "hw-btn hw-btn-active px-2.5 py-1.5 rounded-xl font-semibold flex items-center gap-1.5"
+          : "hw-btn px-2.5 py-1.5 rounded-xl font-medium flex items-center gap-1.5";
       }
       playMechanicalSFX('rackHover');
       showToast(isObiEnabled ? "Obi Strip Edisi Jepang dipasang" : "Obi Strip dilepas");
       invalidate();
     }
 
-    function setQuickCameraAngle(preset) {
-      playMechanicalSFX('rackHover');
+    // Menyesuaikan jarak & posisi kamera secara otomatis agar pas di layar HP (Portrait) maupun Desktop
+    function getResponsiveCameraTargets(preset) {
+      const aspect = window.innerWidth / Math.max(1, window.innerHeight);
+      const isPortrait = aspect < 0.85;
+      const isSmallMobile = window.innerWidth < 640;
+
+      if (preset === 'front') {
+        return {
+          rotX: 0.28,
+          rotY: -0.38,
+          camX: isPortrait ? 0.15 : 0.35,
+          camY: isPortrait ? 0.15 : 0.25,
+          camZ: isPortrait ? (isSmallMobile ? 11.4 : 10.2) : 8.4
+        };
+      } else if (preset === 'back') {
+        return {
+          rotX: 0.05,
+          rotY: Math.PI - 0.12,
+          camX: 0.0,
+          camY: isPortrait ? 0.05 : 0.1,
+          camZ: isPortrait ? 7.6 : 5.4
+        };
+      } else if (preset === 'spine') {
+        return {
+          rotX: 0.08,
+          rotY: Math.PI * 0.44,
+          camX: 0.0,
+          camY: 0.1,
+          camZ: isPortrait ? 7.4 : 5.3
+        };
+      } else if (preset === 'rack') {
+        return {
+          rotX: 0.22,
+          rotY: -0.35,
+          camX: isPortrait ? -2.35 : -1.75,
+          camY: isPortrait ? -0.25 : -0.15,
+          camZ: isPortrait ? 11.8 : 9.2
+        };
+      } else if (preset === 'player') {
+        return {
+          rotX: 0.42,
+          rotY: -0.25,
+          camX: isPortrait ? 2.45 : 2.65,
+          camY: isPortrait ? -0.35 : -0.25,
+          camZ: isPortrait ? 8.2 : 5.6
+        };
+      }
+      return { rotX: 0.28, rotY: -0.38, camX: 0.35, camY: 0.25, camZ: 8.4 };
+    }
+
+    function setQuickCameraAngle(preset, silent = false) {
+      activeCameraPreset = preset;
+      if (!silent) playMechanicalSFX('rackHover');
       document.querySelectorAll('.camPresetBtn').forEach(b => {
         const active = b.getAttribute('data-cam') === preset;
         b.className = active
-          ? "camPresetBtn px-2 py-0.5 rounded-md bg-slate-900 text-white font-bold transition"
-          : "camPresetBtn px-2 py-0.5 rounded-md bg-slate-900/5 hover:bg-slate-900/10 text-slate-700 font-bold transition";
+          ? "camPresetBtn hw-btn hw-btn-active px-2 py-1 rounded-lg font-bold transition whitespace-nowrap flex-1 sm:flex-initial text-center"
+          : "camPresetBtn hw-btn px-2 py-1 rounded-lg font-bold transition whitespace-nowrap flex-1 sm:flex-initial text-center";
       });
 
-      if (preset === 'front') {
-        targetRotX = 0.25;
-        targetRotY = -0.45;
-        targetCamX = 0.0;
-        targetCamY = 0.0;
-        targetCamZ = 8.0;
-      } else if (preset === 'back') {
-        if (isOpen) toggleCase();
-        targetRotX = 0.05;
-        targetRotY = Math.PI - 0.12;
-        targetCamX = 0.0;
-        targetCamY = 0.0;
-        targetCamZ = 5.4;
-        showToast("Sudut Belakang: Menampilkan daftar lagu cetak & barcode");
-      } else if (preset === 'spine') {
-        if (isOpen) toggleCase();
-        targetRotX = 0.08;
-        targetRotY = Math.PI * 0.44;
-        targetCamX = 0.0;
-        targetCamY = 0.0;
-        targetCamZ = 5.3;
-        showToast("Sudut Spine: Menampilkan punggung kaset & pita Obi Jepang");
-      } else if (preset === 'rack') {
-        targetRotX = 0.22;
-        targetRotY = -0.35;
-        targetCamX = -1.65;
-        targetCamY = -0.25;
-        targetCamZ = 9.2;
-        showToast("Sudut Rak: Klik salah satu dari 14 slot CD untuk memuat");
+      const t = getResponsiveCameraTargets(preset);
+      targetRotX = t.rotX;
+      targetRotY = t.rotY;
+      targetCamX = t.camX;
+      targetCamY = t.camY;
+      targetCamZ = t.camZ;
+
+      if (!silent) {
+        if (preset === 'back') {
+          if (isOpen) toggleCase();
+          showToast("Sudut Belakang: Menampilkan daftar lagu cetak & barcode");
+        } else if (preset === 'spine') {
+          if (isOpen) toggleCase();
+          showToast("Sudut Spine: Menampilkan punggung kaset & pita Obi Jepang");
+        } else if (preset === 'rack') {
+          showToast("Sudut Rak: Ketuk salah satu dari 14 slot CD untuk memuat");
+        } else if (preset === 'player') {
+          if (!isDiscOut) toggleDiscOut();
+          showToast("Fokus Audiophile Top-Loading CD Player");
+        }
       }
       invalidate();
     }
@@ -1951,9 +2554,9 @@
       });
     }
 
-    // ==========================================
-    // 5. MATERIAL, OBI STRIP 3D & DUST PARTICLES
-    // ==========================================
+    // ==============================================================
+    // 5. STUDIO DESK, BACK WALL & AUDIOPHILE CD PLAYER (SESUAI GAMBAR)
+    // ==============================================================
     function createProceduralEnvMap() {
       const W = 512, H = 256; const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H; const ctx = canvas.getContext('2d');
       const grad = ctx.createLinearGradient(0, 0, 0, H);
@@ -1991,11 +2594,381 @@
       geos.forEach(g => g.dispose()); parts.forEach(g => g.dispose()); return out;
     }
 
+    // Membangun Meja Studio & Dinding Panel Akustik Belakang
+    function buildStudioDeskAndWall() {
+      if (studioEnvironmentGroup) {
+        scene.remove(studioEnvironmentGroup);
+      }
+      studioEnvironmentGroup = new THREE.Group();
+
+      // 1. Tekstur Permukaan Meja (Matte Dark Slate / Fine Wood Grain)
+      const deskCanvas = document.createElement('canvas');
+      deskCanvas.width = 512; deskCanvas.height = 512;
+      const dCtx = deskCanvas.getContext('2d');
+      const dGrad = dCtx.createLinearGradient(0, 0, 0, 512);
+      dGrad.addColorStop(0, '#141720');
+      dGrad.addColorStop(0.5, '#1e222d');
+      dGrad.addColorStop(1, '#12151c');
+      dCtx.fillStyle = dGrad;
+      dCtx.fillRect(0, 0, 512, 512);
+
+      const rand = mulberry32(7711);
+      dCtx.strokeStyle = 'rgba(255, 255, 255, 0.018)';
+      dCtx.lineWidth = 1;
+      for (let i = 0; i < 220; i++) {
+        const y = rand() * 512;
+        dCtx.beginPath();
+        dCtx.moveTo(0, y);
+        dCtx.lineTo(512, y + (rand() - 0.5) * 4);
+        dCtx.stroke();
+      }
+      const deskTex = new THREE.CanvasTexture(deskCanvas);
+      deskTex.wrapS = deskTex.wrapT = THREE.RepeatWrapping;
+      deskTex.repeat.set(4, 2);
+      deskTex.encoding = THREE.sRGBEncoding;
+
+      const deskMat = new THREE.MeshStandardMaterial({
+        map: deskTex,
+        roughness: 0.52,
+        metalness: 0.12
+      });
+
+      const deskGeo = new THREE.BoxGeometry(28, 0.45, 14);
+      const deskMesh = new THREE.Mesh(deskGeo, deskMat);
+      deskMesh.position.set(0, -2.20, -1.5);
+      studioEnvironmentGroup.add(deskMesh);
+
+      // Lis Bevel Depan Meja (Warm Walnut / Copper Trim)
+      const trimMat = new THREE.MeshStandardMaterial({
+        color: 0x7c4a2d,
+        roughness: 0.38,
+        metalness: 0.35
+      });
+      const frontTrim = new THREE.Mesh(new THREE.BoxGeometry(28, 0.46, 0.14), trimMat);
+      frontTrim.position.set(0, -2.20, 5.5);
+      studioEnvironmentGroup.add(frontTrim);
+
+      // 2. Dinding Latar Belakang Mepet Meja (Acoustic Slat Wall)
+      const wallCanvas = document.createElement('canvas');
+      wallCanvas.width = 512; wallCanvas.height = 512;
+      const wCtx = wallCanvas.getContext('2d');
+      wCtx.fillStyle = '#0c0e14';
+      wCtx.fillRect(0, 0, 512, 512);
+      for (let x = 0; x < 512; x += 16) {
+        wCtx.fillStyle = 'rgba(255, 255, 255, 0.035)';
+        wCtx.fillRect(x, 0, 9, 512);
+        wCtx.fillStyle = 'rgba(180, 110, 70, 0.04)';
+        wCtx.fillRect(x + 9, 0, 2, 512);
+      }
+      const wallTex = new THREE.CanvasTexture(wallCanvas);
+      wallTex.wrapS = wallTex.wrapT = THREE.RepeatWrapping;
+      wallTex.repeat.set(6, 2);
+      wallTex.encoding = THREE.sRGBEncoding;
+
+      const wallMat = new THREE.MeshStandardMaterial({
+        map: wallTex,
+        roughness: 0.78,
+        metalness: 0.08
+      });
+      const backWall = new THREE.Mesh(new THREE.PlaneGeometry(32, 16), wallMat);
+      backWall.position.set(0, 5.2, -6.8);
+      studioEnvironmentGroup.add(backWall);
+
+      // Baseboard / Plint Pertemuan Meja & Dinding dengan LED Warm Glow Strip
+      const baseboard = new THREE.Mesh(
+        new THREE.BoxGeometry(28, 0.22, 0.18),
+        new THREE.MeshStandardMaterial({ color: 0x090b10, roughness: 0.5 })
+      );
+      baseboard.position.set(0, -1.86, -6.7);
+      studioEnvironmentGroup.add(baseboard);
+
+      const ledStrip = new THREE.Mesh(
+        new THREE.PlaneGeometry(22, 0.08),
+        new THREE.MeshBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.45 })
+      );
+      ledStrip.position.set(0, -1.72, -6.68);
+      studioEnvironmentGroup.add(ledStrip);
+
+      scene.add(studioEnvironmentGroup);
+    }
+
+    // Tekstur Layar OLED Depan & Panel Kontrol CD Player (Sesuai Gambar Referensi)
+    let _oledCanvas = null, _oledCtx = null, _oledTexture = null;
+    function updatePlayerOledDisplay(secElapsed = 0) {
+      if (!_oledCanvas) {
+        _oledCanvas = document.createElement('canvas');
+        _oledCanvas.width = 1024;
+        _oledCanvas.height = 192;
+        _oledCtx = _oledCanvas.getContext('2d');
+        _oledTexture = new THREE.CanvasTexture(_oledCanvas);
+        _oledTexture.anisotropy = 4;
+        _oledTexture.encoding = THREE.sRGBEncoding;
+      }
+      const ctx = _oledCtx;
+      // Panel Depan Hitam Brushed Metal
+      ctx.fillStyle = "#090b10";
+      ctx.fillRect(0, 0, 1024, 192);
+
+      ctx.strokeStyle = "rgba(255,255,255,0.12)";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(4, 4, 1016, 184);
+
+      // Teks Indikator Saklar Kiri (CD IN / PRE OUT / USB IN / OPT OUT)
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "bold 14px 'Space Mono', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("MODE", 230, 48);
+      ctx.fillText("CD IN", 295, 48);
+      ctx.fillText("PRE OUT", 365, 48);
+      ctx.fillStyle = "#64748b";
+      ctx.font = "12px 'Space Mono', monospace";
+      ctx.fillText("OFF", 230, 158);
+      ctx.fillText("USB IN", 295, 158);
+      ctx.fillText("OPT OUT", 365, 158);
+
+      // Gambar 3 Tuas Saklar Kecil
+      [230, 295, 365].forEach((sx, idx) => {
+        ctx.fillStyle = "#1e293b";
+        ctx.fillRect(sx - 8, 65, 16, 60);
+        ctx.fillStyle = idx === 1 ? "#f97316" : "#cbd5e1";
+        ctx.fillRect(sx - 6, idx === 1 ? 70 : 98, 12, 22);
+      });
+
+      // Layar OLED Hitam Pekat di Tengah
+      ctx.fillStyle = "#020305";
+      ctx.fillRect(425, 24, 275, 144);
+      ctx.strokeStyle = "rgba(249, 115, 22, 0.32)";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(425, 24, 275, 144);
+
+      // Status Bar Atas OLED (CD 957 & 100% Power)
+      ctx.fillStyle = "#f59e0b";
+      ctx.font = "bold 16px 'Space Mono', monospace";
+      ctx.textAlign = "left";
+      ctx.fillText("DISC 957", 442, 52);
+      ctx.textAlign = "right";
+      ctx.fillText("100% PWR", 682, 52);
+
+      // Angka Track & Waktu (RC 01 00:47)
+      const trNum = String((activeTrackIndex || 0) + 1).padStart(2, '0');
+      const m = String(Math.floor(secElapsed / 60)).padStart(2, '0');
+      const s = String(Math.floor(secElapsed % 60)).padStart(2, '0');
+      ctx.fillStyle = "#fb923c";
+      ctx.shadowColor = "rgba(249, 115, 22, 0.75)";
+      ctx.shadowBlur = 10;
+      ctx.font = "bold 36px 'Space Mono', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(`RC ${trNum} ${m}:${s}`, 562, 108);
+      ctx.shadowBlur = 0;
+
+      // Baris Bawah OLED (Play Status / OPT / OUT)
+      ctx.fillStyle = "#f59e0b";
+      ctx.font = "bold 15px 'Space Mono', monospace";
+      const stateStr = isAudioPlaying ? "PLAY // OPT // 24BIT" : (isDiscOut ? "PAUSE // LOADED" : "STOP // NO DISC");
+      ctx.fillText(stateStr, 562, 148);
+
+      // Label Tombol Kanan (Play/Pause, Stop, Prev, Next, EQ, Power)
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "bold 13px 'Space Mono', monospace";
+      ctx.fillText("⏯", 748, 86);
+      ctx.fillText("■", 802, 86);
+      ctx.fillText("EQ", 856, 86);
+      ctx.fillText("⏮", 748, 166);
+      ctx.fillText("⏭", 802, 166);
+      ctx.fillText("⏻", 856, 166);
+
+      _oledTexture.needsUpdate = true;
+      return _oledTexture;
+    }
+
+    // Membangun Unit 3D Top-Loading Audiophile CD Player (Sesuai Gambar Referensi)
+    function buildAudiophileCDPlayer() {
+      if (cdPlayerUnitGroup) {
+        scene.remove(cdPlayerUnitGroup);
+      }
+      cdPlayerUnitGroup = new THREE.Group();
+      cdPlayerUnitGroup.position.copy(PLAYER_WORLD_POS);
+      cdPlayerUnitGroup.rotation.set(0.0, -0.32, 0.0);
+      cdPlayerHitMeshes = [];
+
+      const pW = 3.15, pH = 0.50, pD = 3.15;
+
+      // 1. Bodi Samping Copper / Rose-Gold Anodized Brushed Metal
+      const copperMat = new THREE.MeshStandardMaterial({
+        color: 0xd4875e,
+        metalness: 0.86,
+        roughness: 0.24,
+        envMapIntensity: 1.35
+      });
+
+      // 2. Pelat Atas Silver Machined Aluminum
+      const silverTopMat = new THREE.MeshStandardMaterial({
+        color: 0xe2e8f0,
+        metalness: 0.88,
+        roughness: 0.18,
+        envMapIntensity: 1.4
+      });
+
+      const darkWellMat = new THREE.MeshStandardMaterial({
+        color: 0xcbd5e1,
+        metalness: 0.72,
+        roughness: 0.28
+      });
+
+      // Base Chassis Copper
+      const chassisGeo = getRoundedRectShape(pW, pD, 0.12);
+      const chassisMesh = new THREE.Mesh(
+        new THREE.ExtrudeGeometry(chassisGeo, { depth: pH - 0.06, bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.02, bevelSegments: 2 }).rotateX(Math.PI / 2),
+        copperMat
+      );
+      chassisMesh.position.y = (pH - 0.06) / 2;
+      cdPlayerUnitGroup.add(chassisMesh);
+      cdPlayerHitMeshes.push(chassisMesh);
+
+      // Top Silver Deck Plate dengan Lubang Lingkaran Baki CD
+      const topShape = getRoundedRectShape(pW - 0.04, pD - 0.04, 0.10);
+      const wellHole = new THREE.Path();
+      wellHole.absarc(0, 0, 1.24, 0, Math.PI * 2, true);
+      topShape.holes.push(wellHole);
+
+      const topPlateMesh = new THREE.Mesh(
+        new THREE.ExtrudeGeometry(topShape, { depth: 0.06, bevelEnabled: false }).rotateX(Math.PI / 2),
+        silverTopMat
+      );
+      topPlateMesh.position.y = pH / 2 + 0.02;
+      cdPlayerUnitGroup.add(topPlateMesh);
+      cdPlayerHitMeshes.push(topPlateMesh);
+
+      // Dasar Sumur Baki CD (Recessed Platter Floor)
+      const wellFloor = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.24, 1.24, 0.02, 48),
+        darkWellMat
+      );
+      wellFloor.position.set(0, pH / 2 - 0.03, 0);
+      cdPlayerUnitGroup.add(wellFloor);
+
+      // Spindle Hub Metalik Presisi di Tengah Baki (Berputar mengikuti CD)
+      cdPlayerSpindleMesh = new THREE.Group();
+      cdPlayerSpindleMesh.position.set(0, pH / 2 + 0.01, 0);
+      const hubOuter = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.28, 0.30, 0.05, 32),
+        silverTopMat
+      );
+      const hubInner = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.14, 0.14, 0.09, 24),
+        new THREE.MeshStandardMaterial({ color: 0xf8fafc, metalness: 0.95, roughness: 0.1 })
+      );
+      cdPlayerSpindleMesh.add(hubOuter);
+      cdPlayerSpindleMesh.add(hubInner);
+      cdPlayerUnitGroup.add(cdPlayerSpindleMesh);
+
+      // 3. Penutup Kaca Akrilik Bening (Top Transparent Acrylic Lid dengan Engsel Belakang)
+      cdPlayerLidPivot = new THREE.Group();
+      cdPlayerLidPivot.position.set(0, pH / 2 + 0.04, -pD / 2 + 0.12);
+
+      const lidAcrylicMat = new THREE.MeshPhysicalMaterial({
+        color: 0xffffff,
+        transmission: 0.95,
+        opacity: 1,
+        transparent: true,
+        depthWrite: false,
+        roughness: 0.08,
+        metalness: 0.02,
+        ior: 1.5,
+        reflectivity: 0.95
+      });
+
+      const lidShape = getRoundedRectShape(pW - 0.24, pD - 0.24, 0.08);
+      const playerLidMesh = new THREE.Mesh(
+        new THREE.ExtrudeGeometry(lidShape, { depth: 0.045, bevelEnabled: true, bevelThickness: 0.01, bevelSize: 0.01 }).rotateX(Math.PI / 2),
+        lidAcrylicMat
+      );
+      playerLidMesh.position.set(0, 0.03, (pD - 0.24) / 2);
+      cdPlayerLidPivot.add(playerLidMesh);
+      cdPlayerUnitGroup.add(cdPlayerLidPivot);
+
+      // 4. Panel Depan OLED Oranye + Tombol Fisik + Knop Volume Copper + Jack Headphone
+      const oledTex = updatePlayerOledDisplay(0);
+      cdPlayerOledMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(pW - 0.16, pH - 0.10),
+        new THREE.MeshBasicMaterial({ map: oledTex })
+      );
+      cdPlayerOledMesh.position.set(0, 0, pD / 2 + 0.022);
+      cdPlayerUnitGroup.add(cdPlayerOledMesh);
+
+      // 6 Tombol Bulat Taktil di Kanan Panel Depan
+      const btnGeo = new THREE.CylinderGeometry(0.038, 0.038, 0.04, 16).rotateX(Math.PI / 2);
+      const btnMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.6, roughness: 0.3 });
+      const btnCols = [0.68, 0.84, 1.00];
+      const btnRows = [0.06, -0.07];
+      for (const bx of btnCols) {
+        for (const by of btnRows) {
+          const bMesh = new THREE.Mesh(btnGeo, btnMat);
+          bMesh.position.set(bx, by, pD / 2 + 0.03);
+          cdPlayerUnitGroup.add(bMesh);
+        }
+      }
+
+      // Knop Volume Putar (Rotary Volume Knob) di Kanan Depan dengan Cap Copper
+      const knobGroup = new THREE.Group();
+      knobGroup.position.set(1.26, 0.0, pD / 2 + 0.08);
+      const knobBody = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.14, 0.14, 0.16, 32).rotateX(Math.PI / 2),
+        new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.5, roughness: 0.4 })
+      );
+      const knobCap = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.125, 0.125, 0.03, 32).rotateX(Math.PI / 2),
+        copperMat
+      );
+      knobCap.position.z = 0.08;
+      knobGroup.add(knobBody);
+      knobGroup.add(knobCap);
+      cdPlayerUnitGroup.add(knobGroup);
+
+      // 5. Jack Headphone Hitam & Kabel Braided Melengkung di Kiri Depan
+      const plugGroup = new THREE.Group();
+      plugGroup.position.set(-1.12, -0.02, pD / 2 + 0.16);
+      const plugBarrel = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.085, 0.11, 0.34, 24).rotateX(Math.PI / 2),
+        new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.35, metalness: 0.3 })
+      );
+      plugGroup.add(plugBarrel);
+      cdPlayerUnitGroup.add(plugGroup);
+
+      // Kabel Headphone Braided Depan
+      const frontCableCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-1.12, -0.02, pD / 2 + 0.30),
+        new THREE.Vector3(-0.92, -0.18, pD / 2 + 0.95),
+        new THREE.Vector3(-0.55, -0.26, pD / 2 + 1.85),
+        new THREE.Vector3(-0.20, -0.28, pD / 2 + 2.90)
+      ]);
+      const frontCableMesh = new THREE.Mesh(
+        new THREE.TubeGeometry(frontCableCurve, 24, 0.036, 12, false),
+        new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.65, metalness: 0.2 })
+      );
+      cdPlayerUnitGroup.add(frontCableMesh);
+
+      // Kabel Power / Audio Silver di Belakang Player
+      const backCableCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-0.85, 0.0, -pD / 2 - 0.05),
+        new THREE.Vector3(-1.05, -0.08, -pD / 2 - 0.75),
+        new THREE.Vector3(-0.60, -0.15, -pD / 2 - 1.55),
+        new THREE.Vector3(-0.35, -0.18, -pD / 2 - 2.60)
+      ]);
+      const backCableMesh = new THREE.Mesh(
+        new THREE.TubeGeometry(backCableCurve, 20, 0.032, 10, false),
+        silverTopMat
+      );
+      cdPlayerUnitGroup.add(backCableMesh);
+
+      scene.add(cdPlayerUnitGroup);
+    }
+
     function createStudioDustParticles() {
       const count = 48;
       const positions = new Float32Array(count * 3);
       for (let i = 0; i < count; i++) {
-        positions[i * 3] = (Math.random() - 0.5) * 9.5;
+        positions[i * 3] = (Math.random() - 0.5) * 10.5;
         positions[i * 3 + 1] = (Math.random() - 0.5) * 6.0;
         positions[i * 3 + 2] = (Math.random() - 0.5) * 6.5;
       }
@@ -2025,11 +2998,11 @@
     function createGroundShadow() {
       const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
       const grad = g.createRadialGradient(128, 128, 0, 128, 128, 128);
-      grad.addColorStop(0, 'rgba(0,0,0,0.55)'); grad.addColorStop(0.45, 'rgba(0,0,0,0.25)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
+      grad.addColorStop(0, 'rgba(0,0,0,0.65)'); grad.addColorStop(0.45, 'rgba(0,0,0,0.30)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
       g.fillStyle = grad; g.fillRect(0, 0, 256, 256);
-      shadowMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, opacity: 0.4 }));
+      shadowMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, opacity: 0.48 }));
       shadowMesh.rotation.x = -Math.PI / 2; shadowMesh.renderOrder = -1;
-      shadowGroup = new THREE.Group(); shadowGroup.position.y = -1.95; shadowGroup.add(shadowMesh); scene.add(shadowGroup);
+      shadowGroup = new THREE.Group(); shadowGroup.position.y = -1.94; shadowGroup.add(shadowMesh); scene.add(shadowGroup);
     }
     function updateShadow(bobY) {
       if (!shadowGroup || !cdAssembly) return;
@@ -2039,7 +3012,7 @@
       shadowGroup.rotation.y = currentRotY;
       shadowMesh.position.x = -open * 1.1;
       shadowMesh.scale.set((3.8 + open * 2.0) * currentAssemblyScale, (1.6 + open * 1.0) * currentAssemblyScale, 1);
-      shadowMesh.material.opacity = Math.max(0.08, 0.42 - (cdAssembly.position.y + bobY) * 0.25);
+      shadowMesh.material.opacity = Math.max(0.08, 0.46 - (cdAssembly.position.y + bobY) * 0.25);
     }
 
     function createCDMaterial(coverTexture) {
@@ -2256,8 +3229,8 @@
         scene.remove(desktopRackGroup);
       }
       desktopRackGroup = new THREE.Group();
-      desktopRackGroup.position.set(-3.8, -1.05, -4.2);
-      desktopRackGroup.rotation.set(0.12, 0.45, -0.02);
+      desktopRackGroup.position.set(-3.8, -1.88, -3.5);
+      desktopRackGroup.rotation.set(0.0, 0.38, 0.0);
       desktopRackGroup.scale.set(0.70, 0.70, 0.70);
 
       rackSlotMarkers.length = 0;
@@ -2377,10 +3350,10 @@
 
       const rackShadow = new THREE.Mesh(
         new THREE.PlaneGeometry(6.2, 4.4),
-        new THREE.MeshBasicMaterial({ map: shadowMesh.material.map, transparent: true, opacity: 0.42, depthWrite: false })
+        new THREE.MeshBasicMaterial({ map: shadowMesh.material.map, transparent: true, opacity: 0.52, depthWrite: false })
       );
       rackShadow.rotation.x = -Math.PI / 2;
-      rackShadow.position.set(0, -0.05, 0);
+      rackShadow.position.set(0, -0.04, 0);
       desktopRackGroup.add(rackShadow);
 
       scene.add(desktopRackGroup);
@@ -2396,26 +3369,30 @@
       container.appendChild(renderer.domElement);
       window.scene = scene; window.renderer = renderer; window.camera = camera;
 
-      const ambLight = new THREE.AmbientLight(0xffffff, 0.9); scene.add(ambLight);
-      const keyLight = new THREE.DirectionalLight(0xffffff, 1.4); keyLight.position.set(5, 8, 5); scene.add(keyLight);
-      const softFill = new THREE.DirectionalLight(0xe0e7ff, 0.6); softFill.position.set(-5, 4, 3); scene.add(softFill);
-      const subtleRim = new THREE.PointLight(0x60a5fa, 0.8, 12); subtleRim.position.set(-3, -3, -2); scene.add(subtleRim);
+      const ambLight = new THREE.AmbientLight(0xffffff, 0.95); scene.add(ambLight);
+      const keyLight = new THREE.DirectionalLight(0xffffff, 1.45); keyLight.position.set(5, 8, 5); scene.add(keyLight);
+      const softFill = new THREE.DirectionalLight(0xe0e7ff, 0.65); softFill.position.set(-5, 4, 3); scene.add(softFill);
+      const subtleRim = new THREE.PointLight(0x60a5fa, 0.85, 14); subtleRim.position.set(-3, -1, -2); scene.add(subtleRim);
       ambientLightRef = ambLight;
       keyLightRef = keyLight;
       softFillRef = softFill;
       rimLightRef = subtleRim;
 
       createGroundShadow();
+      buildStudioDeskAndWall();
+      buildAudiophileCDPlayer();
       createStudioDustParticles();
       buildProceduralCDAssembly();
       buildDesktopAcrylicRack();
       setupInteractions();
       setupUIEvents();
       setupKeyboardShortcuts();
+      updateCustomRackBannerUI();
       renderTracklistDrawer();
+      setQuickCameraAngle('front', true);
+      currentCamX = targetCamX; currentCamY = targetCamY; currentCamZ = targetCamZ;
       window.addEventListener('resize', onWindowResize);
 
-      // Jika halaman dibuka dari tautan ?rack=..., langsung sinkronkan album Slot 01 dari payload URL
       if (loadedFromUrlParam) {
         showToast("Koleksi Rak dari URL (?rack=...) berhasil dimuat!", 4000);
         fetchMusicBrainzAlbum(musicBrainzAlbums[0]);
@@ -2473,6 +3450,7 @@
         document.body.style.backgroundColor = theme.pageBg;
       }
       renderTracklistDrawer();
+      updatePlayerOledDisplay(audioEl.currentTime || 0);
       invalidate();
     }
 
@@ -2631,17 +3609,17 @@
         data.results.forEach((albItem) => {
           const itemBtn = document.createElement('button');
           itemBtn.type = "button";
-          itemBtn.className = "w-full text-left p-1.5 rounded-xl hover:bg-slate-900/10 flex items-center gap-2.5 transition";
+          itemBtn.className = "w-full text-left p-1.5 rounded-xl hover:bg-white/10 flex items-center gap-2.5 transition";
           const thumb = albItem.artworkUrl60 || "";
           const cName = (albItem.collectionName || "UNKNOWN ALBUM").toUpperCase();
           const aName = (albItem.artistName || "UNKNOWN ARTIST").toUpperCase();
           const year = albItem.releaseDate ? albItem.releaseDate.substring(0, 4) : "";
 
           itemBtn.innerHTML = `
-            <img src="${thumb}" class="w-9 h-9 rounded-lg object-cover bg-slate-200 flex-shrink-0" alt="">
+            <img src="${thumb}" class="w-9 h-9 rounded-lg object-cover bg-slate-800 border border-white/10 flex-shrink-0" alt="">
             <div class="min-w-0 flex-1">
-              <p class="text-[11px] font-bold text-slate-800 truncate">${cName}</p>
-              <p class="mono text-[9px] text-slate-500 truncate">${aName} ${year ? '• ' + year : ''}</p>
+              <p class="text-[11px] font-bold text-white truncate">${cName}</p>
+              <p class="mono text-[9px] text-amber-400/80 truncate">${aName} ${year ? '• ' + year : ''}</p>
             </div>
           `;
 
@@ -2736,7 +3714,7 @@
       isOpen = false;
       isDiscOut = false;
       updateEjectButton();
-      document.getElementById('caseStateText').innerText = "Buka Casing";
+      document.getElementById('caseStateText').innerText = "Open Case";
       showToast(`Mengembalikan ke Slot ${_returnSlotIndex + 1} & mengambil Slot ${_targetSlotIndex + 1} (${_swapAlbumConfig.fallbackTitle})...`);
       rackSwapState = 'RETURN_CLOSE';
       invalidate();
@@ -2807,6 +3785,16 @@
       mouseVec.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
       raycaster.setFromCamera(mouseVec, camera);
 
+      // 1. Cek jika mengklik Unit Audiophile CD Player di kanan meja
+      if (cdPlayerHitMeshes.length > 0) {
+        const playerHits = raycaster.intersectObjects(cdPlayerHitMeshes, false);
+        if (playerHits.length > 0) {
+          toggleDiscOut();
+          return;
+        }
+      }
+
+      // 2. Cek jika mengklik salah satu dari 14 slot rak akrilik
       const visibleDummyMeshes = rackDummyMeshes.filter((_, idx) => rackDummyCases[idx] && rackDummyCases[idx].visible);
       const hits = raycaster.intersectObjects(visibleDummyMeshes, false);
       if (hits.length > 0) {
@@ -2826,11 +3814,26 @@
     function setupInteractions() {
       const container = document.getElementById('canvas-container');
       let startX = 0, startY = 0, hasDragged = false, activePointerId = null;
+      let activePointers = new Map();
+      let initialPinchDist = 0, initialPinchZoom = 8.4;
       const clampX = v => Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, v));
 
       function onPointerDown(e) {
         if (rackSwapState !== 'IDLE') return;
         if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+        activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+        // Dukungan Pinch-to-Zoom 2 Jari di layar Mobile
+        if (activePointers.size === 2) {
+          isDragging = false;
+          isScrubbingDisc = false;
+          const pts = Array.from(activePointers.values());
+          initialPinchDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+          initialPinchZoom = targetCamZ;
+          return;
+        }
+
         if (activePointerId !== null) return;
 
         if (isDiscOut && cdDiscMesh) {
@@ -2845,7 +3848,7 @@
             prevMouseX = startX = e.clientX;
             prevMouseY = startY = e.clientY;
             hasDragged = true;
-            showToast("DJ Scrubbing aktif: Geser untuk memutar durasi lagu", 1800);
+            showToast("DJ Scrubbing di atas CD Player aktif: Geser untuk memutar waktu lagu", 1800);
             try { container.setPointerCapture(e.pointerId); } catch (_) {}
             return;
           }
@@ -2860,8 +3863,22 @@
       }
 
       function onPointerMove(e) {
+        if (activePointers.has(e.pointerId)) {
+          activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        }
+
+        if (activePointers.size === 2 && initialPinchDist > 10) {
+          const pts = Array.from(activePointers.values());
+          const curDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+          const scale = initialPinchDist / Math.max(20, curDist);
+          targetCamZ = Math.max(3.6, Math.min(13.5, initialPinchZoom * scale));
+          hasDragged = true;
+          invalidate();
+          return;
+        }
+
         if (activePointerId === null) {
-          updateRackHover(e);
+          if (e.pointerType === 'mouse') updateRackHover(e);
           return;
         }
         if (e.pointerId !== activePointerId) return;
@@ -2880,14 +3897,17 @@
 
         if (!isDragging) return;
         if (Math.hypot(e.clientX - startX, e.clientY - startY) > 6) hasDragged = true;
-        targetRotY += (e.clientX - prevMouseX) * 0.006;
-        targetRotX = clampX(targetRotX + (e.clientY - prevMouseY) * 0.006);
+        targetRotY += (e.clientX - prevMouseX) * 0.0065;
+        targetRotX = clampX(targetRotX + (e.clientY - prevMouseY) * 0.0065);
         prevMouseX = e.clientX;
         prevMouseY = e.clientY;
         invalidate();
       }
 
       function endDrag(e, allowToggle) {
+        activePointers.delete(e.pointerId);
+        if (activePointers.size < 2) initialPinchDist = 0;
+
         if (e.pointerId !== activePointerId) return;
         if (isScrubbingDisc) {
           isScrubbingDisc = false;
@@ -2904,7 +3924,7 @@
 
       container.addEventListener('wheel', (e) => {
         e.preventDefault();
-        targetCamZ = Math.max(3.6, Math.min(11.5, targetCamZ + e.deltaY * 0.0045));
+        targetCamZ = Math.max(3.6, Math.min(13.5, targetCamZ + e.deltaY * 0.0045));
         invalidate();
       }, { passive: false });
 
@@ -2920,7 +3940,7 @@
         isDiscOut = false;
       }
       playMechanicalSFX(isOpen ? 'caseOpen' : 'caseClose');
-      document.getElementById('caseStateText').innerText = isOpen ? "Tutup Casing" : "Buka Casing";
+      document.getElementById('caseStateText').innerText = isOpen ? "Close Case" : "Open Case";
       updateEjectButton();
       invalidate();
     }
@@ -2928,30 +3948,75 @@
     function toggleDiscOut() {
       isDiscOut = !isDiscOut;
       playMechanicalSFX('eject');
-      if (isDiscOut && !isOpen) toggleCase();
+      if (isDiscOut && !isOpen) {
+        isOpen = true;
+        document.getElementById('caseStateText').innerText = "Close Case";
+      }
+      showToast(isDiscOut ? "CD dimuat ke Audiophile Top-Loading Player" : "CD dikembalikan ke dalam Jewel Case");
       updateEjectButton();
+      updatePlayerOledDisplay(audioEl.currentTime || 0);
       invalidate();
     }
 
     function updateEjectButton() {
       const b = document.getElementById('ejectDiscBtn');
-      if (b) b.textContent = isDiscOut ? 'Masukkan CD' : 'Keluarkan CD';
+      if (b) {
+        b.innerHTML = isDiscOut
+          ? '<i class="fa-solid fa-rotate-left"></i><span>Return CD</span>'
+          : '<i class="fa-solid fa-eject"></i><span>Load Deck</span>';
+      }
     }
 
     function toggleSpin() {
-      isDiscSpinning = !isDiscSpinning; 
-      invalidate(); 
-      const icon = document.getElementById('spinIcon'); 
-      const text = document.getElementById('spinStateText'); 
-      if (isDiscSpinning) { 
-        icon.classList.add('animate-spin'); 
-        text.innerText = "Stop Putar"; 
+      isDiscSpinning = !isDiscSpinning;
+      invalidate();
+      const icon = document.getElementById('spinIcon');
+      const text = document.getElementById('spinStateText');
+      if (isDiscSpinning) {
+        if (icon) icon.classList.add('animate-spin');
+        if (text) text.innerText = "Stop Spin";
         if (!isAudioPlaying && audioEl.src) playAudio();
-      } else { 
-        icon.classList.remove('animate-spin'); 
-        text.innerText = "Putar CD"; 
+      } else {
+        if (icon) icon.classList.remove('animate-spin');
+        if (text) text.innerText = "Spin Disc";
         if (isAudioPlaying) pauseAudio();
       }
+    }
+
+    function toggleZenMode() {
+      isZenMode = !isZenMode;
+      playMechanicalSFX('rackHover');
+      const zenBar = document.getElementById('zenOverlayBar');
+      if (isZenMode) {
+        document.body.classList.add('zen-active');
+        if (zenBar) {
+          zenBar.classList.remove('hidden');
+          zenBar.classList.add('flex');
+        }
+        updateZenBannerText();
+        showToast("Mode Zen Audiophile Aktif (Tekan Z untuk keluar)", 2200);
+      } else {
+        document.body.classList.remove('zen-active');
+        if (zenBar) {
+          zenBar.classList.add('hidden');
+          zenBar.classList.remove('flex');
+        }
+        setQuickCameraAngle(activeCameraPreset || 'front', true);
+      }
+      invalidate();
+    }
+
+    function populateSlotSwapSelects() {
+      const selA = document.getElementById('swapSlotA');
+      const selB = document.getElementById('swapSlotB');
+      if (!selA || !selB) return;
+      selA.innerHTML = '';
+      selB.innerHTML = '';
+      musicBrainzAlbums.forEach((alb, idx) => {
+        const label = `S-${String(idx + 1).padStart(2, '0')}: ${alb.fallbackTitle.substring(0, 14)}`;
+        selA.add(new Option(label, idx, idx === 0, idx === 0));
+        selB.add(new Option(label, idx, idx === 1, idx === 1));
+      });
     }
 
     function setupKeyboardShortcuts() {
@@ -2971,6 +4036,9 @@
         } else if (e.key === 'j' || e.key === 'J') {
           e.preventDefault();
           toggleObiStrip();
+        } else if (e.key === 'z' || e.key === 'Z') {
+          e.preventDefault();
+          toggleZenMode();
         } else if (e.key === '1') {
           e.preventDefault();
           setQuickCameraAngle('front');
@@ -2983,6 +4051,9 @@
         } else if (e.key === '4') {
           e.preventDefault();
           setQuickCameraAngle('rack');
+        } else if (e.key === '5') {
+          e.preventDefault();
+          setQuickCameraAngle('player');
         } else if (e.code === 'ArrowRight') {
           e.preventDefault();
           startRackSwap((currentSlotIndex + 1) % musicBrainzAlbums.length);
@@ -2997,6 +4068,32 @@
       document.getElementById('toggleCaseBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleCase(); });
       document.getElementById('toggleSpinBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleSpin(); });
       document.getElementById('obiToggleBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleObiStrip(); });
+
+      document.getElementById('zenModeBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleZenMode(); });
+      document.getElementById('exitZenBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleZenMode(); });
+
+      document.getElementById('hypeStickerBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        playMechanicalSFX('rackHover');
+        currentHypeStickerIndex = (currentHypeStickerIndex + 1) % hypeStickerNames.length;
+        document.getElementById('hypeStickerBtn').innerHTML = `<i class="fa-solid fa-certificate text-amber-400"></i><span>Hype: ${hypeStickerNames[currentHypeStickerIndex]}</span>`;
+        refreshLidLabel();
+        showToast(`Stiker Sampul: ${hypeStickerNames[currentHypeStickerIndex]}`);
+      });
+
+      document.getElementById('dspModeBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        playMechanicalSFX('rackHover');
+        connectVisualizerToAudioElement();
+        currentDspModeIndex = (currentDspModeIndex + 1) % dspModes.length;
+        applyDspFilterParams();
+        showToast(`Mode Audio DSP: ${dspModes[currentDspModeIndex].name}`);
+      });
+
+      document.getElementById('cdGlitchBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        triggerAntiSkipGlitch();
+      });
 
       document.querySelectorAll('.camPresetBtn').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -3045,23 +4142,56 @@
         applyCuratedRackPreset(e.target.value);
       });
 
-      // Shareable URL Link & Cartridge Modal
+      // Shareable URL Link, Custom Rack Title & Slot Swap Modal
       const shareModal = document.getElementById('shareRackModal');
       const shareUrlInput = document.getElementById('rackShareUrlInput');
       const cartridgeTextarea = document.getElementById('rackCartridgeTextarea');
       const urlLenBadge = document.getElementById('urlLengthBadge');
 
-      document.getElementById('shareRackBtn').addEventListener('click', (e) => {
-        e.stopPropagation();
-        playMechanicalSFX('rackHover');
+      function refreshShareModalFields() {
         const compactToken = encodeRackToCompactToken();
         const fullShareUrl = buildShareableRackUrl();
         shareUrlInput.value = fullShareUrl;
         cartridgeTextarea.value = compactToken;
         if (urlLenBadge) urlLenBadge.innerText = `${fullShareUrl.length} chars (Compact Delta)`;
+        populateSlotSwapSelects();
+        updateCustomRackBannerUI();
+      }
+
+      document.getElementById('shareRackBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        playMechanicalSFX('rackHover');
+        refreshShareModalFields();
         syncBrowserUrlBar();
         shareModal.classList.remove('hidden');
         shareModal.classList.add('flex');
+      });
+
+      document.getElementById('saveRackTitleBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const val = document.getElementById('customRackTitleInput').value.trim();
+        customRackName = val;
+        saveRackToStorage(true);
+        refreshShareModalFields();
+        showToast(customRackName ? `Nama Rak disimpan: "${customRackName}"` : "Nama Rak direset ke bawaan");
+      });
+
+      document.getElementById('execSwapSlotsBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const idxA = parseInt(document.getElementById('swapSlotA').value, 10);
+        const idxB = parseInt(document.getElementById('swapSlotB').value, 10);
+        if (isNaN(idxA) || isNaN(idxB) || idxA === idxB) {
+          showToast("Pilih 2 slot berbeda untuk ditukar posisinya.");
+          return;
+        }
+        const temp = Object.assign({}, musicBrainzAlbums[idxA]);
+        musicBrainzAlbums[idxA] = Object.assign({}, musicBrainzAlbums[idxB], { slotIndex: idxA });
+        musicBrainzAlbums[idxB] = Object.assign({}, temp, { slotIndex: idxB });
+        saveRackToStorage(true);
+        buildDesktopAcrylicRack();
+        refreshShareModalFields();
+        showToast(`Posisi Slot ${idxA + 1} ⇄ Slot ${idxB + 1} berhasil ditukar!`);
+        invalidate();
       });
 
       document.getElementById('closeShareModalBtn').addEventListener('click', (e) => {
@@ -3109,7 +4239,9 @@
       sfxBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         sfxEnabled = !sfxEnabled;
-        sfxBtn.innerText = sfxEnabled ? "SFX: ON" : "SFX: OFF";
+        sfxBtn.innerHTML = sfxEnabled
+          ? '<i class="fa-solid fa-volume-high text-amber-400"></i><span>SFX</span>'
+          : '<i class="fa-solid fa-volume-xmark text-slate-500"></i><span>SFX</span>';
         if (sfxEnabled) playMechanicalSFX('caseOpen');
       });
 
@@ -3124,10 +4256,12 @@
       jukeboxBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         jukeboxAutoMode = !jukeboxAutoMode;
-        jukeboxBtn.innerText = jukeboxAutoMode ? "JUKEBOX: ON" : "JUKEBOX: OFF";
+        jukeboxBtn.innerHTML = jukeboxAutoMode
+          ? '<i class="fa-solid fa-repeat"></i><span>AUTO: ON</span>'
+          : '<i class="fa-solid fa-repeat text-amber-400"></i><span>AUTO: OFF</span>';
         jukeboxBtn.className = jukeboxAutoMode
-          ? "px-2 py-1 rounded-lg bg-emerald-600 text-white font-bold transition"
-          : "px-2 py-1 rounded-lg bg-slate-900/5 hover:bg-slate-900/10 text-slate-700 font-bold transition";
+          ? "hw-btn hw-btn-active px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1"
+          : "hw-btn px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1";
         showToast(jukeboxAutoMode ? "Mode Jukebox 14-Disc Aktif: Otomatis lanjut lagu & ganti kaset!" : "Mode Jukebox Dimatikan");
       });
 
@@ -3147,10 +4281,64 @@
       });
 
       const drawer = document.getElementById('tracklistDrawer');
+      const tracklistChevron = document.getElementById('tracklistChevron');
+      function toggleTracklistDrawer() {
+        playMechanicalSFX('rackHover');
+        const isHidden = drawer.classList.contains('hidden');
+        if (isHidden) {
+          drawer.classList.remove('hidden');
+          drawer.classList.add('flex');
+          if (tracklistChevron) tracklistChevron.className = 'fa-solid fa-chevron-up text-[8px]';
+        } else {
+          drawer.classList.add('hidden');
+          drawer.classList.remove('flex');
+          if (tracklistChevron) tracklistChevron.className = 'fa-solid fa-chevron-down text-[8px]';
+        }
+      }
+
       document.getElementById('toggleDrawerBtn').addEventListener('click', (e) => {
         e.stopPropagation();
+        toggleTracklistDrawer();
+      });
+      document.getElementById('headerTracklistToggleBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleTracklistDrawer();
+      });
+
+      // Mobile Search & Rack Drawer Toggle
+      const leftSearchDrawer = document.getElementById('leftSearchDrawer');
+      const mobileSearchToggleBtn = document.getElementById('mobileSearchToggleBtn');
+      if (mobileSearchToggleBtn && leftSearchDrawer) {
+        mobileSearchToggleBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          playMechanicalSFX('rackHover');
+          const isHidden = leftSearchDrawer.classList.contains('hidden');
+          if (isHidden) {
+            leftSearchDrawer.classList.remove('hidden');
+            leftSearchDrawer.classList.add('flex');
+          } else {
+            leftSearchDrawer.classList.add('hidden');
+            leftSearchDrawer.classList.remove('flex');
+          }
+        });
+      }
+
+      // Bottom Studio Customizer Drawer Toggle
+      const studioToolsDrawer = document.getElementById('studioToolsDrawer');
+      const studioToolsChevron = document.getElementById('studioToolsChevron');
+      document.getElementById('toggleStudioToolsBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
         playMechanicalSFX('rackHover');
-        drawer.classList.toggle('hidden');
+        const isHidden = studioToolsDrawer.classList.contains('hidden');
+        if (isHidden) {
+          studioToolsDrawer.classList.remove('hidden');
+          studioToolsDrawer.classList.add('flex');
+          if (studioToolsChevron) studioToolsChevron.className = 'fa-solid fa-chevron-down text-[9px]';
+        } else {
+          studioToolsDrawer.classList.add('hidden');
+          studioToolsDrawer.classList.remove('flex');
+          if (studioToolsChevron) studioToolsChevron.className = 'fa-solid fa-chevron-up text-[9px]';
+        }
       });
 
       const tabTracksBtn = document.getElementById('tabTracksBtn');
@@ -3160,16 +4348,16 @@
 
       tabTracksBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        tabTracksBtn.className = "px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[10px] mono font-bold transition";
-        tabBookletBtn.className = "px-2.5 py-1 rounded-lg bg-transparent hover:bg-slate-200/60 text-slate-600 text-[10px] mono font-bold transition";
+        tabTracksBtn.className = "hw-btn hw-btn-active px-2.5 py-1 rounded-lg text-[10px] mono font-bold transition flex items-center gap-1.5";
+        tabBookletBtn.className = "hw-btn px-2.5 py-1 rounded-lg text-[10px] mono font-bold transition flex items-center gap-1.5";
         tracksView.classList.remove('hidden');
         bookletView.classList.add('hidden');
       });
 
       tabBookletBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        tabBookletBtn.className = "px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[10px] mono font-bold transition";
-        tabTracksBtn.className = "px-2.5 py-1 rounded-lg bg-transparent hover:bg-slate-200/60 text-slate-600 text-[10px] mono font-bold transition";
+        tabBookletBtn.className = "hw-btn hw-btn-active px-2.5 py-1 rounded-lg text-[10px] mono font-bold transition flex items-center gap-1.5";
+        tabTracksBtn.className = "hw-btn px-2.5 py-1 rounded-lg text-[10px] mono font-bold transition flex items-center gap-1.5";
         bookletView.classList.remove('hidden');
         bookletView.classList.add('flex');
         tracksView.classList.add('hidden');
@@ -3216,7 +4404,22 @@
     }
 
     function applyPixelRatio() { renderer.setPixelRatio(currentPixelRatio); renderer.setSize(window.innerWidth, window.innerHeight); }
-    function onWindowResize() { const prevMax = maxPixelRatio; maxPixelRatio = Math.min(window.devicePixelRatio || 1, 2); currentPixelRatio = maxPixelRatio !== prevMax ? maxPixelRatio : Math.min(currentPixelRatio, maxPixelRatio); perf.ignore = Math.max(perf.ignore, 30); camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); applyPixelRatio(); invalidate(); }
+    function onWindowResize() {
+      const prevMax = maxPixelRatio;
+      maxPixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+      currentPixelRatio = maxPixelRatio !== prevMax ? maxPixelRatio : Math.min(currentPixelRatio, maxPixelRatio);
+      perf.ignore = Math.max(perf.ignore, 30);
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      applyPixelRatio();
+      if (!isZenMode) {
+        const t = getResponsiveCameraTargets(activeCameraPreset || 'front');
+        targetCamX = t.camX;
+        targetCamY = t.camY;
+        targetCamZ = t.camZ;
+      }
+      invalidate();
+    }
     function adaptPixelRatio(dt) { if (dt > 0.1) { perf.frames = 0; perf.acc = 0; return; } if (perf.ignore > 0) { perf.ignore--; return; } perf.acc += dt; perf.frames++; if (perf.frames >= 40) { const avg = perf.acc / perf.frames; perf.frames = 0; perf.acc = 0; if (avg > 1 / 40 && currentPixelRatio > 1) { currentPixelRatio = Math.max(1, currentPixelRatio - 0.25); applyPixelRatio(); perf.ignore = 20; } } }
 
     function animate(now) {
@@ -3226,6 +4429,14 @@
       const hadPrev = lastFrameTime > 0; const rawDt = hadPrev ? (now - lastFrameTime) / 1000 : 0.016; lastFrameTime = now;
       if (hadPrev) adaptPixelRatio(rawDt); const f = Math.min(rawDt, 0.05) * 60; 
       const approach = (cur, tgt, rate, eps = 0.0005) => { const n = cur + (tgt - cur) * (1 - Math.pow(1 - rate, f)); return Math.abs(tgt - n) < eps ? tgt : n; };
+
+      // Mode Zen Cinematic Slow Orbit
+      if (isZenMode && !isDragging) {
+        zenOrbitClock += rawDt * 0.35;
+        targetCamX = Math.sin(zenOrbitClock) * 1.45;
+        targetCamY = 0.35 + Math.sin(zenOrbitClock * 0.7) * 0.22;
+        targetCamZ = 8.1 + Math.cos(zenOrbitClock * 0.5) * 0.55;
+      }
 
       if (isAudioPlaying) {
         let b1 = 6, b2 = 10, b3 = 8, b4 = 5, bassNorm = 0.2;
@@ -3282,7 +4493,7 @@
       if (rackSwapState === 'RETURN_CLOSE') {
         targetLidAngle = 0.0;
         targetAsmX = 0.0; targetAsmY = 0.0; targetAsmZ = 0.0;
-        targetEulerX = RACK_ROT_X; targetEulerY = RACK_ROT_Y;
+        targetEulerX = 0.02; targetEulerY = 0.42;
         targetAssemblyScale = STAGE_SCALE;
         if (Math.abs(currentLidAngle) < 0.04) {
           rackSwapState = 'RETURN_FLY';
@@ -3297,7 +4508,7 @@
         targetEulerX = RACK_ROT_X; targetEulerY = RACK_ROT_Y;
         targetAssemblyScale = RACK_SCALE;
         const d = Math.hypot(currentAssemblyX - _tempHoverPos.x, currentAssemblyY - _tempHoverPos.y, currentAssemblyZ - _tempHoverPos.z);
-        if (d < 0.14 && Math.abs(currentAssemblyScale - RACK_SCALE) < 0.03) {
+        if (d < 0.22) {
           rackSwapState = 'RETURN_DROP';
         }
       } else if (rackSwapState === 'RETURN_DROP') {
@@ -3309,7 +4520,7 @@
         targetEulerX = RACK_ROT_X; targetEulerY = RACK_ROT_Y;
         targetAssemblyScale = RACK_SCALE;
         const d = Math.hypot(currentAssemblyX - _tempSlotPos.x, currentAssemblyY - _tempSlotPos.y, currentAssemblyZ - _tempSlotPos.z);
-        if (d < 0.06) {
+        if (d < 0.12) {
           if (rackDummyCases[_returnSlotIndex]) rackDummyCases[_returnSlotIndex].visible = true;
 
           currentSlotIndex = _targetSlotIndex;
@@ -3320,7 +4531,6 @@
             currentAssemblyX = _tempSlotPos.x;
             currentAssemblyY = _tempSlotPos.y;
             currentAssemblyZ = _tempSlotPos.z;
-            currentAssemblyScale = RACK_SCALE;
             if (cdAssembly) {
               cdAssembly.position.set(currentAssemblyX, currentAssemblyY, currentAssemblyZ);
               cdAssembly.scale.setScalar(currentAssemblyScale);
@@ -3355,7 +4565,7 @@
         targetEulerX = RACK_ROT_X; targetEulerY = RACK_ROT_Y;
         targetAssemblyScale = RACK_SCALE;
         const d = Math.hypot(currentAssemblyX - _tempHoverPos.x, currentAssemblyY - _tempHoverPos.y, currentAssemblyZ - _tempHoverPos.z);
-        if (d < 0.14) {
+        if (d < 0.22) {
           rackSwapState = 'FLY_STAGE';
         }
       } else if (rackSwapState === 'FLY_STAGE') {
@@ -3364,11 +4574,10 @@
         targetEulerX = showcaseRotX; targetEulerY = showcaseRotY;
         targetAssemblyScale = STAGE_SCALE;
         const d = Math.hypot(currentAssemblyX, currentAssemblyY, currentAssemblyZ);
-        if (d < 0.18 && Math.abs(currentAssemblyScale - STAGE_SCALE) < 0.03) {
+        if (d < 0.2) {
           updateTextures();
           isOpen = true;
-          playMechanicalSFX('caseOpen');
-          document.getElementById('caseStateText').innerText = "Tutup Casing";
+          document.getElementById('caseStateText').innerText = "Close Case";
           rackSwapState = 'IDLE';
         }
       } else {
@@ -3377,35 +4586,30 @@
         targetAsmX = holdOpen ? OPEN_OFFSET_X : 0.0;
         targetAsmY = 0.0; targetAsmZ = 0.0;
         targetEulerX = targetRotX; targetEulerY = targetRotY;
-        targetAssemblyScale = STAGE_SCALE;
       }
 
-      const posRate = (rackSwapState === 'RETURN_DROP' || rackSwapState === 'RETRIEVE_LIFT') ? 0.12 : 0.085;
-      currentAssemblyX = approach(currentAssemblyX, targetAsmX, posRate);
-      currentAssemblyY = approach(currentAssemblyY, targetAsmY, posRate);
-      currentAssemblyZ = approach(currentAssemblyZ, targetAsmZ, posRate);
-      currentRotX = approach(currentRotX, targetEulerX, 0.09);
-      currentRotY = approach(currentRotY, targetEulerY, 0.09);
+      currentCamX = approach(currentCamX, targetCamX, 0.08);
+      currentCamY = approach(currentCamY, targetCamY, 0.08);
+      currentCamZ = approach(currentCamZ, targetCamZ, 0.12);
+      if (camera) {
+        camera.position.set(currentCamX, currentCamY, currentCamZ);
+        camera.lookAt(currentCamX * 0.45, currentCamY * 0.35, -0.35);
+      }
+
+      currentAssemblyX = approach(currentAssemblyX, targetAsmX, 0.08);
+      currentAssemblyY = approach(currentAssemblyY, targetAsmY, 0.08);
+      currentAssemblyZ = approach(currentAssemblyZ, targetAsmZ, 0.08);
+      currentRotX = approach(currentRotX, targetEulerX, 0.08);
+      currentRotY = approach(currentRotY, targetEulerY, 0.08);
       currentAssemblyScale = approach(currentAssemblyScale, targetAssemblyScale, 0.10);
 
-      currentCamX = approach(currentCamX, targetCamX, 0.10, 0.002);
-      currentCamY = approach(currentCamY, targetCamY, 0.10, 0.002);
-      currentCamZ = approach(currentCamZ, targetCamZ, 0.12, 0.002);
-      camera.position.set(currentCamX, currentCamY, currentCamZ);
-
       currentLidAngle = approach(currentLidAngle, targetLidAngle, 0.1);
-
-      if (obiStripGroup) {
-        obiStripGroup.visible = isObiEnabled && (Math.abs(currentLidAngle) < 0.35);
-      }
-
       const openProgress = currentLidAngle / LID_OPEN_ANGLE;
-      const discTarget = (isDiscOut && isOpen && openProgress > 0.85) ? 1 : 0;
-      discOutAmt = approach(discOutAmt, discTarget, 0.07, 0.0015);
+      const discTarget = (isDiscOut && isOpen && openProgress > 0.75) ? 1 : 0;
+      discOutAmt = approach(discOutAmt, discTarget, 0.075, 0.0015);
       const spinTarget = isDiscSpinning ? 1 : 0;
       bobAmp = approach(bobAmp, spinTarget, 0.06, 0.002);
-      const inRackZone = (rackSwapState === 'RETURN_DROP' || rackSwapState === 'RACK_WAIT' || rackSwapState === 'RETRIEVE_LIFT');
-      const bobY = inRackZone ? 0 : Math.sin((now / 1000) * 1.6) * 0.06 * bobAmp;
+      const bobY = Math.sin((now / 1000) * 1.6) * 0.05 * bobAmp * (1 - discOutAmt);
 
       if (cdAssembly) {
         cdAssembly.rotation.x = currentRotX;
@@ -3414,21 +4618,54 @@
         cdAssembly.position.y = currentAssemblyY + bobY;
         cdAssembly.position.z = currentAssemblyZ;
         cdAssembly.scale.setScalar(currentAssemblyScale);
+        cdAssembly.updateMatrixWorld();
       }
       if (caseLidGroup) caseLidGroup.rotation.y = currentLidAngle;
-      if (cdDiscGroup) {
-        const lift = smoothstep(0, 0.45, discOutAmt), rise = smoothstep(0.3, 1, discOutAmt);
-        cdDiscGroup.position.set(0, 1.15 * rise, cdDiscGroup.userData.baseZ + 0.6 * lift);
-        cdDiscGroup.rotation.x = -0.5 * rise;
+
+      // Animasi Kepingan CD meluncur dari Casing menuju Baki Audiophile CD Player di Meja
+      if (cdDiscGroup && cdAssembly) {
+        if (discOutAmt <= 0.001) {
+          cdDiscGroup.position.set(0, 0, cdDiscGroup.userData.baseZ);
+          cdDiscGroup.quaternion.copy(_qIdentity);
+        } else {
+          _tempPlayerLocalTarget.copy(PLAYER_PLATTER_WORLD);
+          cdAssembly.worldToLocal(_tempPlayerLocalTarget);
+
+          const arcLift = Math.sin(discOutAmt * Math.PI) * 1.35;
+          cdDiscGroup.position.set(
+            _tempPlayerLocalTarget.x * discOutAmt,
+            _tempPlayerLocalTarget.y * discOutAmt + arcLift,
+            cdDiscGroup.userData.baseZ + (_tempPlayerLocalTarget.z - cdDiscGroup.userData.baseZ) * discOutAmt + Math.sin(discOutAmt * Math.PI) * 0.7
+          );
+
+          _qCaseInv.copy(cdAssembly.quaternion).invert();
+          _qCaseInv.multiply(_qFlatDisc);
+          cdDiscGroup.quaternion.copy(_qIdentity).slerp(_qCaseInv, smoothstep(0.15, 0.92, discOutAmt));
+        }
       }
-      if (cdDiscMesh && isDiscSpinning && !isScrubbingDisc) cdDiscMesh.rotation.z += 0.022 * f;
+
+      // Animasi Tutup Kaca Akrilik & Spindle pada Unit Audiophile CD Player
+      const playerLidTarget = (discOutAmt > 0.05 && discOutAmt < 0.94) ? -0.68 : 0.0;
+      currentPlayerLidAngle = approach(currentPlayerLidAngle, playerLidTarget, 0.12);
+      if (cdPlayerLidPivot) {
+        cdPlayerLidPivot.rotation.x = currentPlayerLidAngle;
+      }
+
+      if (cdDiscMesh && isDiscSpinning && !isScrubbingDisc) {
+        cdDiscMesh.rotation.z += 0.024 * f;
+      }
+      if (cdPlayerSpindleMesh && isDiscSpinning && discOutAmt > 0.85) {
+        cdPlayerSpindleMesh.rotation.y -= 0.024 * f;
+      }
+
       updateShadow(bobY);
       renderer.render(scene, camera);
 
       const swapAnimating = rackSwapState !== 'IDLE';
       const scaleDone = Math.abs(currentAssemblyScale - targetAssemblyScale) < 0.002;
-      const camDone = Math.abs(currentCamZ - targetCamZ) < 0.003 && Math.abs(currentCamX - targetCamX) < 0.003 && Math.abs(currentCamY - targetCamY) < 0.003;
-      const animating = swapAnimating || hoverAnimating || isAudioPlaying || isScrubbingDisc || isDiscSpinning || !camDone || currentRotX !== targetEulerX || currentRotY !== targetEulerY || currentLidAngle !== targetLidAngle || discOutAmt !== discTarget || bobAmp !== spinTarget || !scaleDone || (cdAssembly && (Math.abs(cdAssembly.position.x - targetAsmX) > 0.002 || Math.abs(cdAssembly.position.y - (targetAsmY + bobY)) > 0.002 || Math.abs(cdAssembly.position.z - targetAsmZ) > 0.002)) || activeGhostMaterials.length > 0;
+      const camDone = Math.abs(currentCamX - targetCamX) < 0.002 && Math.abs(currentCamY - targetCamY) < 0.002 && Math.abs(currentCamZ - targetCamZ) < 0.002;
+      const playerLidDone = Math.abs(currentPlayerLidAngle - playerLidTarget) < 0.002;
+      const animating = isZenMode || swapAnimating || hoverAnimating || isDiscSpinning || isAudioPlaying || !camDone || !playerLidDone || currentRotX !== targetEulerX || currentRotY !== targetEulerY || currentLidAngle !== targetLidAngle || discOutAmt !== discTarget || bobAmp !== spinTarget || !scaleDone || (cdAssembly && (Math.abs(cdAssembly.position.x - targetAsmX) > 0.002 || Math.abs(cdAssembly.position.y - (targetAsmY + bobY)) > 0.002 || Math.abs(cdAssembly.position.z - targetAsmZ) > 0.002)) || activeGhostMaterials.length > 0;
       
       isAnimatingFrame = false;
       if (animating) {
@@ -3439,8 +4676,38 @@
     }
 
     window.onload = async function() {
-      try { await Promise.race([Promise.all([document.fonts.load("bold 72px 'Space Mono'"), document.fonts.load("24px 'Space Mono'"), document.fonts.load("600 32px 'Plus Jakarta Sans'"), document.fonts.load("700 72px 'Caveat'")]), new Promise(r => setTimeout(r, 2500))]); } catch (_) {}
-      init(); invalidate();
+      const splashFill = document.getElementById('splashProgressFill');
+      const splashStatus = document.getElementById('splashStatusText');
+      const splashScreen = document.getElementById('splashScreen');
+      const enterStudioBtn = document.getElementById('enterStudioBtn');
+
+      if (splashFill) splashFill.style.width = '65%';
+
+      try {
+        await Promise.race([
+          Promise.all([
+            document.fonts.load("bold 72px 'Space Mono'"),
+            document.fonts.load("24px 'Space Mono'"),
+            document.fonts.load("600 32px 'Plus Jakarta Sans'"),
+            document.fonts.load("700 48px 'Caveat'")
+          ]),
+          new Promise(r => setTimeout(r, 2500))
+        ]);
+      } catch (_) {}
+
+      init();
+      invalidate();
+
+      if (splashFill) splashFill.style.width = '100%';
+      if (splashStatus) splashStatus.innerText = 'SYSTEM READY // 44.1KHZ';
+
+      if (enterStudioBtn && splashScreen) {
+        enterStudioBtn.addEventListener('click', () => {
+          ensureAudioContext();
+          playMechanicalSFX('eject');
+          splashScreen.classList.add('splash-hidden');
+        });
+      }
     };
   </script>
 </body>
