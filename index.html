@@ -1,17 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Procedural 3D CD Jewel Case - MusicBrainz Edition</title>
+  <title>Procedural 3D CD Jewel Case - MusicBrainz Edition v8.1</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
@@ -21,174 +18,261 @@
       user-select: none;
       -webkit-user-select: none;
     }
-
-    .mono {
-      font-family: 'Space Mono', monospace;
-    }
-
-    canvas {
-      outline: none;
-      touch-action: none;
-    }
-
+    .mono { font-family: 'Space Mono', monospace; }
+    canvas { outline: none; touch-action: none; }
     .light-glass-panel {
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.86);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(15, 23, 42, 0.08);
       box-shadow: 0 16px 36px -12px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04);
     }
-
     .accent-gradient-text {
       background: linear-gradient(135deg, #f97316 20%, #4338ca 70%, #06b6d4 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-
-    /* Custom Scrollbar for Tracklist */
-    .custom-scroll::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    .custom-scroll::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .custom-scroll::-webkit-scrollbar-thumb {
-      background: rgba(15, 23, 42, 0.2);
-      border-radius: 99px;
+    .custom-scroll::-webkit-scrollbar { width: 4px; }
+    .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: rgba(15, 23, 42, 0.2); border-radius: 99px; }
+    kbd {
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      padding: 1px 4px;
+      border-radius: 4px;
+      background: rgba(15, 23, 42, 0.08);
+      border: 1px solid rgba(15, 23, 42, 0.15);
     }
   </style>
 </head>
-
 <body class="w-screen h-screen text-slate-800">
 
   <!-- Floating Tooltip for Rack Hover -->
-  <div id="rackTooltip"
-    class="fixed z-30 pointer-events-none hidden px-3 py-1.5 rounded-xl bg-slate-900/90 text-white shadow-xl backdrop-blur-md border border-white/10 transition-opacity duration-150">
+  <div id="rackTooltip" class="fixed z-30 pointer-events-none hidden px-3 py-1.5 rounded-xl bg-slate-900/90 text-white shadow-xl backdrop-blur-md border border-white/10 transition-opacity duration-150">
     <p id="rackTooltipSlot" class="mono text-[9px] text-cyan-400 uppercase tracking-wider">SLOT 01</p>
     <p id="rackTooltipTitle" class="text-xs font-bold leading-tight">ALBUM TITLE</p>
     <p id="rackTooltipArtist" class="mono text-[10px] text-slate-300">ARTIST</p>
   </div>
 
-  <!-- Header Branding + Live Search -->
-  <header class="absolute top-6 left-6 z-10 pointer-events-auto flex flex-col gap-2.5 max-w-xs sm:max-w-sm">
-    <div class="light-glass-panel px-4 py-2.5 rounded-2xl flex items-center justify-between gap-3">
-      <div class="flex items-center gap-3">
-        <div class="w-7 h-7 rounded-full bg-slate-900 flex items-center justify-center shadow-md">
-          <div class="w-2.5 h-2.5 rounded-full bg-orange-500" id="bassPulseDot"></div>
-        </div>
+  <!-- Modal Shareable URL Link & Cartridge -->
+  <div id="shareRackModal" class="fixed inset-0 z-40 hidden items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
+    <div class="light-glass-panel rounded-3xl p-5 max-w-md w-full shadow-2xl flex flex-col gap-3">
+      <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
         <div>
-          <h1 class="font-bold text-sm leading-none tracking-tight accent-gradient-text">CHROMA.DISC // v6.0</h1>
-          <p class="mono text-[10px] text-slate-500 mt-0.5 tracking-wider uppercase">MusicBrainz + iTunes Engine</p>
+          <h2 class="text-sm font-bold text-slate-900 uppercase tracking-tight">Tautan & Cartridge Rak (v8.1)</h2>
+          <p class="mono text-[10px] text-slate-500">Bagikan via URL Parameter (?rack=...) atau Kode</p>
+        </div>
+        <button id="closeShareModalBtn" class="w-7 h-7 rounded-lg bg-slate-900/5 hover:bg-slate-900/15 text-xs mono font-bold">✕</button>
+      </div>
+
+      <!-- Shareable URL Input Box -->
+      <div class="flex flex-col gap-1">
+        <div class="flex items-center justify-between">
+          <span class="mono text-[9px] font-bold text-indigo-700 uppercase">TAUTAN LANGSUNG (SHAREABLE URL)</span>
+          <span id="urlLengthBadge" class="mono text-[9px] text-slate-400">0 chars</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <input id="rackShareUrlInput" type="text" readonly class="w-full rounded-xl bg-indigo-50/70 border border-indigo-200 px-2.5 py-2 mono text-[10px] text-indigo-950 focus:outline-none" value="">
+          <button id="copyShareUrlBtn" class="py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition active:scale-95 flex-shrink-0">
+            Salin URL
+          </button>
         </div>
       </div>
-      <button id="sfxToggleBtn" title="Toggle Efek Suara Mekanis"
-        class="px-2 py-1 rounded-lg bg-slate-900/5 hover:bg-slate-900/10 text-[10px] mono font-semibold text-slate-700 transition">
-        SFX: ON
-      </button>
+
+      <!-- Compact Cartridge Code Box -->
+      <div class="flex flex-col gap-1">
+        <span class="mono text-[9px] font-bold text-slate-500 uppercase">ATAU TEMPEL URL / KODE CARTRIDGE</span>
+        <textarea id="rackCartridgeTextarea" rows="3" class="w-full rounded-xl bg-slate-900/5 border border-slate-300/70 p-2.5 mono text-[10px] text-slate-700 focus:outline-none focus:border-slate-900" placeholder="Tempel URL lengkap (?rack=...) atau kode cartridge di sini..."></textarea>
+      </div>
+
+      <div class="flex items-center justify-between gap-2">
+        <button id="copyCartridgeBtn" class="flex-1 py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition active:scale-95">
+          Salin Kode Saja
+        </button>
+        <button id="importCartridgeBtn" class="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition active:scale-95">
+          Muat ke Rak
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header Branding + Live Search + Curated Rack Presets -->
+  <header class="absolute top-5 left-5 z-20 pointer-events-auto flex flex-col gap-2 max-w-xs sm:max-w-sm w-80">
+    <div class="light-glass-panel px-4 py-2.5 rounded-2xl flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-full bg-slate-900 flex items-center justify-center shadow-md">
+          <div class="w-2.5 h-2.5 rounded-full bg-orange-500 transition-transform duration-75" id="bassPulseDot"></div>
+        </div>
+        <div>
+          <h1 class="font-bold text-sm leading-none tracking-tight accent-gradient-text">CHROMA.DISC // v8.1</h1>
+          <p class="mono text-[9px] text-slate-500 mt-0.5 tracking-wider uppercase">URL Share & Japanese Obi Edition</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-1">
+        <button id="sfxToggleBtn" title="Toggle Efek Suara Mekanis" class="px-2 py-1 rounded-lg bg-slate-900/5 hover:bg-slate-900/10 text-[10px] mono font-semibold text-slate-700 transition">
+          SFX: ON
+        </button>
+        <button id="hotkeyHelpBtn" title="Tampilkan Shortcut Keyboard (?)" class="w-6 h-6 rounded-lg bg-slate-900/5 hover:bg-slate-900/10 text-[11px] mono font-bold text-slate-700 transition flex items-center justify-center">
+          ?
+        </button>
+      </div>
     </div>
 
-    <!-- Live Search Input -->
-    <form id="liveSearchForm" class="light-glass-panel p-1.5 pl-3 rounded-2xl flex items-center gap-1.5">
-      <svg class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-      </svg>
-      <input id="liveSearchInput" type="text" placeholder="Cari artis / album (mis: Daft Punk)..."
-        class="bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none w-full">
-      <button type="submit" id="liveSearchBtn"
-        class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-semibold transition active:scale-95 flex-shrink-0">
-        Cari
-      </button>
-    </form>
+    <!-- Live Search Input + Slot Target -->
+    <div class="relative">
+      <form id="liveSearchForm" class="light-glass-panel p-1.5 pl-3 rounded-2xl flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        <input id="liveSearchInput" type="text" placeholder="Cari album / artis..." class="bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none w-full">
+        <select id="searchSlotSelect" title="Pilih Slot Rak Tujuan" class="bg-slate-900/5 text-[10px] mono font-semibold text-slate-700 rounded-lg px-1.5 py-1 focus:outline-none cursor-pointer">
+          <option value="next">Next</option>
+          <option value="0">S-01</option>
+          <option value="1">S-02</option>
+          <option value="2">S-03</option>
+          <option value="3">S-04</option>
+          <option value="4">S-05</option>
+          <option value="5">S-06</option>
+          <option value="6">S-07</option>
+          <option value="7">S-08</option>
+          <option value="8">S-09</option>
+          <option value="9">S-10</option>
+          <option value="10">S-11</option>
+          <option value="11">S-12</option>
+          <option value="12">S-13</option>
+          <option value="13">S-14</option>
+        </select>
+        <button type="submit" id="liveSearchBtn" class="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-semibold transition active:scale-95 flex-shrink-0">
+          Cari
+        </button>
+      </form>
+
+      <!-- Search Results Picker Dropdown -->
+      <div id="searchResultsDropdown" class="hidden absolute top-full left-0 right-0 mt-1.5 light-glass-panel rounded-2xl p-2 shadow-2xl z-30 flex-col gap-1 max-h-60 overflow-y-auto custom-scroll">
+        <div class="flex items-center justify-between px-2 py-1 border-b border-slate-200/60">
+          <span class="mono text-[9px] font-bold text-slate-500 uppercase">PILIH HASIL ALBUM</span>
+          <button id="closeSearchDropdownBtn" class="text-[10px] mono text-slate-400 hover:text-slate-800">TUTUP ✕</button>
+        </div>
+        <div id="searchResultsList" class="flex flex-col gap-1 mt-1"></div>
+      </div>
+    </div>
+
+    <!-- Collection Management Bar (Curated Presets + Share URL + Jukebox) -->
+    <div class="light-glass-panel px-2.5 py-1.5 rounded-xl flex flex-wrap items-center justify-between gap-1.5 text-[10px] mono">
+      <select id="rackPresetSelect" title="Pilih Tema Kurasi Rak 14-Slot" class="bg-slate-900/5 hover:bg-slate-900/10 text-slate-700 font-bold rounded-lg px-2 py-1 focus:outline-none cursor-pointer">
+        <option value="default">Rak: Default Eclectic</option>
+        <option value="britpop">Rak: 90s Alternative & Rock</option>
+        <option value="electronic">Rak: Electronic & Synth</option>
+        <option value="classical">Rak: Classical Masterpieces</option>
+      </select>
+      <div class="flex items-center gap-1">
+        <button id="shareRackBtn" title="Buat Tautan URL Koleksi Rak (?rack=...)" class="px-2 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-700 font-bold transition">
+          🔗 TAUTAN RAK
+        </button>
+        <button id="jukeboxToggleBtn" title="Auto-Play & Auto-Changer 14-Disc" class="px-2 py-1 rounded-lg bg-slate-900/5 hover:bg-slate-900/10 text-slate-700 font-bold transition">
+          JUKEBOX: OFF
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Inspection Camera Angle Bar (1-4) -->
+    <div class="light-glass-panel px-2.5 py-1.5 rounded-xl flex items-center justify-between gap-1 text-[10px] mono">
+      <span class="text-slate-400 font-bold pl-1">KAMERA:</span>
+      <div class="flex items-center gap-1">
+        <button data-cam="front" class="camPresetBtn px-2 py-0.5 rounded-md bg-slate-900 text-white font-bold transition" title="Sudut 3/4 Klasik (Shortcut: 1)">1:Depan</button>
+        <button data-cam="back" class="camPresetBtn px-2 py-0.5 rounded-md bg-slate-900/5 hover:bg-slate-900/10 text-slate-700 font-bold transition" title="Baca Tracklist Belakang (Shortcut: 2)">2:Belakang</button>
+        <button data-cam="spine" class="camPresetBtn px-2 py-0.5 rounded-md bg-slate-900/5 hover:bg-slate-900/10 text-slate-700 font-bold transition" title="Inspeksi Punggung & Obi Strip (Shortcut: 3)">3:Spine</button>
+        <button data-cam="rack" class="camPresetBtn px-2 py-0.5 rounded-md bg-slate-900/5 hover:bg-slate-900/10 text-slate-700 font-bold transition" title="Fokus ke Rak Koleksi (Shortcut: 4)">4:Rak</button>
+      </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Helper Popover -->
+    <div id="hotkeyPopover" class="hidden light-glass-panel rounded-2xl p-3 text-[11px] flex-col gap-1.5 shadow-xl">
+      <div class="flex items-center justify-between border-b border-slate-200/70 pb-1">
+        <span class="mono text-[10px] font-bold text-slate-700 uppercase">KEYBOARD DECK SHORTCUTS</span>
+        <span class="mono text-[9px] text-slate-400">SCROLL = ZOOM</span>
+      </div>
+      <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px]">
+        <div class="flex justify-between"><span>Play / Pause</span><kbd>Space</kbd></div>
+        <div class="flex justify-between"><span>Buka Casing</span><kbd>O</kbd></div>
+        <div class="flex justify-between"><span>Eject CD</span><kbd>E</kbd></div>
+        <div class="flex justify-between"><span>Kamera 1-4</span><kbd>1</kbd>-<kbd>4</kbd></div>
+        <div class="flex justify-between"><span>Slot Sblm/Brkt</span><kbd>←</kbd><kbd>→</kbd></div>
+        <div class="flex justify-between"><span>Toggle Obi</span><kbd>J</kbd></div>
+      </div>
+    </div>
   </header>
 
   <!-- Interactive Control Deck -->
-  <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 w-11/12 max-w-4xl">
-    <div class="light-glass-panel rounded-2xl p-3 sm:p-4 flex flex-wrap items-center justify-center gap-2 text-xs">
-
-      <button id="toggleCaseBtn"
-        class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold transition active:scale-95 shadow-sm flex items-center gap-2">
-        <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2">
-          </path>
-        </svg>
+  <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 w-11/12 max-w-6xl">
+    <div class="light-glass-panel rounded-2xl p-2 sm:p-3 flex flex-wrap items-center justify-center gap-1.5 text-xs">
+      
+      <button id="toggleCaseBtn" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold transition active:scale-95 shadow-sm flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
         <span id="caseStateText">Buka Casing</span>
       </button>
 
-      <button id="toggleSpinBtn"
-        class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200 flex items-center gap-1.5">
-        <svg class="w-4 h-4 text-emerald-600 animate-spin" id="spinIcon" style="animation-duration: 4s;" fill="none"
-          stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
-          </path>
-        </svg>
+      <button id="toggleSpinBtn" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200 flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5 text-emerald-600 animate-spin" id="spinIcon" style="animation-duration: 4s;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
         <span id="spinStateText">Stop Putar</span>
       </button>
 
-      <button id="changeCoverBtn"
-        class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">
-        Tema Bawaan
+      <!-- 1. Japanese Edition Obi Strip Toggle -->
+      <button id="obiToggleBtn" title="Pasang/Lepas Sabuk Kertas Edisi Jepang (Obi Strip)" class="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold transition active:scale-95 border border-rose-200">
+        🇯🇵 Obi: ON
       </button>
 
-      <button id="changeLabelBtn"
-        class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">
+      <!-- Hyper-Tactile Case Material & Tint Selector -->
+      <button id="caseTintBtn" title="Ganti Warna Casing & Baki (Jewel Case Tint)" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">
+        Casing: Clear
+      </button>
+
+      <!-- 4. Gold / Silver / CD-R Marker Mixtape Toggle -->
+      <button id="discFinishBtn" title="Ganti Lapisan Kepingan CD atau Mode CD-R Spidol" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">
+        CD: Silver
+      </button>
+
+      <!-- Mint vs Vintage vs Signed Autograph Foil -->
+      <button id="caseWearBtn" title="Ubah Kondisi Casing / Tanda Tangan Artis (Autograph)" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">
+        Kondisi: Mint
+      </button>
+
+      <!-- 5. Studio Lighting Rig & Floating Dust Motes -->
+      <button id="studioLightBtn" title="Ubah Pencahayaan Studio & Partikel Debu" class="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 font-semibold transition active:scale-95 border border-amber-200">
+        Studio: Daylight
+      </button>
+
+      <button id="changeLabelBtn" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">
         Label: Busur
       </button>
 
-      <button id="ejectDiscBtn"
-        class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">Keluarkan
-        CD</button>
+      <button id="ejectDiscBtn" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">Keluarkan CD</button>
 
-      <button id="toggleDrawerBtn"
-        class="px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold transition active:scale-95 border border-indigo-200 flex items-center gap-1.5">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3">
-          </path>
-        </svg>
-        <span>Tracklist & Buklet</span>
+      <button id="toggleDrawerBtn" class="px-2.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold transition active:scale-95 border border-indigo-200 flex items-center gap-1">
+        <span>Tracklist</span>
       </button>
-
+      
       <!-- Audio Playback Toggle Button -->
-      <button id="audioPlayBtn"
-        class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition active:scale-95 shadow-sm flex items-center gap-1.5">
-        <svg id="audioIcon" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M8 5v14l11-7z" />
-        </svg>
-        <span id="audioPlayText">Play Audio</span>
+      <button id="audioPlayBtn" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition active:scale-95 shadow-sm flex items-center gap-1.5">
+        <svg id="audioIcon" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <span id="audioPlayText">Play</span>
       </button>
 
       <!-- File Input & Upload -->
       <input type="file" id="imageUploadInput" accept="image/*" class="hidden">
-      <button id="uploadImageBtn"
-        class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition active:scale-95 border border-slate-200 flex items-center gap-1.5 shadow-sm">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-        </svg>
+      <button id="uploadImageBtn" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition active:scale-95 border border-slate-200 flex items-center gap-1 shadow-sm">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
         Upload
       </button>
 
       <!-- MUSICBRAINZ SYNC BUTTON -->
-      <button id="mbSyncBtn"
-        class="px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold transition active:scale-95 border border-orange-600 shadow-sm flex items-center gap-2">
-        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z" />
-        </svg>
+      <button id="mbSyncBtn" class="px-3 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold transition active:scale-95 border border-orange-600 shadow-sm flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
         <span id="mbBtnText">Next Album</span>
       </button>
-
-      <button id="resetCamBtn"
-        class="px-2.5 py-2 rounded-xl text-slate-500 hover:text-slate-900 transition font-medium mono">Reset</button>
     </div>
   </div>
 
   <!-- Audio Info Card & Interactive Tracklist / Booklet Drawer Top-Right -->
-  <div class="absolute top-6 right-6 z-10 flex flex-col gap-2.5 items-end pointer-events-auto max-w-xs w-72">
+  <div class="absolute top-5 right-5 z-10 flex flex-col gap-2 items-end pointer-events-auto max-w-xs w-72">
     <div class="light-glass-panel rounded-2xl p-3 px-4 flex items-center justify-between gap-3 w-full">
       <div class="flex items-center gap-3 min-w-0">
         <div class="flex items-end gap-1 h-5 w-6 flex-shrink-0">
@@ -202,28 +286,21 @@
           <p class="mono text-[10px] text-slate-500 uppercase truncate" id="albumArtistDisplay">SYNTHETIX CORE</p>
         </div>
       </div>
-      <span id="slotBadge"
-        class="mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-900 text-cyan-400 flex-shrink-0">SLOT
-        01</span>
+      <div class="flex items-center gap-1.5 flex-shrink-0">
+        <span id="colorSwatchDot" title="Dynamic Stage Color Extracted" class="w-3 h-3 rounded-full border border-white shadow-sm bg-cyan-400"></span>
+        <span id="slotBadge" class="mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-900 text-cyan-400">SLOT 01</span>
+      </div>
     </div>
 
     <!-- Audio Preview Player Widget -->
-    <div id="audioWidget"
-      class="light-glass-panel rounded-2xl p-2.5 px-3 flex items-center gap-2.5 w-full shadow-md transition-all duration-300">
-      <button id="widgetPlayToggle"
-        class="w-8 h-8 rounded-full bg-slate-900 hover:bg-slate-800 text-white flex items-center justify-center transition active:scale-90 flex-shrink-0">
-        <svg id="widgetPlayIcon" class="w-3.5 h-3.5 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M8 5v14l11-7z" />
-        </svg>
+    <div id="audioWidget" class="light-glass-panel rounded-2xl p-2.5 px-3 flex items-center gap-2.5 w-full shadow-md transition-all duration-300">
+      <button id="widgetPlayToggle" class="w-8 h-8 rounded-full bg-slate-900 hover:bg-slate-800 text-white flex items-center justify-center transition active:scale-90 flex-shrink-0">
+        <svg id="widgetPlayIcon" class="w-3.5 h-3.5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
       </button>
       <div class="flex-1 min-w-0">
-        <p id="audioTrackName" class="text-[11px] font-bold text-slate-800 truncate leading-tight">PILIH LAGU DI BAWAH
-        </p>
-        <p id="audioTrackStatus" class="mono text-[9px] text-slate-500 uppercase tracking-tight truncate">Klik Track /
-          Drag CD saat Eject</p>
-        <div id="audioProgressContainer"
-          class="w-full bg-slate-200/90 rounded-full h-1.5 mt-1 overflow-hidden cursor-pointer"
-          title="Klik untuk geser waktu lagu">
+        <p id="audioTrackName" class="text-[11px] font-bold text-slate-800 truncate leading-tight">PILIH LAGU DI BAWAH</p>
+        <p id="audioTrackStatus" class="mono text-[9px] text-slate-500 uppercase tracking-tight truncate">Klik Track / Scroll untuk Zoom</p>
+        <div id="audioProgressContainer" class="w-full bg-slate-200/90 rounded-full h-1.5 mt-1 overflow-hidden cursor-pointer" title="Klik untuk geser waktu lagu">
           <div id="audioProgressBar" class="bg-emerald-500 h-1.5 rounded-full w-0 transition-all duration-100"></div>
         </div>
       </div>
@@ -231,55 +308,46 @@
     </div>
 
     <!-- Interactive Tracklist & Booklet Credits Drawer -->
-    <div id="tracklistDrawer"
-      class="light-glass-panel rounded-2xl p-3 w-full shadow-lg transition-all duration-300 flex flex-col gap-2">
+    <div id="tracklistDrawer" class="light-glass-panel rounded-2xl p-3 w-full shadow-lg transition-all duration-300 flex flex-col gap-2">
       <div class="flex items-center justify-between border-b border-slate-200/70 pb-1.5">
         <div class="flex gap-1.5">
-          <button id="tabTracksBtn"
-            class="px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[10px] mono font-bold transition">TRACKLIST</button>
-          <button id="tabBookletBtn"
-            class="px-2.5 py-1 rounded-lg bg-transparent hover:bg-slate-200/60 text-slate-600 text-[10px] mono font-bold transition">BUKLET
-            INLAY</button>
+          <button id="tabTracksBtn" class="px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[10px] mono font-bold transition">TRACKLIST</button>
+          <button id="tabBookletBtn" class="px-2.5 py-1 rounded-lg bg-transparent hover:bg-slate-200/60 text-slate-600 text-[10px] mono font-bold transition">BUKLET INLAY</button>
         </div>
-        <span class="mono text-[9px] text-slate-400" id="drawerReleaseYear">REL // 1998</span>
+        <span class="mono text-[9px] text-slate-400" id="drawerReleaseYear">SLOT 01</span>
       </div>
 
       <!-- Track Selector View -->
-      <div id="drawerTracksView" class="flex flex-col gap-1 max-h-44 overflow-y-auto custom-scroll pr-1">
-        <!-- Populated dynamically via renderTracklistDrawer() -->
-      </div>
+      <div id="drawerTracksView" class="flex flex-col gap-1 max-h-40 overflow-y-auto custom-scroll pr-1"></div>
 
       <!-- Booklet / Inlay Notes View -->
-      <div id="drawerBookletView"
-        class="hidden flex-col gap-2 text-[11px] text-slate-700 max-h-44 overflow-y-auto custom-scroll pr-1">
+      <div id="drawerBookletView" class="hidden flex-col gap-2 text-[11px] text-slate-700 max-h-40 overflow-y-auto custom-scroll pr-1">
         <div class="p-2.5 rounded-xl bg-slate-900 text-slate-100 mono text-[10px] leading-relaxed">
           <p class="text-orange-400 font-bold mb-1" id="bookletHeader">// LINER NOTES & CREDITS</p>
-          <p id="bookletDetails">Format: Compact Disc Digital Audio (CD-DA)<br>Catalog Barcode: 001158107519<br>Country:
-            Worldwide Release</p>
+          <p id="bookletDetails">Format: Compact Disc Digital Audio (CD-DA)<br>Catalog Barcode: 001158107519<br>Country: Worldwide Release</p>
         </div>
         <p class="text-[10px] text-slate-500 leading-snug">
-          💡 <b>Tips Interaktif:</b> Saat CD dikeluarkan (<i>Keluarkan CD</i>), tahan & putar kepingan CD secara
-          langsung untuk melakukan <i>DJ Scratch / Scrubbing</i> durasi lagu!
+          💡 <b>Tips Kamera:</b> Klik tombol <b>2:Belakang</b> atau <b>3:Spine</b> di kiri atas untuk menginspeksi daftar lagu cetak dan pita Obi Jepang.
         </p>
       </div>
     </div>
 
     <!-- Status Toast Notification -->
-    <div id="statusToast"
-      class="light-glass-panel px-3.5 py-2 rounded-xl text-xs mono text-slate-700 border border-slate-200/50 hidden transition-opacity duration-300">
-    </div>
+    <div id="statusToast" class="light-glass-panel px-3.5 py-2 rounded-xl text-xs mono text-slate-700 border border-slate-200/50 hidden transition-opacity duration-300"></div>
   </div>
 
   <div id="canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
 
-  <!-- Audio Element with CORS for Web Audio Analyser -->
+  <!-- Audio Element -->
   <audio id="audioElement" crossorigin="anonymous" preload="auto" class="hidden"></audio>
 
   <script>
     // ==============================================================
-    // 1. DAFTAR ALBUM MUSICBRAINZ (MBID) TERVERIFIKASI & DATA CADANGAN
+    // 1. DEFAULT 14 ALBUM MUSICBRAINZ & CURATED RACK PRESETS
     // ==============================================================
-    const musicBrainzAlbums = [
+    const RACK_STORAGE_KEY = 'CHROMA_DISC_CUSTOM_RACK_V8';
+
+    const defaultMusicBrainzAlbums = [
       {
         slotIndex: 0, col: 0, row: 0, code: "VOL. 01", accent: "#ef4444", bg: ["#450a0a", "#881337", "#1e1b4b"],
         mbid: "138c290a-115f-427c-9b88-beec4b8d76ec",
@@ -474,10 +542,247 @@
       }
     ];
 
+    // Tema Kurasi Rak (Curated Rack Presets)
+    const curatedRackThemes = {
+      britpop: [
+        ["OASIS", "MORNING GLORY", "Oasis Wonderwall"],
+        ["BLUR", "PARKLIFE", "Blur Girls and Boys"],
+        ["RADIOHEAD", "OK COMPUTER", "Radiohead Paranoid Android"],
+        ["PULP", "DIFFERENT CLASS", "Pulp Common People"],
+        ["THE VERVE", "URBAN HYMNS", "The Verve Bitter Sweet Symphony"],
+        ["SUEDE", "COMING UP", "Suede Trash"],
+        ["THE STONE ROSES", "THE STONE ROSES", "The Stone Roses Fools Gold"],
+        ["THE CURE", "DISINTEGRATION", "The Cure Lovesong"],
+        ["THE SMITHS", "THE QUEEN IS DEAD", "The Smiths There Is a Light"],
+        ["NIRVANA", "NEVERMIND", "Nirvana Smells Like Teen Spirit"],
+        ["PEARL JAM", "TEN", "Pearl Jam Alive"],
+        ["SMASHING PUMPKINS", "SIAMESE DREAM", "Smashing Pumpkins 1979"],
+        ["WEEZER", "BLUE ALBUM", "Weezer Buddy Holly"],
+        ["GREEN DAY", "DOOKIE", "Green Day Basket Case"]
+      ],
+      electronic: [
+        ["DAFT PUNK", "DISCOVERY", "Daft Punk One More Time"],
+        ["THE PRODIGY", "THE FAT OF THE LAND", "The Prodigy Breathe"],
+        ["CHEMICAL BROTHERS", "DIG YOUR OWN HOLE", "Chemical Brothers Block Rockin Beats"],
+        ["APHEX TWIN", "SELECTED AMBIENT", "Aphex Twin Xtal"],
+        ["MASSIVE ATTACK", "MEZZANINE", "Massive Attack Teardrop"],
+        ["PORTISHEAD", "DUMMY", "Portishead Glory Box"],
+        ["JUSTICE", "CROSS", "Justice D.A.N.C.E."],
+        ["KRAFTWERK", "THE MAN MACHINE", "Kraftwerk The Model"],
+        ["NEW ORDER", "POWER CORRUPTION", "New Order Blue Monday"],
+        ["DEPECHE MODE", "VIOLATOR", "Depeche Mode Enjoy the Silence"],
+        ["UNDERWORLD", "DUBNOBASSWITHMYHEADMAN", "Underworld Born Slippy"],
+        ["FATBOY SLIM", "YOU'VE COME A LONG WAY", "Fatboy Slim Praise You"],
+        ["MOBY", "PLAY", "Moby Porcelain"],
+        ["AIR", "MOON SAFARI", "Air Sexy Boy"]
+      ],
+      classical: [
+        ["VIVALDI", "THE FOUR SEASONS", "Vivaldi Four Seasons Spring"],
+        ["BEETHOVEN", "SYMPHONY NO. 9", "Beethoven Symphony 9 Ode to Joy"],
+        ["BACH", "CELLO SUITES", "Bach Cello Suite No 1 Prelude"],
+        ["MOZART", "REQUIEM IN D MINOR", "Mozart Requiem Lacrimosa"],
+        ["CHOPIN", "NOCTURNES", "Chopin Nocturne Op 9 No 2"],
+        ["DEBUSSY", "SUITE BERGAMASQUE", "Debussy Clair de Lune"],
+        ["TCHAIKOVSKY", "SWAN LAKE OP. 20", "Tchaikovsky Swan Lake Theme"],
+        ["HOLST", "THE PLANETS OP. 32", "Holst The Planets Jupiter"],
+        ["DVORAK", "NEW WORLD SYMPHONY", "Dvorak Symphony 9 Largo"],
+        ["GRIEG", "PEER GYNT SUITES", "Grieg In the Hall of the Mountain King"],
+        ["RAVEL", "BOLÉRO", "Ravel Bolero"],
+        ["PUCCINI", "TURANDOT", "Puccini Nessun Dorma"],
+        ["HANDEL", "MESSIAH HWV 56", "Handel Messiah Hallelujah"],
+        ["SATIE", "GYMNOPÉDIES", "Erik Satie Gymnopedie No 1"]
+      ]
+    };
+
+    let musicBrainzAlbums = JSON.parse(JSON.stringify(defaultMusicBrainzAlbums));
+    let loadedFromUrlParam = false;
+
+    // ==============================================================
+    // 1A. SMART URL PARAMETER (?rack=...) ENCODER & DECODER
+    // ==============================================================
+    function compressCoverUrl(url) {
+      if (!url) return "";
+      return url
+        .replace(/^https:\/\/is\d+-ssl\.mzstatic\.com\/image\/thumb\//, "~i:")
+        .replace(/\/600x600bb\.jpg$/, "~6")
+        .replace(/^https:\/\/images\.unsplash\.com\/photo-/, "~u:")
+        .replace(/\?w=800&q=80$/, "~8");
+    }
+
+    function decompressCoverUrl(token) {
+      if (!token) return "";
+      let u = token;
+      if (u.startsWith("~i:")) u = "https://is1-ssl.mzstatic.com/image/thumb/" + u.slice(3);
+      if (u.endsWith("~6")) u = u.slice(0, -2) + "/600x600bb.jpg";
+      if (u.startsWith("~u:")) u = "https://images.unsplash.com/photo-" + u.slice(3);
+      if (u.endsWith("~8")) u = u.slice(0, -2) + "?w=800&q=80";
+      return u;
+    }
+
+    // Menghasilkan token Base64 URL-Safe yang sangat ringkas (Delta Encoding)
+    function encodeRackToCompactToken() {
+      const deltaSlots = musicBrainzAlbums.map((alb, idx) => {
+        const def = defaultMusicBrainzAlbums[idx];
+        const isUnchanged = !alb.isLiveSearch && alb.mbid === def.mbid && alb.fallbackTitle === def.fallbackTitle && alb.fallbackArtist === def.fallbackArtist;
+        if (isUnchanged) return 0; // Cukup 1 karakter '0' jika slot masih default!
+        return [
+          alb.fallbackTitle,
+          alb.fallbackArtist,
+          alb.searchQuery || `${alb.fallbackArtist} ${alb.fallbackTitle}`,
+          compressCoverUrl(alb.fallbackCover),
+          alb.isLiveSearch ? 1 : 0,
+          alb.mbid === def.mbid ? "" : (alb.mbid || "")
+        ];
+      });
+
+      const jsonStr = JSON.stringify(deltaSlots);
+      const b64 = btoa(unescape(encodeURIComponent(jsonStr)));
+      // Ubah ke Base64 URL-safe tanpa karakter +, /, =
+      return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    function decodeRackFromTokenOrInput(rawInput) {
+      if (!rawInput || !rawInput.trim()) return null;
+      let token = rawInput.trim();
+
+      // Jika user menempelkan URL lengkap (misal https://.../?rack=xyz), ekstrak parameter rack-nya
+      if (token.includes("rack=")) {
+        try {
+          const qPart = token.split("?")[1] || token;
+          const params = new URLSearchParams(qPart);
+          if (params.has("rack")) token = params.get("rack");
+        } catch (_) {}
+      }
+
+      // Kembalikan dari Base64 URL-safe ke Base64 standar
+      let b64 = token.replace(/-/g, '+').replace(/_/g, '/');
+      while (b64.length % 4 !== 0) b64 += '=';
+
+      const decoded = JSON.parse(decodeURIComponent(escape(atob(b64))));
+      if (!Array.isArray(decoded) || decoded.length !== 14) return null;
+
+      return defaultMusicBrainzAlbums.map((base, idx) => {
+        const item = decoded[idx];
+        if (item === 0 || !item) return JSON.parse(JSON.stringify(base));
+
+        // Format Baru v8.1 (Array Tuple Ringkas)
+        if (Array.isArray(item)) {
+          const [t, a, q, cTok, isLive, m] = item;
+          const title = t || base.fallbackTitle;
+          const artist = a || base.fallbackArtist;
+          return Object.assign({}, base, {
+            fallbackTitle: title,
+            fallbackArtist: artist,
+            searchQuery: q || `${artist} ${title}`,
+            fallbackCover: decompressCoverUrl(cTok) || base.fallbackCover,
+            isLiveSearch: Boolean(isLive),
+            mbid: m || base.mbid,
+            fallbackTracks: [
+              { n: "01", t: `${title} (TRACK 01)`, l: "03:45" },
+              { n: "02", t: `${artist} SESSION`, l: "04:12" }
+            ]
+          });
+        }
+
+        // Backward Compatibility v8.0 (Object {t, a, q, c, m, l})
+        return Object.assign({}, base, {
+          fallbackTitle: item.t || base.fallbackTitle,
+          fallbackArtist: item.a || base.fallbackArtist,
+          searchQuery: item.q || base.searchQuery,
+          fallbackCover: item.c || base.fallbackCover,
+          mbid: item.m || base.mbid,
+          isLiveSearch: Boolean(item.l)
+        });
+      });
+    }
+
+    function buildShareableRackUrl() {
+      const token = encodeRackToCompactToken();
+      const baseUrl = window.location.href.split('?')[0];
+      return `${baseUrl}?rack=${token}`;
+    }
+
+    function syncBrowserUrlBar() {
+      try {
+        const token = encodeRackToCompactToken();
+        const newUrl = `${window.location.pathname}?rack=${token}`;
+        window.history.replaceState({ rack: token }, '', newUrl);
+      } catch (_) {}
+    }
+
+    function loadRackFromUrlOrStorage() {
+      // Prioritas 1: Cek apakah ada parameter ?rack=... di URL saat halaman dibuka
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const rackParam = params.get('rack');
+        if (rackParam) {
+          const hydrated = decodeRackFromTokenOrInput(rackParam);
+          if (hydrated) {
+            musicBrainzAlbums = hydrated;
+            loadedFromUrlParam = true;
+            saveRackToStorage(false);
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn("Gagal mem-parsing parameter URL ?rack=:", e);
+      }
+
+      // Prioritas 2: Muat dari localStorage
+      try {
+        const raw = localStorage.getItem(RACK_STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length === 14) {
+          musicBrainzAlbums = parsed;
+        }
+      } catch (e) {
+        console.warn("Gagal memuat koleksi dari localStorage:", e);
+      }
+    }
+
+    function saveRackToStorage(updateAddressBar = true) {
+      try {
+        localStorage.setItem(RACK_STORAGE_KEY, JSON.stringify(musicBrainzAlbums));
+        if (updateAddressBar) syncBrowserUrlBar();
+      } catch (e) {
+        console.warn("Gagal menyimpan rak:", e);
+      }
+    }
+
+    function applyCuratedRackPreset(presetKey) {
+      if (presetKey === 'default') {
+        musicBrainzAlbums = JSON.parse(JSON.stringify(defaultMusicBrainzAlbums));
+      } else if (curatedRackThemes[presetKey]) {
+        const list = curatedRackThemes[presetKey];
+        musicBrainzAlbums = defaultMusicBrainzAlbums.map((base, idx) => {
+          const [artist, title, query] = list[idx];
+          return Object.assign({}, base, {
+            isLiveSearch: true,
+            fallbackArtist: artist,
+            fallbackTitle: title,
+            searchQuery: query,
+            fallbackTracks: [
+              { n: "01", t: `${title} (OPENING)`, l: "03:45" },
+              { n: "02", t: `${artist} ANTHEM`, l: "04:12" },
+              { n: "03", t: `STUDIO SESSION`, l: "03:28" }
+            ]
+          });
+        });
+      }
+      saveRackToStorage(true);
+      buildDesktopAcrylicRack();
+      showToast(`Tema Rak "${presetKey.toUpperCase()}" dimuat & URL diperbarui!`);
+      startRackSwap(0);
+      invalidate();
+    }
+
+    loadRackFromUrlOrStorage();
+
     let currentSlotIndex = 0;
     let customMetadata = {
-      title: "NEO TOKYO '98",
-      artist: "SYNTHETIX CORE",
+      title: musicBrainzAlbums[0].fallbackTitle || "NEO TOKYO '98",
+      artist: musicBrainzAlbums[0].fallbackArtist || "SYNTHETIX CORE",
       tracklist: musicBrainzAlbums[0].fallbackTracks,
       barcode: musicBrainzAlbums[0].fallbackBarcode,
       date: "1981-10-26",
@@ -485,6 +790,7 @@
       label: "PARLOPHONE / OPEN ARCHIVE"
     };
     let activeTrackIndex = 0;
+    let jukeboxAutoMode = false;
 
     // ==============================================================
     // 1B. PROCEDURAL MECHANICAL SOUND ENGINE & WEB AUDIO VISUALIZER
@@ -498,12 +804,10 @@
     function ensureAudioContext() {
       if (!audioCtx) {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (AudioContextClass) {
-          audioCtx = new AudioContextClass();
-        }
+        if (AudioContextClass) audioCtx = new AudioContextClass();
       }
       if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume().catch(() => { });
+        audioCtx.resume().catch(() => {});
       }
       return audioCtx;
     }
@@ -520,12 +824,10 @@
         mediaSourceNode.connect(analyserNode);
         analyserNode.connect(ctx.destination);
       } catch (e) {
-        // Fallback jika CORS diblokir oleh stream tertentu
         console.warn("Visualizer menggunakan mode simulasi ritme:", e);
       }
     }
 
-    // Synthesizer suara fisik tanpa file eksternal
     function playMechanicalSFX(type) {
       if (!sfxEnabled) return;
       const ctx = ensureAudioContext();
@@ -533,7 +835,6 @@
       const now = ctx.currentTime;
 
       if (type === 'caseOpen' || type === 'caseClose') {
-        // Suara klik akrilik tajam + resonansi plastik pendek
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'triangle';
@@ -541,7 +842,6 @@
         const endFreq = type === 'caseOpen' ? 1650 : 420;
         osc.frequency.setValueAtTime(startFreq, now);
         osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.045);
-
         gain.gain.setValueAtTime(0.18, now);
         gain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
         osc.connect(gain);
@@ -549,7 +849,6 @@
         osc.start(now);
         osc.stop(now + 0.06);
       } else if (type === 'rackHover') {
-        // Tick halus saat melintasi slot rak
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'sine';
@@ -562,8 +861,8 @@
         osc.start(now);
         osc.stop(now + 0.032);
       } else if (type === 'rackSlide') {
-        // Suara gesekan halus akrilik saat kaset diambil dari rak
-        const bufferSize = ctx.sampleRate * 0.14;
+        const dur = 0.14;
+        const bufferSize = Math.floor(ctx.sampleRate * dur);
         const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.4));
@@ -573,19 +872,18 @@
         const filter = ctx.createBiquadFilter();
         filter.type = 'bandpass';
         filter.frequency.setValueAtTime(900, now);
-        filter.frequency.exponentialRampToValueAtTime(1900, now + 0.13);
-        filter.Q.value = 3.0;
+        filter.frequency.exponentialRampToValueAtTime(1900, now + dur);
+        filter.Q.value = 2.8;
 
         const gain = ctx.createGain();
-        gain.gain.setValueAtTime(0.14, now);
-        gain.gain.exponentialRampToValueAtTime(0.002, now + 0.14);
+        gain.gain.setValueAtTime(0.13, now);
+        gain.gain.exponentialRampToValueAtTime(0.002, now + dur);
 
         noise.connect(filter);
         filter.connect(gain);
         gain.connect(ctx.destination);
         noise.start(now);
       } else if (type === 'eject') {
-        // Suara snap spindle tengah CD
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'sine';
@@ -601,7 +899,7 @@
     }
 
     // ==========================================
-    // AUDIO ENGINE (iTunes Search API Integration)
+    // AUDIO ENGINE & AUTO-CHANGER JUKEBOX MODE
     // ==========================================
     const audioEl = document.getElementById('audioElement');
     let isAudioPlaying = false;
@@ -626,10 +924,10 @@
           trackNameEl.innerText = activeTrackTitle;
           trackStatusEl.innerText = `iTunes 30s • ${song.artistName.toUpperCase()}`;
           audioEl.src = currentPreviewUrl;
-
+          
           showToast(`Lagu dimuat: ${song.trackName}`);
-
-          if (isDiscSpinning || autoPlayAfterLoad) {
+          
+          if (isDiscSpinning || autoPlayAfterLoad || jukeboxAutoMode) {
             playAudio();
           }
         } else {
@@ -649,9 +947,7 @@
       audioEl.play().then(() => {
         isAudioPlaying = true;
         updateAudioUI(true);
-        if (!isDiscSpinning) {
-          toggleSpin();
-        }
+        if (!isDiscSpinning) toggleSpin();
         invalidate();
       }).catch(err => {
         console.log("Autoplay menunggu interaksi user:", err);
@@ -673,7 +969,13 @@
         if (audioEl.src) {
           playAudio();
         } else {
-          showToast("Silakan klik 'Next Album' untuk memuat lagu.");
+          const tracks = customMetadata.tracklist || musicBrainzAlbums[currentSlotIndex].fallbackTracks;
+          const artist = customMetadata.artist || musicBrainzAlbums[currentSlotIndex].fallbackArtist;
+          if (tracks && tracks.length > 0) {
+            fetchItunesAudioPreview(`${artist} ${tracks[activeTrackIndex || 0].t}`, true);
+          } else {
+            showToast("Silakan klik 'Next Album' untuk memuat lagu.");
+          }
         }
       }
     }
@@ -690,16 +992,13 @@
         widgetPlayIcon.innerHTML = `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
       } else {
         audioIcon.innerHTML = `<path d="M8 5v14l11-7z"/>`;
-        audioPlayText.innerText = "Play Audio";
+        audioPlayText.innerText = "Play";
         widgetPlayIcon.innerHTML = `<path d="M8 5v14l11-7z"/>`;
-        eqBars.forEach(bar => {
-          if (bar) bar.style.height = "6px";
-        });
+        eqBars.forEach(bar => { if (bar) bar.style.height = "6px"; });
       }
       renderTracklistDrawer();
     }
 
-    // Render daftar lagu interaktif & buklet di panel kanan
     function renderTracklistDrawer() {
       const container = document.getElementById('drawerTracksView');
       if (!container) return;
@@ -713,8 +1012,9 @@
       tracks.forEach((tr, idx) => {
         const isCurrent = idx === activeTrackIndex;
         const btn = document.createElement('button');
-        btn.className = `w-full text-left px-2.5 py-1.5 rounded-xl flex items-center justify-between gap-2 transition ${isCurrent ? 'bg-slate-900 text-white shadow-sm' : 'hover:bg-slate-200/70 text-slate-700'
-          }`;
+        btn.className = `w-full text-left px-2.5 py-1.5 rounded-xl flex items-center justify-between gap-2 transition ${
+          isCurrent ? 'bg-slate-900 text-white shadow-sm' : 'hover:bg-slate-200/70 text-slate-700'
+        }`;
         btn.innerHTML = `
           <div class="flex items-center gap-2 min-w-0">
             <span class="mono text-[10px] ${isCurrent ? 'text-orange-400 font-bold' : 'text-slate-400'}">${tr.n || String(idx + 1).padStart(2, '0')}</span>
@@ -734,7 +1034,6 @@
         container.appendChild(btn);
       });
 
-      // Update informasi buklet
       const relYearEl = document.getElementById('drawerReleaseYear');
       if (relYearEl) relYearEl.innerText = `SLOT ${String(currentSlotIndex + 1).padStart(2, '0')}`;
       const slotBadge = document.getElementById('slotBadge');
@@ -766,6 +1065,24 @@
       isAudioPlaying = false;
       updateAudioUI(false);
       document.getElementById('audioProgressBar').style.width = '0%';
+
+      if (jukeboxAutoMode) {
+        const tracks = (customMetadata && customMetadata.tracklist && customMetadata.tracklist.length > 0)
+          ? customMetadata.tracklist
+          : musicBrainzAlbums[currentSlotIndex].fallbackTracks;
+        const artist = customMetadata.artist || musicBrainzAlbums[currentSlotIndex].fallbackArtist;
+
+        if (activeTrackIndex + 1 < tracks.length) {
+          activeTrackIndex++;
+          showToast(`Jukebox: Memutar Track ${activeTrackIndex + 1} (${tracks[activeTrackIndex].t})...`);
+          renderTracklistDrawer();
+          fetchItunesAudioPreview(`${artist} ${tracks[activeTrackIndex].t}`, true);
+        } else {
+          const nextSlot = (currentSlotIndex + 1) % musicBrainzAlbums.length;
+          showToast(`Jukebox Auto-Changer: Pindah ke Slot ${nextSlot + 1}...`);
+          startRackSwap(nextSlot);
+        }
+      }
     });
 
     function showToast(message, duration = 3000) {
@@ -781,21 +1098,60 @@
     }
 
     // ==========================================
-    // 2. VARIABEL 3D & ENGINE STATE
+    // 2. VARIABEL 3D & v8.1 STUDIO / OBI STATE
     // ==========================================
     let scene, camera, renderer;
     let cdAssembly, caseLidGroup, cdDiscGroup, cdDiscMesh;
+    let obiStripGroup = null, obiStripMesh = null, obiStripTexture = null;
+    let studioDustPoints = null;
+
     let trayInsideMesh = null, trayOutsideMesh = null;
-    let rackEdgeMaterialRef = null, rimLightRef = null;
+    let clearAcrylicMaterialRef = null, clearEdgeMaterialRef = null;
+    let rackEdgeMaterialRef = null;
+    let ambientLightRef = null, keyLightRef = null, softFillRef = null, rimLightRef = null;
+
     let isOpen = false, targetLidAngle = 0.0, currentLidAngle = 0.0;
     let isDiscSpinning = true, currentCoverIndex = 0;
     let frontCoverTexture, backCoverTexture, discTexture, cdIridescenceMaterial;
     let isDragging = false, prevMouseX = 0, prevMouseY = 0;
     let isScrubbingDisc = false;
-
+    
     let targetRotX = 0.25, targetRotY = -0.45;
     let currentRotX = 0.25, currentRotY = -0.45;
+    let targetCamX = 0.0, currentCamX = 0.0;
+    let targetCamY = 0.0, currentCamY = 0.0;
+    let targetCamZ = 8.0, currentCamZ = 8.0;
     let currentCustomImage = null;
+    let dynamicAccentColor = "#22d3ee";
+
+    let isObiEnabled = true;
+
+    let currentCaseTintIndex = 0;
+    const caseTintPresets = [
+      { name: "Clear", plateColor: 0xffffff, edgeColor: 0xdcf1ec, transmission: 0.98, edgeTransmission: 0.92, roughnessBoost: 0.0 },
+      { name: "90s Charcoal", plateColor: 0xffffff, edgeColor: 0x18181b, transmission: 0.96, edgeTransmission: 0.15, roughnessBoost: 0.15 },
+      { name: "Y2K Neon Green", plateColor: 0xd9f99d, edgeColor: 0x84cc16, transmission: 0.92, edgeTransmission: 0.85, roughnessBoost: 0.0 },
+      { name: "Ice Cyber Blue", plateColor: 0xe0f2fe, edgeColor: 0x0284c7, transmission: 0.94, edgeTransmission: 0.86, roughnessBoost: 0.0 },
+      { name: "Atomic Orange", plateColor: 0xffedd5, edgeColor: 0xf97316, transmission: 0.92, edgeTransmission: 0.84, roughnessBoost: 0.0 }
+    ];
+
+    let currentDiscFinishIndex = 0;
+    const discFinishPresets = [
+      { name: "Silver", vec: new THREE.Vector3(0.92, 0.93, 0.96), isCDR: false },
+      { name: "24k Gold", vec: new THREE.Vector3(1.0, 0.84, 0.38), isCDR: false },
+      { name: "Black Vinyl", vec: new THREE.Vector3(0.18, 0.20, 0.25), isCDR: false },
+      { name: "CD-R Spidol", vec: new THREE.Vector3(0.84, 0.95, 0.96), isCDR: true }
+    ];
+
+    let caseWearMode = 0;
+    const caseWearNames = ["Mint", "Vintage", "Signed ★"];
+
+    let currentStudioRigIndex = 0;
+    const studioLightingRigs = [
+      { name: "Daylight", ambColor: 0xffffff, ambInt: 0.9, keyColor: 0xffffff, keyInt: 1.4, fillColor: 0xe0e7ff, fillInt: 0.6, rimColor: 0x60a5fa, bgOverride: null, dustOpacity: 0.32 },
+      { name: "Midnight Neon", ambColor: 0x1e1b4b, ambInt: 0.55, keyColor: 0x22d3ee, keyInt: 1.65, fillColor: 0xf43f5e, fillInt: 1.15, rimColor: 0xa855f7, bgOverride: "#090d16", dustOpacity: 0.65 },
+      { name: "Vinyl Lounge", ambColor: 0xfffbeb, ambInt: 0.7, keyColor: 0xfbbf24, keyInt: 1.5, fillColor: 0xea580c, fillInt: 0.8, rimColor: 0xfde047, bgOverride: "#271c19", dustOpacity: 0.55 }
+    ];
 
     const OPEN_OFFSET_X = 1.2;
     const LID_OPEN_ANGLE = -Math.PI * 0.78;
@@ -818,17 +1174,12 @@
     let _targetSlotIndex = 0;
     const _tempSlotPos = new THREE.Vector3();
     const _tempHoverPos = new THREE.Vector3();
-    // Offset tarikan lurus ke atas mengikuti sedikit kemiringan slot rak agar tidak menabrak kaset di depannya/belakangnya
     const _hoverOffsetVec = new THREE.Vector3(0, 1.85, -0.15);
     let currentAssemblyX = 0, currentAssemblyY = 0, currentAssemblyZ = 0;
     let currentAssemblyScale = 1.0, targetAssemblyScale = 1.0;
 
-    // Skala diselaraskan persis dengan ukuran fisik dummy CD di rak:
-    // Dummy CD di rak memiliki lebar 2.45 * rackScale (0.70) = 1.715 world unit.
-    // cdAssembly utama memiliki lebar 2.80 world unit -> 1.715 / 2.80 = 0.6125.
     const RACK_SCALE = 0.6125;
     const STAGE_SCALE = 1.0;
-    // Sudut kemiringan dunia (world rotation) yang selaras dengan kaset di dalam rak
     const RACK_ROT_X = -0.03;
     const RACK_ROT_Y = 0.45;
     const showcaseRotX = 0.25, showcaseRotY = -0.45;
@@ -837,10 +1188,10 @@
     let pendingAlbumDataReady = false;
     let texturesPreRendered = false;
     let activeGhostMaterials = [];
-
+    
     const smoothstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
     function mulberry32(a) {
-      return function () {
+      return function() {
         a |= 0; a = a + 0x6D2B79F5 | 0;
         let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
         return ((t ^ t >>> 14) >>> 0) / 4294967296;
@@ -855,7 +1206,97 @@
     }
 
     // ==============================================================
-    // CANVASES & TEXTURES SINGLETON (Zero memory leak & GPU reuse)
+    // DYNAMIC COLOR EXTRACTION DARI SAMPUL ALBUM
+    // ==============================================================
+    let _colorSampleCanvas = null, _colorSampleCtx = null;
+    function extractDominantColorsFromImage(imgSource) {
+      if (!imgSource) return null;
+      if (!_colorSampleCanvas) {
+        _colorSampleCanvas = document.createElement('canvas');
+        _colorSampleCanvas.width = 32;
+        _colorSampleCanvas.height = 32;
+        _colorSampleCtx = _colorSampleCanvas.getContext('2d');
+      }
+      _colorSampleCtx.clearRect(0, 0, 32, 32);
+      _colorSampleCtx.drawImage(imgSource, 0, 0, 32, 32);
+      const data = _colorSampleCtx.getImageData(0, 0, 32, 32).data;
+
+      let rSum = 0, gSum = 0, bSum = 0, count = 0;
+      let bestSat = -1, accR = 249, accG = 115, accB = 22;
+
+      for (let i = 0; i < data.length; i += 16) {
+        const r = data[i], g = data[i + 1], b = data[i + 2];
+        rSum += r; gSum += g; bSum += b; count++;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        const lum = (max + min) / 2;
+        const sat = max === min ? 0 : (max - min) / (255 - Math.abs(2 * lum - 255));
+        if (sat > bestSat && lum > 45 && lum < 220) {
+          bestSat = sat;
+          accR = r; accG = g; accB = b;
+        }
+      }
+
+      const avgR = Math.round((rSum / count) * 0.42);
+      const avgG = Math.round((gSum / count) * 0.42);
+      const avgB = Math.round((bSum / count) * 0.42);
+
+      const toHex = (n) => Math.max(0, Math.min(255, n)).toString(16).padStart(2, '0');
+      const bgHex = `#${toHex(avgR)}${toHex(avgG)}${toHex(avgB)}`;
+      const accentHex = `#${toHex(accR)}${toHex(accG)}${toHex(accB)}`;
+      return { bgHex, accentHex, accRGB: { r: accR, g: accG, b: accB } };
+    }
+
+    function applyDynamicStageLighting(palette) {
+      if (!palette) return;
+      dynamicAccentColor = palette.accentHex;
+      const rig = studioLightingRigs[currentStudioRigIndex];
+      document.body.style.backgroundColor = rig.bgOverride || palette.bgHex;
+      const swatch = document.getElementById('colorSwatchDot');
+      if (swatch) swatch.style.backgroundColor = palette.accentHex;
+
+      if (rimLightRef && !rig.bgOverride) {
+        rimLightRef.color.set(palette.accentHex);
+      }
+      if (rackEdgeMaterialRef) {
+        rackEdgeMaterialRef.color.set(palette.accentHex);
+        rackEdgeMaterialRef.emissive.set(palette.accentHex);
+      }
+    }
+
+    function applyStudioLightingRig() {
+      const rig = studioLightingRigs[currentStudioRigIndex];
+      if (ambientLightRef) {
+        ambientLightRef.color.setHex(rig.ambColor);
+        ambientLightRef.intensity = rig.ambInt;
+      }
+      if (keyLightRef) {
+        keyLightRef.color.setHex(rig.keyColor);
+        keyLightRef.intensity = rig.keyInt;
+      }
+      if (softFillRef) {
+        softFillRef.color.setHex(rig.fillColor);
+        softFillRef.intensity = rig.fillInt;
+      }
+      if (rimLightRef) {
+        rimLightRef.color.setHex(rig.rimColor);
+      }
+      if (studioDustPoints) {
+        studioDustPoints.material.opacity = rig.dustOpacity;
+      }
+      if (rig.bgOverride) {
+        document.body.style.backgroundColor = rig.bgOverride;
+      } else if (currentCustomImage) {
+        const pal = extractDominantColorsFromImage(currentCustomImage);
+        if (pal) document.body.style.backgroundColor = pal.bgHex;
+      } else {
+        document.body.style.backgroundColor = albumThemes[currentCoverIndex].pageBg;
+      }
+      document.getElementById('studioLightBtn').innerText = `Studio: ${rig.name}`;
+      invalidate();
+    }
+
+    // ==============================================================
+    // CANVASES & TEXTURES SINGLETON
     // ==============================================================
     let _skelCanvas = null, _skelCtx = null, _skeletonTex = null;
     function getSkeletonTexture() {
@@ -893,9 +1334,82 @@
       { title: "SOLAR HORIZON", artist: "AMBER ECHOES", bg: ["#9a3412", "#e11d48", "#6d28d9"], accent: "#fef08a", pageBg: "#292524" }
     ];
 
-    // ==========================================
-    // 3. GENERATOR TEKSTUR COVER & DISC (SINGLETON)
-    // ==========================================
+    // ==============================================================
+    // 3. GENERATOR TEKSTUR: OBI STRIP JEPANG, COVER, & CD-R SPIDOL
+    // ==============================================================
+    let _obiCanvas = null, _obiCtx = null;
+    function generateObiStripTexture(themeIndex, customImg = null) {
+      if (!_obiCanvas) {
+        _obiCanvas = document.createElement('canvas');
+        _obiCanvas.width = 512;
+        _obiCanvas.height = 1024;
+        _obiCtx = _obiCanvas.getContext('2d');
+        obiStripTexture = new THREE.CanvasTexture(_obiCanvas);
+        obiStripTexture.anisotropy = 4;
+        obiStripTexture.encoding = THREE.sRGBEncoding;
+      }
+      const ctx = _obiCtx;
+      const theme = albumThemes[themeIndex];
+      const title = customImg ? customMetadata.title : theme.title;
+      const artist = customImg ? customMetadata.artist : theme.artist;
+      const accent = customImg ? (dynamicAccentColor || "#ef4444") : theme.accent;
+
+      ctx.fillStyle = "#090d16";
+      ctx.fillRect(0, 0, 512, 1024);
+
+      ctx.fillStyle = accent;
+      ctx.fillRect(0, 0, 512, 155);
+
+      ctx.fillStyle = "#090d16";
+      ctx.font = "bold 34px 'Plus Jakarta Sans', sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("日本特別盤 • 初回限定", 256, 62);
+      ctx.font = "bold 22px 'Space Mono', monospace";
+      ctx.fillText("JAPANESE COLLECTOR EDITION", 256, 105);
+      ctx.fillText("DIGITAL REMASTER • STEREO", 256, 136);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(28, 180, 456, 4);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 44px 'Plus Jakarta Sans', sans-serif";
+      const jpVerticalChars = ["完", "全", "生", "産", "限", "定", "盤", "高", "音", "質"];
+      for (let i = 0; i < jpVerticalChars.length; i++) {
+        ctx.fillText(jpVerticalChars[i], 130, 245 + i * 54);
+      }
+
+      ctx.save();
+      ctx.translate(340, 225);
+      ctx.rotate(Math.PI / 2);
+      ctx.textAlign = "left";
+      ctx.fillStyle = accent;
+      ctx.font = "bold 30px 'Space Mono', monospace";
+      ctx.fillText(artist.substring(0, 18), 0, 0);
+      ctx.fillStyle = "#f8fafc";
+      ctx.font = "bold 24px 'Plus Jakarta Sans', sans-serif";
+      ctx.fillText(title.substring(0, 22), 0, 42);
+      ctx.restore();
+
+      ctx.fillStyle = "#f8fafc";
+      ctx.fillRect(36, 800, 440, 180);
+
+      ctx.fillStyle = "#dc2626";
+      ctx.font = "bold 22px 'Space Mono', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("STEREO / JASRAC / TOCP-8849", 256, 838);
+
+      ctx.fillStyle = "#090d16";
+      ctx.font = "bold 46px 'Space Mono', monospace";
+      ctx.fillText("定価 ¥2,500", 256, 895);
+
+      ctx.font = "bold 18px 'Plus Jakarta Sans', sans-serif";
+      ctx.fillStyle = "#475569";
+      ctx.fillText("(税抜価格 ¥2,381) • MADE IN JAPAN", 256, 935);
+
+      obiStripTexture.needsUpdate = true;
+      return obiStripTexture;
+    }
+
     let _frontCanvas = null, _frontCtx = null;
     function generateFrontCoverTexture(themeIndex, customImg = null) {
       if (!_frontCanvas) {
@@ -914,19 +1428,19 @@
         const size = Math.min(customImg.width, customImg.height);
         const startX = (customImg.width - size) / 2; const startY = (customImg.height - size) / 2;
         ctx.drawImage(customImg, startX, startY, size, size, 0, 0, 1024, 1024);
-
+        
         const vig = ctx.createRadialGradient(512, 512, 200, 512, 512, 800);
-        vig.addColorStop(0, "rgba(0,0,0,0)"); vig.addColorStop(1, "rgba(0,0,0,0.6)");
-        ctx.fillStyle = vig; ctx.fillRect(0, 0, 1024, 1024);
+        vig.addColorStop(0, "rgba(0,0,0,0)"); vig.addColorStop(1, "rgba(0,0,0,0.55)");
+        ctx.fillStyle = vig; ctx.fillRect(0,0,1024,1024);
       } else {
         const grad = ctx.createLinearGradient(0, 0, 1024, 1024);
         grad.addColorStop(0, theme.bg[0]); grad.addColorStop(0.5, theme.bg[1]); grad.addColorStop(1, theme.bg[2]);
         ctx.fillStyle = grad; ctx.fillRect(0, 0, 1024, 1024);
 
         ctx.lineWidth = 2; ctx.strokeStyle = "rgba(255, 255, 255, 0.04)";
-        for (let i = -1024; i < 2048; i += 24) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + 1024, 1024); ctx.stroke(); }
-
-        for (let i = 0; i < 4; i++) {
+        for(let i = -1024; i < 2048; i += 24) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + 1024, 1024); ctx.stroke(); }
+        
+        for(let i = 0; i < 4; i++) {
           const x = rand() * 1024; const y = rand() * 1024; const r = rand() * 300 + 100;
           const blobGrad = ctx.createRadialGradient(x, y, 0, x, y, r);
           blobGrad.addColorStop(0, theme.accent + "44"); blobGrad.addColorStop(1, "transparent");
@@ -965,14 +1479,13 @@
         _backSmallCtx.clearRect(0, 0, 48, 48);
         _backSmallCtx.drawImage(customImg, startX, startY, size, size, 0, 0, 48, 48);
         ctx.drawImage(_backSmallCanvas, 0, 0, 1024, 1024);
-        ctx.fillStyle = "rgba(10, 15, 24, 0.85)"; ctx.fillRect(0, 0, 1024, 1024);
-        title = customMetadata.title; artist = customMetadata.artist; accent = "#f97316"; spineBg = "#111";
+        ctx.fillStyle = "rgba(10, 15, 24, 0.85)"; ctx.fillRect(0,0,1024,1024);
+        title = customMetadata.title; artist = customMetadata.artist; accent = dynamicAccentColor || "#f97316"; spineBg = "#111";
       } else {
         ctx.fillStyle = "rgba(255,255,255,0.03)";
-        for (let i = 0; i < 120; i++) { ctx.fillRect(rand() * 1024, rand() * 1024, 2, 2); }
+        for(let i=0; i<120; i++){ ctx.fillRect(rand()*1024, rand()*1024, 2, 2); }
       }
 
-      // 1. Spine
       const spineX = 1024 - 80;
       const spineGrad = ctx.createLinearGradient(spineX, 0, 1024, 0);
       spineGrad.addColorStop(0, "#000000"); spineGrad.addColorStop(1, spineBg);
@@ -983,24 +1496,22 @@
       ctx.fillText(artist + "   —   " + displayTitle, 0, 0);
       ctx.restore();
 
-      // 2. Top Header
       ctx.strokeStyle = "rgba(255,255,255,0.15)"; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(120, 120); ctx.lineTo(920, 120); ctx.stroke();
       ctx.fillStyle = accent; ctx.font = "bold 20px 'Space Mono', monospace";
       ctx.fillText("CAT: " + (customMetadata.barcode || "MB-884920"), 120, 100);
       ctx.fillText("MUSICBRAINZ // OPEN AUDIO", 600, 100);
 
-      // 3. Tracklist dari MusicBrainz
       ctx.fillStyle = "#94a3b8"; ctx.font = "bold 28px 'Space Mono', monospace";
       ctx.fillText("INDEX // TRACKLIST", 120, 180);
 
       const tracks = (customImg && customMetadata.tracklist) ? customMetadata.tracklist.slice(0, 7) :
-        [{ n: "01", t: "NEON AWAKENING", l: "04:23" }, { n: "02", t: "DIGITAL HORIZONS", l: "05:12" }, { n: "03", t: "SYNTHETIC DREAMS", l: "03:45" }, { n: "04", t: "MIDNIGHT DRIFT", l: "06:01" }, { n: "05", t: "SYSTEM SHUTDOWN", l: "02:30" }];
+        [{n:"01", t:"NEON AWAKENING", l:"04:23"}, {n:"02", t:"DIGITAL HORIZONS", l:"05:12"}, {n:"03", t:"SYNTHETIC DREAMS", l:"03:45"}, {n:"04", t:"MIDNIGHT DRIFT", l:"06:01"}, {n:"05", t:"SYSTEM SHUTDOWN", l:"02:30"}];
 
-      for (let i = 0; i < tracks.length; i++) {
+      for(let i = 0; i < tracks.length; i++) {
         const y = 250 + (i * 72);
         ctx.fillStyle = accent; ctx.font = "bold 28px 'Space Mono', monospace"; ctx.fillText(tracks[i].n, 120, y);
-        ctx.fillStyle = "#ffffff"; ctx.font = "600 32px 'Plus Jakarta Sans', sans-serif";
+        ctx.fillStyle = "#ffffff"; ctx.font = "600 32px 'Plus Jakarta Sans', sans-serif"; 
         const tName = tracks[i].t.length > 22 ? tracks[i].t.substring(0, 22) + "..." : tracks[i].t;
         ctx.fillText(tName, 180, y);
         const titleWidth = ctx.measureText(tName).width;
@@ -1009,7 +1520,6 @@
         ctx.beginPath(); ctx.moveTo(200 + titleWidth, y - 8); ctx.lineTo(810, y - 8); ctx.stroke(); ctx.setLineDash([]);
       }
 
-      // 4. Copyright Box & Barcode
       ctx.strokeStyle = "rgba(255,255,255,0.2)"; ctx.lineWidth = 1; ctx.strokeRect(120, 810, 530, 120);
       ctx.fillStyle = "#cbd5e1"; ctx.font = "14px 'Plus Jakarta Sans', sans-serif";
       ctx.fillText("METADATA POWERED BY MUSICBRAINZ OPEN DATABASE", 140, 845);
@@ -1019,8 +1529,8 @@
 
       ctx.fillStyle = "#ffffff"; ctx.fillRect(680, 810, 240, 120);
       ctx.fillStyle = "#000000";
-      for (let x = 695; x < 900; x += (rand() > 0.5 ? 4 : 8)) { ctx.fillRect(x, 820, rand() * 4 + 1, 80); }
-      ctx.font = "bold 15px 'Space Mono', monospace";
+      for (let x = 695; x < 900; x += (rand() > 0.5 ? 4 : 8)) { ctx.fillRect(x, 820, rand()*4+1, 80); }
+      ctx.font = "bold 15px 'Space Mono', monospace"; 
       ctx.fillText(customMetadata.barcode ? customMetadata.barcode.substring(0, 13) : "1 0293 49120 4", 710, 920);
 
       backCoverTexture.needsUpdate = true;
@@ -1038,7 +1548,54 @@
       const ctx = _discCtx;
       ctx.clearRect(0, 0, 1024, 1024);
       const theme = albumThemes[themeIndex];
-      let title = theme.title, artist = theme.artist, accent = theme.accent;
+      let title = customImg ? customMetadata.title : theme.title;
+      let artist = customImg ? customMetadata.artist : theme.artist;
+      let accent = customImg ? (dynamicAccentColor || "#f97316") : theme.accent;
+
+      const isCDRMode = discFinishPresets[currentDiscFinishIndex]?.isCDR;
+
+      if (isCDRMode) {
+        const cdrGrad = ctx.createRadialGradient(512, 512, 140, 512, 512, 480);
+        cdrGrad.addColorStop(0, "#e2e8f0");
+        cdrGrad.addColorStop(0.55, "#cbd5e1");
+        cdrGrad.addColorStop(1, "#94a3b8");
+        ctx.fillStyle = cdrGrad;
+        ctx.fillRect(0, 0, 1024, 1024);
+
+        ctx.strokeStyle = "rgba(15, 23, 42, 0.35)";
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(512, 512, 455, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(512, 512, 165, 0, Math.PI * 2); ctx.stroke();
+
+        ctx.fillStyle = "rgba(15, 23, 42, 0.55)";
+        ctx.font = "bold 22px 'Space Mono', monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("CD-R 80MIN / 700MB • HIGH SPEED RECORDABLE", 512, 790);
+        ctx.fillText("COMPACT DISC RECORDABLE • MASTER MIX", 512, 825);
+
+        ctx.save();
+        ctx.translate(512, 260);
+        ctx.rotate(-0.07);
+        ctx.fillStyle = "#0f172a";
+        ctx.font = "700 74px 'Caveat', cursive";
+        ctx.fillText(title.substring(0, 18), 0, 0);
+        ctx.font = "700 54px 'Caveat', cursive";
+        ctx.fillStyle = "#1e3a8a";
+        ctx.fillText(artist.substring(0, 22) + " Mix!", 0, 62);
+        ctx.restore();
+
+        ctx.save();
+        ctx.translate(250, 540);
+        ctx.rotate(-0.22);
+        ctx.fillStyle = "#0f172a";
+        ctx.font = "700 48px 'Caveat', cursive";
+        ctx.fillText("★ Best Tracks", 0, 0);
+        ctx.fillText("Do Not Scratch!!", 10, 48);
+        ctx.restore();
+
+        discTexture.needsUpdate = true;
+        return discTexture;
+      }
 
       ctx.fillStyle = "#06090f"; ctx.fillRect(0, 0, 1024, 1024);
 
@@ -1050,7 +1607,6 @@
         ctx.globalCompositeOperation = 'destination-out';
         ctx.beginPath(); ctx.arc(512, 512, 160, 0, Math.PI * 2); ctx.fill();
         ctx.globalCompositeOperation = 'source-over'; ctx.restore();
-        title = customMetadata.title; artist = customMetadata.artist; accent = "#f97316";
       } else {
         const radialGrad = ctx.createRadialGradient(512, 512, 100, 512, 512, 500);
         radialGrad.addColorStop(0, theme.accent + "55"); radialGrad.addColorStop(1, "transparent");
@@ -1058,11 +1614,11 @@
       }
 
       ctx.lineWidth = 18; ctx.strokeStyle = customImg ? "rgba(0,0,0,0.5)" : theme.bg[1];
-      ctx.beginPath(); ctx.arc(512, 512, 460, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(512, 512, 460, 0, Math.PI*2); ctx.stroke();
       ctx.lineWidth = 2; ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
-      ctx.beginPath(); ctx.arc(512, 512, 390, 0, Math.PI * 2); ctx.stroke();
-
-      ctx.setLineDash([8, 12]); ctx.beginPath(); ctx.arc(512, 512, 280, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(512, 512, 390, 0, Math.PI*2); ctx.stroke();
+      
+      ctx.setLineDash([8, 12]); ctx.beginPath(); ctx.arc(512, 512, 280, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
       for (let r = 170; r < 210; r += 20) {
         ctx.beginPath(); ctx.arc(512, 512, r, 0, Math.PI * 2);
         ctx.lineWidth = 1; ctx.strokeStyle = "rgba(255, 255, 255, 0.15)"; ctx.stroke();
@@ -1071,7 +1627,7 @@
       ctx.strokeStyle = "rgba(255, 255, 255, 0.8)"; ctx.lineWidth = 3; ctx.stroke();
 
       ctx.fillStyle = "#ffffff"; ctx.textAlign = "center"; ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 8;
-      ctx.font = "bold 52px 'Space Mono', monospace";
+      ctx.font = "bold 52px 'Space Mono', monospace"; 
       const displayTitle = title.length > 14 ? title.substring(0, 14) + "..." : title;
       ctx.fillText(displayTitle, 512, 200); ctx.shadowBlur = 0;
       ctx.fillStyle = accent; ctx.font = "600 34px 'Plus Jakarta Sans', sans-serif"; ctx.fillText(artist, 512, 260);
@@ -1080,29 +1636,21 @@
       return discTexture;
     }
 
-    // ==========================================
-    // 4. LID LABEL (Stiker Depan)
-    // ==========================================
+    // ==============================================================
+    // 4. LID LABEL, VINTAGE STICKERS & ARTIST AUTOGRAPH FOIL
+    // ==============================================================
     const LW = 1024, LH = 969;
     let lidLabelTexture, lidLabelMesh, currentLidShape = 0;
 
     const lidShapes = [
-      {
-        name: "Busur", barcode: "bottom", box: { x: LW - 400, y: 30, w: 370, h: 340 },
-        path(ctx) { const R = 620; ctx.moveTo(LW, 0); ctx.lineTo(LW - R, 0); ctx.arc(LW, 0, R, Math.PI, Math.PI / 2, true); ctx.closePath(); }
-      },
-      {
-        name: "Potong", barcode: "bottom", box: { x: LW - 480, y: LH - 360, w: 440, h: 330 },
-        path(ctx) { const x0 = LW - 520, y0 = LH - 490, c = 120; ctx.moveTo(x0 + c, y0); ctx.lineTo(LW, y0); ctx.lineTo(LW, LH); ctx.lineTo(x0, LH); ctx.lineTo(x0, y0 + c); ctx.closePath(); }
-      },
-      {
-        name: "Pita", barcode: "right", box: { x: 40, y: LH - 225, w: LW - 170, h: 200 },
-        path(ctx) { const y0 = LH - 250, n = 90; ctx.moveTo(0, y0); ctx.lineTo(LW - n, y0); ctx.lineTo(LW, y0 + 125); ctx.lineTo(LW - n, LH); ctx.lineTo(0, LH); ctx.closePath(); }
-      },
-      {
-        name: "Full Kaca", barcode: "bottom", box: { x: LW - 420, y: LH - 360, w: 380, h: 320 },
-        path(ctx) { ctx.moveTo(0, 0); ctx.lineTo(LW, 0); ctx.lineTo(LW, LH); ctx.lineTo(0, LH); ctx.closePath(); }
-      }
+      { name: "Busur", barcode: "bottom", box: { x: LW - 400, y: 30, w: 370, h: 340 },
+        path(ctx) { const R = 620; ctx.moveTo(LW, 0); ctx.lineTo(LW - R, 0); ctx.arc(LW, 0, R, Math.PI, Math.PI / 2, true); ctx.closePath(); } },
+      { name: "Potong", barcode: "bottom", box: { x: LW - 480, y: LH - 360, w: 440, h: 330 },
+        path(ctx) { const x0 = LW - 520, y0 = LH - 490, c = 120; ctx.moveTo(x0 + c, y0); ctx.lineTo(LW, y0); ctx.lineTo(LW, LH); ctx.lineTo(x0, LH); ctx.lineTo(x0, y0 + c); ctx.closePath(); } },
+      { name: "Pita", barcode: "right", box: { x: 40, y: LH - 225, w: LW - 170, h: 200 },
+        path(ctx) { const y0 = LH - 250, n = 90; ctx.moveTo(0, y0); ctx.lineTo(LW - n, y0); ctx.lineTo(LW, y0 + 125); ctx.lineTo(LW - n, LH); ctx.lineTo(0, LH); ctx.closePath(); } },
+      { name: "Full Kaca", barcode: "bottom", box: { x: LW - 420, y: LH - 360, w: 380, h: 320 },
+        path(ctx) { ctx.moveTo(0,0); ctx.lineTo(LW,0); ctx.lineTo(LW,LH); ctx.lineTo(0,LH); ctx.closePath(); } }
     ];
 
     function hexToRgba(hex, a) { const n = parseInt(hex.slice(1), 16); return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`; }
@@ -1112,21 +1660,92 @@
       if (line) lines.push(line); return lines;
     }
 
+    function drawVintageThriftDecals(ctx, rand) {
+      ctx.save();
+      ctx.translate(265, 130);
+      ctx.rotate(-0.08);
+      ctx.fillStyle = "#facc15";
+      ctx.shadowColor = "rgba(0,0,0,0.35)";
+      ctx.shadowBlur = 10;
+      ctx.fillRect(-130, -65, 260, 130);
+      ctx.shadowBlur = 0;
+
+      ctx.strokeStyle = "#dc2626";
+      ctx.lineWidth = 4;
+      ctx.strokeRect(-122, -57, 244, 114);
+
+      ctx.fillStyle = "#dc2626";
+      ctx.font = "bold 20px 'Space Mono', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("TOWER RECORDS", 0, -30);
+
+      ctx.fillStyle = "#0f172a";
+      ctx.font = "bold 14px 'Space Mono', monospace";
+      ctx.fillText("SHIBUYA IMPORT EDITION", 0, -8);
+
+      ctx.font = "bold 36px 'Space Mono', monospace";
+      ctx.fillText("¥2,480", 0, 34);
+      ctx.restore();
+
+      ctx.strokeStyle = "rgba(255,255,255,0.22)";
+      ctx.lineWidth = 1.5;
+      for (let i = 0; i < 28; i++) {
+        const sx = rand() * LW, sy = rand() * LH;
+        const len = 30 + rand() * 110;
+        const ang = rand() * Math.PI;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(sx + Math.cos(ang) * len, sy + Math.sin(ang) * len);
+        ctx.stroke();
+      }
+    }
+
+    function drawArtistAutographFoil(ctx, artist) {
+      ctx.save();
+      ctx.translate(310, 770);
+      ctx.rotate(-0.14);
+
+      const foilGrad = ctx.createLinearGradient(-150, -40, 220, 40);
+      foilGrad.addColorStop(0, "#fde047");
+      foilGrad.addColorStop(0.5, "#f59e0b");
+      foilGrad.addColorStop(1, "#fef08a");
+
+      ctx.shadowColor = "rgba(0, 0, 0, 0.65)";
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = foilGrad;
+      ctx.font = "700 84px 'Caveat', cursive";
+      ctx.textAlign = "center";
+      ctx.fillText(artist.substring(0, 15), 0, 0);
+
+      ctx.strokeStyle = foilGrad;
+      ctx.lineWidth = 5;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(-140, 22);
+      ctx.quadraticCurveTo(20, -5, 160, 28);
+      ctx.quadraticCurveTo(60, 45, -40, 38);
+      ctx.stroke();
+
+      ctx.font = "700 36px 'Caveat', cursive";
+      ctx.fillText("★ Collector's Signed Copy", 20, 72);
+      ctx.restore();
+    }
+
     function drawLidLabelContent(ctx, box, mode, title, artist, accent, rand) {
       const bw = 170, bh = 70, gap = 14; let bx, by, textW, textH;
       if (mode === 'right') { bx = box.x + box.w - bw; by = box.y + (box.h - bh) / 2; textW = box.w - bw - 30; textH = box.h; }
       else { bx = box.x + box.w - bw; by = box.y + box.h - bh; textW = box.w; textH = box.h - bh - gap; }
-
+      
       ctx.fillStyle = "#ffffff"; ctx.fillRect(bx, by, bw, bh); ctx.fillStyle = "#000000";
       for (let x = bx + 10; x < bx + bw - 10; x += (rand() > 0.5 ? 4 : 7)) ctx.fillRect(x, by + 8, rand() * 2.5 + 1, bh - 24);
-      ctx.font = "11px 'Space Mono', monospace"; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+      ctx.font = "11px 'Space Mono', monospace"; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; 
       ctx.fillText(customMetadata.barcode ? customMetadata.barcode.substring(0, 13) : "8  02434  10294  9", bx + 12, by + bh - 5);
 
       if (currentLidShape === 3) {
-        ctx.fillStyle = accent;
-        for (let i = 0; i < 15; i++) { let h = rand() * 50 + 10; ctx.fillRect(40 + (i * 14), 40, 8, h); }
-        ctx.fillStyle = "rgba(255, 255, 255, 0.6)"; ctx.font = "14px 'Space Mono', monospace"; ctx.textBaseline = 'top';
-        ctx.fillText("SYS.REV: 5.3 // MBID: " + (musicBrainzAlbums[currentSlotIndex]?.mbid.substring(0, 8) || "N/A"), 40, 100);
+         ctx.fillStyle = accent;
+         for(let i=0; i<15; i++) { let h = rand() * 50 + 10; ctx.fillRect(40 + (i*14), 40, 8, h); }
+         ctx.fillStyle = "rgba(255, 255, 255, 0.6)"; ctx.font = "14px 'Space Mono', monospace"; ctx.textBaseline = 'top';
+         ctx.fillText("SYS.REV: 8.1 // MBID: " + (musicBrainzAlbums[currentSlotIndex]?.mbid?.substring(0, 8) || "CUSTOM"), 40, 100);
       }
 
       ctx.textBaseline = 'top'; ctx.textAlign = 'left';
@@ -1149,6 +1768,12 @@
       for (const l of lines) { ctx.fillText(l, box.x, y); y += size * 1.12; }
       y += 10; ctx.fillStyle = accent; ctx.font = `600 ${artistSize}px 'Plus Jakarta Sans', sans-serif`;
       ctx.fillText(artist, box.x, y);
+
+      if (caseWearMode === 1) {
+        drawVintageThriftDecals(ctx, rand);
+      } else if (caseWearMode === 2) {
+        drawArtistAutographFoil(ctx, artist);
+      }
     }
 
     let _labelCanvas = null, _labelCtx = null;
@@ -1164,7 +1789,7 @@
       ctx.clearRect(0, 0, LW, LH);
       const theme = albumThemes[themeIndex];
       let title = theme.title, artist = theme.artist, accent = theme.accent, c0 = theme.bg[0], c1 = theme.bg[1];
-      if (customImg) { title = customMetadata.title; artist = customMetadata.artist; accent = "#f97316"; c0 = "#0f172a"; c1 = "#1e293b"; }
+      if (customImg) { title = customMetadata.title; artist = customMetadata.artist; accent = dynamicAccentColor || "#f97316"; c0 = "#0f172a"; c1 = "#1e293b"; }
       const shape = lidShapes[shapeIndex];
       const rand = mulberry32(9000 + shapeIndex * 13 + themeIndex * 7 + (customImg ? 1 : 0));
 
@@ -1175,16 +1800,16 @@
       grad.addColorStop(0, hexToRgba(c0, alpha)); grad.addColorStop(1, hexToRgba(c1, alpha));
       ctx.fillStyle = grad; ctx.fill();
 
-      if (shapeIndex !== 3) {
-        ctx.beginPath(); shape.path(ctx);
-        ctx.lineWidth = 5; ctx.strokeStyle = accent; ctx.stroke();
+      if(shapeIndex !== 3) {
+         ctx.beginPath(); shape.path(ctx);
+         ctx.lineWidth = 5; ctx.strokeStyle = accent; ctx.stroke();
       }
 
       ctx.strokeStyle = accent; ctx.lineWidth = 4; const m = 40, s = 60;
-      ctx.beginPath(); ctx.moveTo(m + s, m); ctx.lineTo(m, m); ctx.lineTo(m, m + s); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(LW - m - s, m); ctx.lineTo(LW - m, m); ctx.lineTo(LW - m, m + s); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(m + s, LH - m); ctx.lineTo(m, LH - m); ctx.lineTo(m, LH - m - s); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(LW - m - s, LH - m); ctx.lineTo(LW - m, LH - m); ctx.lineTo(LW - m, LH - m - s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(m+s, m); ctx.lineTo(m, m); ctx.lineTo(m, m+s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(LW-m-s, m); ctx.lineTo(LW-m, m); ctx.lineTo(LW-m, m+s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(m+s, LH-m); ctx.lineTo(m, LH-m); ctx.lineTo(m, LH-m-s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(LW-m-s, LH-m); ctx.lineTo(LW-m, LH-m); ctx.lineTo(LW-m, LH-m-s); ctx.stroke();
 
       drawLidLabelContent(ctx, shape.box, shape.barcode, title, artist, accent, rand);
       lidLabelTexture.needsUpdate = true;
@@ -1201,34 +1826,124 @@
       perf.ignore = Math.max(perf.ignore, 25); invalidate();
     }
 
+    function applyCaseTintAndWear() {
+      const preset = caseTintPresets[currentCaseTintIndex];
+      const wearExtra = caseWearMode === 1 ? 0.28 : 0.0;
+      if (clearAcrylicMaterialRef) {
+        clearAcrylicMaterialRef.color.setHex(preset.plateColor);
+        clearAcrylicMaterialRef.transmission = Math.max(0.65, preset.transmission - wearExtra * 0.35);
+        clearAcrylicMaterialRef.clearcoatRoughness = Math.min(1.0, 0.35 + preset.roughnessBoost + wearExtra);
+        clearAcrylicMaterialRef.needsUpdate = true;
+      }
+      if (clearEdgeMaterialRef) {
+        clearEdgeMaterialRef.color.setHex(preset.edgeColor);
+        clearEdgeMaterialRef.transmission = preset.edgeTransmission;
+        clearEdgeMaterialRef.needsUpdate = true;
+      }
+      document.getElementById('caseTintBtn').innerText = `Casing: ${preset.name}`;
+      document.getElementById('caseWearBtn').innerText = `Kondisi: ${caseWearNames[caseWearMode]}`;
+      refreshLidLabel();
+    }
+
+    function applyDiscFinish() {
+      const finish = discFinishPresets[currentDiscFinishIndex];
+      if (cdIridescenceMaterial && cdIridescenceMaterial.uniforms.uBaseMetal) {
+        cdIridescenceMaterial.uniforms.uBaseMetal.value.copy(finish.vec);
+      }
+      generateDiscTexture(currentCoverIndex, currentCustomImage);
+      document.getElementById('discFinishBtn').innerText = `CD: ${finish.name}`;
+      invalidate();
+    }
+
+    function toggleObiStrip() {
+      isObiEnabled = !isObiEnabled;
+      if (obiStripGroup) obiStripGroup.visible = isObiEnabled;
+      const btn = document.getElementById('obiToggleBtn');
+      if (btn) {
+        btn.innerText = isObiEnabled ? "🇯🇵 Obi: ON" : "🇯🇵 Obi: OFF";
+        btn.className = isObiEnabled
+          ? "px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold transition active:scale-95 border border-rose-200"
+          : "px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-500 font-medium transition active:scale-95 border border-slate-200";
+      }
+      playMechanicalSFX('rackHover');
+      showToast(isObiEnabled ? "Obi Strip Edisi Jepang dipasang" : "Obi Strip dilepas");
+      invalidate();
+    }
+
+    function setQuickCameraAngle(preset) {
+      playMechanicalSFX('rackHover');
+      document.querySelectorAll('.camPresetBtn').forEach(b => {
+        const active = b.getAttribute('data-cam') === preset;
+        b.className = active
+          ? "camPresetBtn px-2 py-0.5 rounded-md bg-slate-900 text-white font-bold transition"
+          : "camPresetBtn px-2 py-0.5 rounded-md bg-slate-900/5 hover:bg-slate-900/10 text-slate-700 font-bold transition";
+      });
+
+      if (preset === 'front') {
+        targetRotX = 0.25;
+        targetRotY = -0.45;
+        targetCamX = 0.0;
+        targetCamY = 0.0;
+        targetCamZ = 8.0;
+      } else if (preset === 'back') {
+        if (isOpen) toggleCase();
+        targetRotX = 0.05;
+        targetRotY = Math.PI - 0.12;
+        targetCamX = 0.0;
+        targetCamY = 0.0;
+        targetCamZ = 5.4;
+        showToast("Sudut Belakang: Menampilkan daftar lagu cetak & barcode");
+      } else if (preset === 'spine') {
+        if (isOpen) toggleCase();
+        targetRotX = 0.08;
+        targetRotY = Math.PI * 0.44;
+        targetCamX = 0.0;
+        targetCamY = 0.0;
+        targetCamZ = 5.3;
+        showToast("Sudut Spine: Menampilkan punggung kaset & pita Obi Jepang");
+      } else if (preset === 'rack') {
+        targetRotX = 0.22;
+        targetRotY = -0.35;
+        targetCamX = -1.65;
+        targetCamY = -0.25;
+        targetCamZ = 9.2;
+        showToast("Sudut Rak: Klik salah satu dari 14 slot CD untuk memuat");
+      }
+      invalidate();
+    }
+
     function applySkeletonPhase() {
       const skel = getSkeletonTexture();
-
       if (trayInsideMesh) trayInsideMesh.material.map = skel;
       if (trayOutsideMesh) trayOutsideMesh.material.map = skel;
       if (cdIridescenceMaterial) cdIridescenceMaterial.uniforms.uCoverTex.value = skel;
       if (lidLabelMesh) lidLabelMesh.material.map = skel;
-
+      if (obiStripMesh) obiStripMesh.material.map = skel;
       invalidate();
     }
 
     function clearSkeletonPhase() {
       activeGhostMaterials.length = 0;
-
       if (trayInsideMesh && frontCoverTexture) trayInsideMesh.material.map = frontCoverTexture;
       if (trayOutsideMesh && backCoverTexture) trayOutsideMesh.material.map = backCoverTexture;
       if (cdIridescenceMaterial && discTexture) cdIridescenceMaterial.uniforms.uCoverTex.value = discTexture;
       if (lidLabelMesh && lidLabelTexture) lidLabelMesh.material.map = lidLabelTexture;
+      if (obiStripMesh && obiStripTexture) obiStripMesh.material.map = obiStripTexture;
     }
 
     function preRenderAlbumTexturesStaggered(onDone) {
       requestAnimationFrame(() => {
+        if (currentCustomImage) {
+          const palette = extractDominantColorsFromImage(currentCustomImage);
+          if (palette) applyDynamicStageLighting(palette);
+        }
         generateFrontCoverTexture(currentCoverIndex, currentCustomImage);
         requestAnimationFrame(() => {
           generateBackCoverTexture(currentCoverIndex, currentCustomImage);
           requestAnimationFrame(() => {
             generateDiscTexture(currentCoverIndex, currentCustomImage);
             generateLidLabelTexture(currentCoverIndex, currentCustomImage, currentLidShape);
+            generateObiStripTexture(currentCoverIndex, currentCustomImage);
             texturesPreRendered = true;
             if (onDone) onDone();
           });
@@ -1237,7 +1952,7 @@
     }
 
     // ==========================================
-    // 5. MATERIAL & LOGIKA 3D
+    // 5. MATERIAL, OBI STRIP 3D & DUST PARTICLES
     // ==========================================
     function createProceduralEnvMap() {
       const W = 512, H = 256; const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H; const ctx = canvas.getContext('2d');
@@ -1276,6 +1991,37 @@
       geos.forEach(g => g.dispose()); parts.forEach(g => g.dispose()); return out;
     }
 
+    function createStudioDustParticles() {
+      const count = 48;
+      const positions = new Float32Array(count * 3);
+      for (let i = 0; i < count; i++) {
+        positions[i * 3] = (Math.random() - 0.5) * 9.5;
+        positions[i * 3 + 1] = (Math.random() - 0.5) * 6.0;
+        positions[i * 3 + 2] = (Math.random() - 0.5) * 6.5;
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+      const c = document.createElement('canvas'); c.width = c.height = 32;
+      const ctx = c.getContext('2d');
+      const g = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+      g.addColorStop(0, 'rgba(255,255,255,1)');
+      g.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, 32, 32);
+
+      const mat = new THREE.PointsMaterial({
+        size: 0.09,
+        map: new THREE.CanvasTexture(c),
+        transparent: true,
+        opacity: 0.32,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+      });
+
+      studioDustPoints = new THREE.Points(geo, mat);
+      scene.add(studioDustPoints);
+    }
+
     function createGroundShadow() {
       const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
       const grad = g.createRadialGradient(128, 128, 0, 128, 128, 128);
@@ -1297,14 +2043,18 @@
     }
 
     function createCDMaterial(coverTexture) {
-      const uniforms = { uLightPos: { value: new THREE.Vector3(4, 8, 6) }, uCoverTex: { value: coverTexture } };
+      const uniforms = {
+        uLightPos: { value: new THREE.Vector3(4, 8, 6) },
+        uCoverTex: { value: coverTexture },
+        uBaseMetal: { value: new THREE.Vector3(0.92, 0.93, 0.96) }
+      };
       const vertexShader = `
         varying vec3 vNormal; varying vec3 vViewPosition; varying vec3 vTangent; varying vec3 vLocalPosition; varying float vSide;
         void main() { vLocalPosition = position; vSide = normal.z; vNormal = normalize(normalMatrix * normal); vTangent = normalMatrix * vec3(-position.y, position.x, 0.0); vec4 mvPosition = modelViewMatrix * vec4(position, 1.0); vViewPosition = -mvPosition.xyz; gl_Position = projectionMatrix * mvPosition; }
       `;
       const fragmentShader = `
         varying vec3 vNormal; varying vec3 vViewPosition; varying vec3 vTangent; varying vec3 vLocalPosition; varying float vSide;
-        uniform vec3 uLightPos; uniform sampler2D uCoverTex;
+        uniform vec3 uLightPos; uniform sampler2D uCoverTex; uniform vec3 uBaseMetal;
         vec3 spectralRainbow(float t) { return 0.5 + 0.5 * cos(6.28318 * (t + vec3(0.0, 0.33, 0.67))); }
         void main() {
           vec2 discUv = (vLocalPosition.xy / 2.3) + 0.5; float dist = length(discUv - vec2(0.5));
@@ -1312,14 +2062,14 @@
           vec3 N = normalize(vNormal); vec3 V = normalize(vViewPosition); vec3 L = normalize((viewMatrix * vec4(uLightPos, 1.0)).xyz + vViewPosition);
           float tl = length(vTangent); vec3 T = tl > 1e-5 ? vTangent / tl : vec3(0.0);
           vec3 rainbow = spectralRainbow((dot(V, T) + dot(L, T)) * 7.5 + dist * 2.8);
-          vec3 silverAlu = vec3(0.92, 0.93, 0.96); vec3 H = normalize(L + V);
+          vec3 metalBase = uBaseMetal; vec3 H = normalize(L + V);
           float diffuse = max(dot(N, L), 0.0), spec = pow(max(dot(N, H), 0.0), 40.0), fresnel = pow(1.0 - max(dot(N, V), 0.0), 3.0);
           bool isBack = vSide < -0.5; vec3 finalColor = vec3(0.0); float alpha = 1.0;
           if (dist < 0.08) { finalColor = vec3(0.95); alpha = 0.2 + fresnel * 0.7; }
-          else if (isBack) { finalColor = mix(silverAlu, rainbow, 0.55) * (0.55 + 0.45 * diffuse) + spec * 1.2; }
-          else if (dist < 0.16) { finalColor = mix(silverAlu, rainbow, 0.7) * (0.6 + 0.4 * diffuse); finalColor += spec * 1.5; }
+          else if (isBack) { finalColor = mix(metalBase, rainbow, 0.55) * (0.55 + 0.45 * diffuse) + spec * 1.2; }
+          else if (dist < 0.16) { finalColor = mix(metalBase, rainbow, 0.7) * (0.6 + 0.4 * diffuse); finalColor += spec * 1.5; }
           else { vec4 cover = texture2D(uCoverTex, discUv); finalColor = cover.rgb * (0.7 + 0.3 * diffuse) + spec * 0.8 + rainbow * 0.15 * fresnel; }
-          if (dist > 0.492) { finalColor = silverAlu * (0.5 + 0.5 * diffuse) + spec; }
+          if (dist > 0.492) { finalColor = metalBase * (0.5 + 0.5 * diffuse) + spec; }
           gl_FragColor = vec4(finalColor, alpha);
         }
       `;
@@ -1339,10 +2089,10 @@
           const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
           mats.forEach(mat => {
             if (!mat) return;
-            ['map', 'roughnessMap', 'metalnessMap', 'normalMap', 'clearcoatMap',
-              'clearcoatRoughnessMap', 'envMap', 'emissiveMap', 'aoMap', 'lightMap'].forEach(key => {
-                if (mat[key]) { mat[key].dispose(); mat[key] = null; }
-              });
+            ['map','roughnessMap','metalnessMap','normalMap','clearcoatMap',
+             'clearcoatRoughnessMap','envMap','emissiveMap','aoMap','lightMap'].forEach(key => {
+              if (mat[key]) { mat[key].dispose(); mat[key] = null; }
+            });
             mat.dispose();
           });
         }
@@ -1356,70 +2106,86 @@
       cdAssembly = new THREE.Group(); scene.add(cdAssembly);
 
       const acrylicRoughMap = getAcrylicRoughnessMap();
-      const acrylicBase = { transmission: 1.0, opacity: 1, transparent: true, depthWrite: false, metalness: 0.02, ior: 1.52, reflectivity: 1.0, side: THREE.DoubleSide, envMapIntensity: 1.15, roughness: 1.0, roughnessMap: acrylicRoughMap, clearcoat: 1.0, clearcoatRoughness: 1.0, clearcoatRoughnessMap: acrylicRoughMap, thickness: 0.15 };
+      const acrylicBase = { transmission: 1.0, opacity: 1, transparent: true, depthWrite: false, metalness: 0.02, ior: 1.52, reflectivity: 1.0, side: THREE.DoubleSide, envMapIntensity: 1.15, roughness: 1.0, roughnessMap: acrylicRoughMap, clearcoat: 1.0, clearcoatRoughness: 0.35, clearcoatRoughnessMap: acrylicRoughMap, thickness: 0.15 };
       const clearAcrylicMaterial = new THREE.MeshPhysicalMaterial(Object.assign({ color: 0xffffff }, acrylicBase));
       const clearEdgeMaterial = new THREE.MeshPhysicalMaterial(Object.assign({}, acrylicBase, { color: 0xdcf1ec, transmission: 0.93 }));
+      clearAcrylicMaterialRef = clearAcrylicMaterial;
+      clearEdgeMaterialRef = clearEdgeMaterial;
 
       const caseW = 2.8, caseH = 2.65, caseD = 0.28, t = 0.04;
       const cornerRadius = 0.12, rimThick = 0.045, edgeDepth = caseD / 2;
 
       const baseShape = getRoundedRectShape(caseW, caseH, cornerRadius);
-      const plateGeo = new THREE.ExtrudeGeometry(baseShape, { depth: t, bevelEnabled: false }); plateGeo.translate(0, 0, -t / 2);
+      const plateGeo = new THREE.ExtrudeGeometry(baseShape, { depth: t, bevelEnabled: false }); plateGeo.translate(0, 0, -t/2);
 
       const rimShape = getRoundedRectShape(caseW, caseH, cornerRadius);
-      const holeShape = getRoundedRectShape(caseW - rimThick * 2, caseH - rimThick * 2, Math.max(0, cornerRadius - rimThick));
+      const holeShape = getRoundedRectShape(caseW - rimThick*2, caseH - rimThick*2, Math.max(0, cornerRadius - rimThick));
       rimShape.holes.push(holeShape);
-      const rimGeo = new THREE.ExtrudeGeometry(rimShape, { depth: edgeDepth, bevelEnabled: false }); rimGeo.translate(0, 0, -edgeDepth / 2);
+      const rimGeo = new THREE.ExtrudeGeometry(rimShape, { depth: edgeDepth, bevelEnabled: false }); rimGeo.translate(0, 0, -edgeDepth/2);
 
-      // Back Group
       const backGroup = new THREE.Group();
-      const backPlate = new THREE.Mesh(plateGeo, clearAcrylicMaterial); backPlate.position.z = -caseD / 2 + t / 2; backGroup.add(backPlate);
-      const backRim = new THREE.Mesh(rimGeo, clearEdgeMaterial); backRim.position.z = -caseD / 4; backGroup.add(backRim);
+      const backPlate = new THREE.Mesh(plateGeo, clearAcrylicMaterial); backPlate.position.z = -caseD/2 + t/2; backGroup.add(backPlate);
+      const backRim = new THREE.Mesh(rimGeo, clearEdgeMaterial); backRim.position.z = -caseD/4; backGroup.add(backRim);
 
       frontCoverTexture = generateFrontCoverTexture(currentCoverIndex, currentCustomImage);
       backCoverTexture = generateBackCoverTexture(currentCoverIndex, currentCustomImage);
 
-      const inlayGeo = new THREE.PlaneGeometry(caseW - rimThick * 2 - 0.01, caseH - rimThick * 2 - 0.01);
+      const inlayGeo = new THREE.PlaneGeometry(caseW - rimThick*2 - 0.01, caseH - rimThick*2 - 0.01);
       const trayOutsideMat = new THREE.MeshStandardMaterial({ map: backCoverTexture, roughness: 0.8, metalness: 0 });
-      trayOutsideMesh = new THREE.Mesh(inlayGeo, trayOutsideMat); trayOutsideMesh.name = "trayOutside"; trayOutsideMesh.rotation.y = Math.PI; trayOutsideMesh.position.z = -caseD / 2 + t + 0.001; backGroup.add(trayOutsideMesh);
+      trayOutsideMesh = new THREE.Mesh(inlayGeo, trayOutsideMat); trayOutsideMesh.name = "trayOutside"; trayOutsideMesh.rotation.y = Math.PI; trayOutsideMesh.position.z = -caseD/2 + t + 0.001; backGroup.add(trayOutsideMesh);
       const trayInsideMat = new THREE.MeshStandardMaterial({ map: frontCoverTexture, roughness: 0.8, metalness: 0 });
-      trayInsideMesh = new THREE.Mesh(inlayGeo, trayInsideMat); trayInsideMesh.name = "trayInside"; trayInsideMesh.position.z = -caseD / 2 + t + 0.002; backGroup.add(trayInsideMesh);
+      trayInsideMesh = new THREE.Mesh(inlayGeo, trayInsideMat); trayInsideMesh.name = "trayInside"; trayInsideMesh.position.z = -caseD/2 + t + 0.002; backGroup.add(trayInsideMesh);
 
-      // Frame L-brackets
-      const frameGroup = new THREE.Group(); frameGroup.position.z = -caseD / 2 + t + 0.015;
-      const bracketDistX = caseW / 2 - rimThick - 0.12, bracketDistY = caseH / 2 - rimThick - 0.12;
+      const frameGroup = new THREE.Group(); frameGroup.position.z = -caseD/2 + t + 0.015;
+      const bracketDistX = caseW/2 - rimThick - 0.12, bracketDistY = caseH/2 - rimThick - 0.12;
       const bLength = 0.45, bThick = 0.06, bHeight = 0.12;
 
       const frameParts = [];
       [[1, 1], [-1, 1], [1, -1], [-1, -1]].forEach(([dirX, dirY]) => {
-        frameParts.push(new THREE.BoxGeometry(bLength, bThick, bHeight).translate(dirX * (bracketDistX - bLength / 2 + bThick / 2), dirY * bracketDistY, 0));
-        frameParts.push(new THREE.BoxGeometry(bThick, bLength - bThick, bHeight).translate(dirX * bracketDistX, dirY * (bracketDistY - bLength / 2), 0));
+        frameParts.push(new THREE.BoxGeometry(bLength, bThick, bHeight).translate(dirX * (bracketDistX - bLength/2 + bThick/2), dirY * bracketDistY, 0));
+        frameParts.push(new THREE.BoxGeometry(bThick, bLength - bThick, bHeight).translate(dirX * bracketDistX, dirY * (bracketDistY - bLength/2), 0));
       });
       [[1.2, 0], [-1.2, 0], [0, 1.15], [0, -1.15]].forEach(([x, y]) => { frameParts.push(new THREE.BoxGeometry(0.08, 0.08, 0.12).translate(x, y, 0)); });
-      frameParts.push(new THREE.CylinderGeometry(0.18, 0.18, 0.08, 32).rotateX(Math.PI / 2));
-      for (let k = 0; k < 4; k++) frameParts.push(new THREE.BoxGeometry(0.05, 0.05, 0.12).translate(Math.cos(k * Math.PI / 2) * 0.13, Math.sin(k * Math.PI / 2) * 0.13, 0.03));
-
+      frameParts.push(new THREE.CylinderGeometry(0.18, 0.18, 0.08, 32).rotateX(Math.PI/2));
+      for (let k = 0; k < 4; k++) frameParts.push(new THREE.BoxGeometry(0.05, 0.05, 0.12).translate(Math.cos(k * Math.PI/2) * 0.13, Math.sin(k * Math.PI/2) * 0.13, 0.03));
+      
       frameGroup.add(new THREE.Mesh(mergeGeometries(frameParts), clearEdgeMaterial));
       backGroup.add(frameGroup); cdAssembly.add(backGroup);
 
-      // CD Disc
       cdDiscGroup = new THREE.Group(); cdDiscGroup.position.set(0, 0, frameGroup.position.z + 0.04); cdDiscGroup.userData.baseZ = cdDiscGroup.position.z;
       const discGeo = new THREE.CylinderGeometry(1.15, 1.15, 0.012, 64); discGeo.rotateX(Math.PI / 2);
       discTexture = generateDiscTexture(currentCoverIndex, currentCustomImage);
-      if (!cdIridescenceMaterial) cdIridescenceMaterial = createCDMaterial(discTexture);
+      if(!cdIridescenceMaterial) cdIridescenceMaterial = createCDMaterial(discTexture);
       cdDiscMesh = new THREE.Mesh(discGeo, cdIridescenceMaterial); cdDiscGroup.add(cdDiscMesh); cdAssembly.add(cdDiscGroup);
 
-      // Front Lid
-      caseLidGroup = new THREE.Group(); caseLidGroup.position.set(-caseW / 2, 0, 0);
-      const lidPlate = new THREE.Mesh(plateGeo, clearAcrylicMaterial); lidPlate.position.set(caseW / 2, 0, caseD / 2 - t / 2); caseLidGroup.add(lidPlate);
-      const lidRim = new THREE.Mesh(rimGeo, clearEdgeMaterial); lidRim.position.set(caseW / 2, 0, caseD / 4); caseLidGroup.add(lidRim);
+      caseLidGroup = new THREE.Group(); caseLidGroup.position.set(-caseW/2, 0, 0);
+      const lidPlate = new THREE.Mesh(plateGeo, clearAcrylicMaterial); lidPlate.position.set(caseW/2, 0, caseD/2 - t/2); caseLidGroup.add(lidPlate);
+      const lidRim = new THREE.Mesh(rimGeo, clearEdgeMaterial); lidRim.position.set(caseW/2, 0, caseD/4); caseLidGroup.add(lidRim);
 
       lidLabelTexture = generateLidLabelTexture(currentCoverIndex, currentCustomImage, currentLidShape);
       lidLabelMesh = new THREE.Mesh(new THREE.PlaneGeometry(caseW, caseH), new THREE.MeshBasicMaterial({ map: lidLabelTexture, transparent: true, depthWrite: false, side: THREE.DoubleSide }));
       lidLabelMesh.name = "lidLabel"; lidLabelMesh.position.set(caseW / 2, 0, caseD / 2 + 0.003); caseLidGroup.add(lidLabelMesh);
 
       cdAssembly.add(caseLidGroup);
-      targetLidAngle = isOpen ? -Math.PI * 0.78 : 0; currentLidAngle = targetLidAngle; caseLidGroup.rotation.y = currentLidAngle;
+
+      obiStripGroup = new THREE.Group();
+      obiStripTexture = generateObiStripTexture(currentCoverIndex, currentCustomImage);
+      const obiMat = new THREE.MeshStandardMaterial({ map: obiStripTexture, roughness: 0.72, metalness: 0.05, side: THREE.DoubleSide });
+      const obiW = 0.44;
+      const obiH = caseH + 0.012;
+      const obiD = caseD + 0.014;
+      const leftEdgeX = -caseW / 2 - 0.006;
+
+      const obiFront = new THREE.PlaneGeometry(obiW, obiH).translate(leftEdgeX + obiW / 2, 0, obiD / 2);
+      const obiSpine = new THREE.PlaneGeometry(obiD, obiH).rotateY(-Math.PI / 2).translate(leftEdgeX, 0, 0);
+      const obiBack = new THREE.PlaneGeometry(obiW, obiH).rotateY(Math.PI).translate(leftEdgeX + obiW / 2, 0, -obiD / 2);
+
+      obiStripMesh = new THREE.Mesh(mergeGeometries([obiFront, obiSpine, obiBack]), obiMat);
+      obiStripGroup.add(obiStripMesh);
+      obiStripGroup.visible = isObiEnabled;
+      cdAssembly.add(obiStripGroup);
+
+      targetLidAngle = isOpen ? LID_OPEN_ANGLE : 0; currentLidAngle = targetLidAngle; caseLidGroup.rotation.y = currentLidAngle;
       cdAssembly.userData.targetPosX = isOpen ? OPEN_OFFSET_X : 0.0; cdAssembly.position.x = cdAssembly.userData.targetPosX;
     }
 
@@ -1459,7 +2225,6 @@
       return makeCanvasTexture(canvas, true, 2);
     }
 
-    // Sinkronisasi sampul asli yang sudah dimuat ke kaset dummy di rak
     function syncDummyRackSlotArtwork(slotIdx, imgSource, title, artist) {
       const dummyMesh = rackDummyMeshes[slotIdx];
       const alb = musicBrainzAlbums[slotIdx];
@@ -1491,8 +2256,6 @@
         scene.remove(desktopRackGroup);
       }
       desktopRackGroup = new THREE.Group();
-      // Rak digeser lebih jauh ke belakang (Z = -4.2) dan sedikit ke kiri (X = -3.8)
-      // agar ketika kaset di tengah diputar 360 derajat atau dibuka, sama sekali tidak menembus rak.
       desktopRackGroup.position.set(-3.8, -1.05, -4.2);
       desktopRackGroup.rotation.set(0.12, 0.45, -0.02);
       desktopRackGroup.scale.set(0.70, 0.70, 0.70);
@@ -1563,7 +2326,6 @@
       desktopRackGroup.add(new THREE.Mesh(mergeGeometries(clearGeos), rackClearMat));
       desktopRackGroup.add(new THREE.Mesh(mergeGeometries(edgeGeos), rackEdgeMat));
 
-      // Proporsi Dummy CD disesuaikan (2.45 x 2.32 x 0.245) agar rasionya 100% identik dengan cdAssembly (2.8 x 2.65 x 0.28)
       const caseW = 2.45, caseH = 2.32, caseD = 0.245;
       const sharedDummyGeo = new THREE.BoxGeometry(caseW, caseH, caseD);
       const sharedSideMat1 = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.6 });
@@ -1627,25 +2389,37 @@
     function init() {
       const container = document.getElementById('canvas-container');
       scene = new THREE.Scene(); scene.environment = createProceduralEnvMap();
-      camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100); camera.position.set(0, 0, 8.0);
+      camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
+      camera.position.set(currentCamX, currentCamY, currentCamZ);
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
       applyPixelRatio(); renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
       container.appendChild(renderer.domElement);
       window.scene = scene; window.renderer = renderer; window.camera = camera;
 
-      scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+      const ambLight = new THREE.AmbientLight(0xffffff, 0.9); scene.add(ambLight);
       const keyLight = new THREE.DirectionalLight(0xffffff, 1.4); keyLight.position.set(5, 8, 5); scene.add(keyLight);
       const softFill = new THREE.DirectionalLight(0xe0e7ff, 0.6); softFill.position.set(-5, 4, 3); scene.add(softFill);
       const subtleRim = new THREE.PointLight(0x60a5fa, 0.8, 12); subtleRim.position.set(-3, -3, -2); scene.add(subtleRim);
+      ambientLightRef = ambLight;
+      keyLightRef = keyLight;
+      softFillRef = softFill;
       rimLightRef = subtleRim;
 
       createGroundShadow();
+      createStudioDustParticles();
       buildProceduralCDAssembly();
       buildDesktopAcrylicRack();
       setupInteractions();
       setupUIEvents();
+      setupKeyboardShortcuts();
       renderTracklistDrawer();
       window.addEventListener('resize', onWindowResize);
+
+      // Jika halaman dibuka dari tautan ?rack=..., langsung sinkronkan album Slot 01 dari payload URL
+      if (loadedFromUrlParam) {
+        showToast("Koleksi Rak dari URL (?rack=...) berhasil dimuat!", 4000);
+        fetchMusicBrainzAlbum(musicBrainzAlbums[0]);
+      }
     }
 
     let _prepareCanvas = null, _prepareCtx = null;
@@ -1671,9 +2445,14 @@
     function updateTextures() {
       rackSwapState = 'IDLE';
       if (!texturesPreRendered) {
+        if (currentCustomImage) {
+          const palette = extractDominantColorsFromImage(currentCustomImage);
+          if (palette) applyDynamicStageLighting(palette);
+        }
         generateFrontCoverTexture(currentCoverIndex, currentCustomImage);
         generateBackCoverTexture(currentCoverIndex, currentCustomImage);
         generateDiscTexture(currentCoverIndex, currentCustomImage);
+        generateObiStripTexture(currentCoverIndex, currentCustomImage);
         refreshLidLabel();
       } else {
         if (lidLabelMesh && lidLabelMesh.material.map !== lidLabelTexture) {
@@ -1686,7 +2465,6 @@
       if (currentCustomImage) {
         document.getElementById('albumTitleDisplay').innerText = customMetadata.title;
         document.getElementById('albumArtistDisplay').innerText = customMetadata.artist;
-        document.body.style.backgroundColor = "#18181b";
         syncDummyRackSlotArtwork(currentSlotIndex, currentCustomImage, customMetadata.title, customMetadata.artist);
       } else {
         const theme = albumThemes[currentCoverIndex];
@@ -1699,7 +2477,7 @@
     }
 
     // ==============================================================
-    // 6. IMPLEMENTASI FETCH API MUSICBRAINZ + LIVE SEARCH
+    // 6. FETCH API MUSICBRAINZ + LIVE SEARCH PICKER DROPDOWN
     // ==============================================================
     async function fetchMusicBrainzAlbum(albumConfig) {
       const btnText = document.getElementById('mbBtnText');
@@ -1717,12 +2495,12 @@
         if (toastMsg) showToast(toastMsg);
         preRenderAlbumTexturesStaggered(() => {
           pendingAlbumDataReady = true;
+          if (rackSwapState === 'IDLE') updateTextures();
           invalidate();
         });
         if (searchTerm) fetchItunesAudioPreview(searchTerm);
       };
 
-      // Jika hasil Live Search sudah memiliki customCoverUrl langsung (tanpa MBID atau dengan MBID)
       if (albumConfig.isLiveSearch && albumConfig.fallbackCover) {
         customMetadata = {
           title: albumConfig.fallbackTitle,
@@ -1731,7 +2509,7 @@
           tracklist: albumConfig.fallbackTracks,
           date: albumConfig.date || "2025",
           country: albumConfig.country || "INT",
-          label: "LIVE SEARCH ENGINE"
+          label: "ITUNES / LIVE SEARCH"
         };
         const liveImg = new Image();
         liveImg.crossOrigin = "anonymous";
@@ -1747,7 +2525,6 @@
         });
 
         if (!mbRes.ok) throw new Error(`MusicBrainz Error: ${mbRes.status}`);
-
         const data = await mbRes.json();
 
         const albumTitle = (data.title || albumConfig.fallbackTitle).toUpperCase();
@@ -1804,8 +2581,6 @@
         img.src = coverUrl;
 
       } catch (err) {
-        console.warn("Gagal terhubung ke MusicBrainz API, mengaktifkan data fallback lokal:", err);
-
         customMetadata = {
           title: albumConfig.fallbackTitle,
           artist: albumConfig.fallbackArtist,
@@ -1829,62 +2604,114 @@
       }
     }
 
-    // Live Search Album via iTunes Search API (cepat, mendukung CORS cover 600x600 & daftar lagu)
     async function performLiveAlbumSearch(queryText) {
       if (!queryText || !queryText.trim()) return;
       const searchBtn = document.getElementById('liveSearchBtn');
+      const dropdown = document.getElementById('searchResultsDropdown');
+      const listEl = document.getElementById('searchResultsList');
       searchBtn.innerText = "...";
       showToast(`Mencari album "${queryText}"...`);
 
       try {
         const q = encodeURIComponent(queryText.trim());
-        const res = await fetch(`https://itunes.apple.com/search?term=${q}&entity=song&limit=8`);
+        const res = await fetch(`https://itunes.apple.com/search?term=${q}&entity=album&limit=6`);
         if (!res.ok) throw new Error("Search failed");
         const data = await res.json();
 
+        searchBtn.innerText = "Cari";
         if (!data.results || data.results.length === 0) {
-          showToast(`Tidak ditemukan hasil untuk "${queryText}"`);
-          searchBtn.innerText = "Cari";
+          showToast(`Tidak ditemukan album untuk "${queryText}"`);
           return;
         }
 
-        const first = data.results[0];
-        const albumTitle = (first.collectionName || first.trackName || queryText).toUpperCase();
-        const artistName = (first.artistName || "UNKNOWN ARTIST").toUpperCase();
-        const highResCover = (first.artworkUrl100 || "").replace("100x100bb", "600x600bb");
+        listEl.innerHTML = '';
+        dropdown.classList.remove('hidden');
+        dropdown.classList.add('flex');
 
-        const tracks = data.results.slice(0, 7).map((item, idx) => {
-          const ms = item.trackTimeMillis || 200000;
-          const min = Math.floor(ms / 60000);
-          const sec = Math.floor((ms % 60000) / 1000).toString().padStart(2, '0');
-          return {
-            n: String(idx + 1).padStart(2, '0'),
-            t: (item.trackName || `TRACK ${idx + 1}`).toUpperCase(),
-            l: `${min}:${sec}`
-          };
+        data.results.forEach((albItem) => {
+          const itemBtn = document.createElement('button');
+          itemBtn.type = "button";
+          itemBtn.className = "w-full text-left p-1.5 rounded-xl hover:bg-slate-900/10 flex items-center gap-2.5 transition";
+          const thumb = albItem.artworkUrl60 || "";
+          const cName = (albItem.collectionName || "UNKNOWN ALBUM").toUpperCase();
+          const aName = (albItem.artistName || "UNKNOWN ARTIST").toUpperCase();
+          const year = albItem.releaseDate ? albItem.releaseDate.substring(0, 4) : "";
+
+          itemBtn.innerHTML = `
+            <img src="${thumb}" class="w-9 h-9 rounded-lg object-cover bg-slate-200 flex-shrink-0" alt="">
+            <div class="min-w-0 flex-1">
+              <p class="text-[11px] font-bold text-slate-800 truncate">${cName}</p>
+              <p class="mono text-[9px] text-slate-500 truncate">${aName} ${year ? '• ' + year : ''}</p>
+            </div>
+          `;
+
+          itemBtn.addEventListener('click', () => {
+            dropdown.classList.add('hidden');
+            dropdown.classList.remove('flex');
+            loadSelectedSearchAlbumIntoRack(albItem);
+          });
+          listEl.appendChild(itemBtn);
         });
-
-        // Simpan ke slot berikutnya di rak lalu lakukan animasi pertukaran rak
-        const targetSlot = (currentSlotIndex + 1) % musicBrainzAlbums.length;
-        musicBrainzAlbums[targetSlot] = Object.assign({}, musicBrainzAlbums[targetSlot], {
-          isLiveSearch: true,
-          fallbackTitle: albumTitle,
-          fallbackArtist: artistName,
-          searchQuery: `${artistName} ${tracks[0].t}`,
-          fallbackBarcode: String(first.collectionId || "88492019283"),
-          fallbackCover: highResCover,
-          fallbackTracks: tracks,
-          date: first.releaseDate ? first.releaseDate.substring(0, 10) : "2024",
-          country: first.country || "USA"
-        });
-
-        searchBtn.innerText = "Cari";
-        startRackSwap(targetSlot);
       } catch (e) {
         console.warn("Live search error:", e);
         searchBtn.innerText = "Cari";
         showToast("Gagal mencari album. Coba kata kunci lain.");
       }
+    }
+
+    async function loadSelectedSearchAlbumIntoRack(albItem) {
+      const slotSelectVal = document.getElementById('searchSlotSelect').value;
+      let targetSlot = slotSelectVal === 'next'
+        ? (currentSlotIndex + 1) % musicBrainzAlbums.length
+        : parseInt(slotSelectVal, 10);
+
+      if (targetSlot === currentSlotIndex) {
+        targetSlot = (currentSlotIndex + 1) % musicBrainzAlbums.length;
+      }
+
+      const albumTitle = (albItem.collectionName || "CUSTOM ALBUM").toUpperCase();
+      const artistName = (albItem.artistName || "UNKNOWN ARTIST").toUpperCase();
+      const highResCover = (albItem.artworkUrl100 || "").replace("100x100bb", "600x600bb");
+
+      showToast(`Memuat daftar lagu dari ${albumTitle}...`);
+
+      let tracks = [];
+      try {
+        const songRes = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artistName + ' ' + albumTitle)}&entity=song&limit=8`);
+        const songData = await songRes.json();
+        if (songData.results && songData.results.length > 0) {
+          tracks = songData.results.map((item, idx) => {
+            const ms = item.trackTimeMillis || 200000;
+            const min = Math.floor(ms / 60000);
+            const sec = Math.floor((ms % 60000) / 1000).toString().padStart(2, '0');
+            return {
+              n: String(idx + 1).padStart(2, '0'),
+              t: (item.trackName || `TRACK ${idx + 1}`).toUpperCase(),
+              l: `${min}:${sec}`
+            };
+          });
+        }
+      } catch (_) {}
+
+      if (tracks.length === 0) {
+        tracks = [{ n: "01", t: albumTitle, l: "03:45" }];
+      }
+
+      musicBrainzAlbums[targetSlot] = Object.assign({}, musicBrainzAlbums[targetSlot], {
+        isLiveSearch: true,
+        fallbackTitle: albumTitle,
+        fallbackArtist: artistName,
+        searchQuery: `${artistName} ${tracks[0].t}`,
+        fallbackBarcode: String(albItem.collectionId || "88492019283"),
+        fallbackCover: highResCover,
+        fallbackTracks: tracks,
+        date: albItem.releaseDate ? albItem.releaseDate.substring(0, 10) : "2024",
+        country: albItem.country || "INT"
+      });
+
+      saveRackToStorage(true);
+      syncDummyRackSlotArtwork(targetSlot, null, albumTitle, artistName);
+      startRackSwap(targetSlot);
     }
 
     function startRackSwap(targetArg) {
@@ -1916,7 +2743,7 @@
     }
 
     // ==========================================
-    // 7. EVENT & INTERAKSI (HOVER PEEK + DJ SCRUBBING)
+    // 7. EVENT, MACRO ZOOM & HOTKEYS
     // ==========================================
     const raycaster = new THREE.Raycaster();
     const mouseVec = new THREE.Vector2();
@@ -2006,7 +2833,6 @@
         if (e.pointerType === 'mouse' && e.button !== 0) return;
         if (activePointerId !== null) return;
 
-        // Cek apakah user mengklik kepingan CD saat sedang Ejected (untuk DJ Scrubbing)
         if (isDiscOut && cdDiscMesh) {
           const rect = container.getBoundingClientRect();
           mouseVec.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
@@ -2020,7 +2846,7 @@
             prevMouseY = startY = e.clientY;
             hasDragged = true;
             showToast("DJ Scrubbing aktif: Geser untuk memutar durasi lagu", 1800);
-            try { container.setPointerCapture(e.pointerId); } catch (_) { }
+            try { container.setPointerCapture(e.pointerId); } catch (_) {}
             return;
           }
         }
@@ -2030,7 +2856,7 @@
         prevMouseX = startX = e.clientX;
         prevMouseY = startY = e.clientY;
         hasDragged = false;
-        try { container.setPointerCapture(e.pointerId); } catch (_) { }
+        try { container.setPointerCapture(e.pointerId); } catch (_) {}
       }
 
       function onPointerMove(e) {
@@ -2066,15 +2892,21 @@
         if (isScrubbingDisc) {
           isScrubbingDisc = false;
           activePointerId = null;
-          try { container.releasePointerCapture(e.pointerId); } catch (_) { }
+          try { container.releasePointerCapture(e.pointerId); } catch (_) {}
           return;
         }
         if (!isDragging) return;
         isDragging = false;
         activePointerId = null;
-        try { container.releasePointerCapture(e.pointerId); } catch (_) { }
+        try { container.releasePointerCapture(e.pointerId); } catch (_) {}
         if (allowToggle && !hasDragged) handlePointerClick(e);
       }
+
+      container.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        targetCamZ = Math.max(3.6, Math.min(11.5, targetCamZ + e.deltaY * 0.0045));
+        invalidate();
+      }, { passive: false });
 
       container.addEventListener('pointerdown', onPointerDown);
       window.addEventListener('pointermove', onPointerMove);
@@ -2084,12 +2916,15 @@
 
     function toggleCase() {
       isOpen = !isOpen;
-      if (!isOpen) isDiscOut = false;
+      if (!isOpen) {
+        isDiscOut = false;
+      }
       playMechanicalSFX(isOpen ? 'caseOpen' : 'caseClose');
       document.getElementById('caseStateText').innerText = isOpen ? "Tutup Casing" : "Buka Casing";
       updateEjectButton();
       invalidate();
     }
+
     function toggleDiscOut() {
       isDiscOut = !isDiscOut;
       playMechanicalSFX('eject');
@@ -2097,35 +2932,179 @@
       updateEjectButton();
       invalidate();
     }
-    function updateEjectButton() { const b = document.getElementById('ejectDiscBtn'); if (b) b.textContent = isDiscOut ? 'Masukkan CD' : 'Keluarkan CD'; }
+
+    function updateEjectButton() {
+      const b = document.getElementById('ejectDiscBtn');
+      if (b) b.textContent = isDiscOut ? 'Masukkan CD' : 'Keluarkan CD';
+    }
 
     function toggleSpin() {
-      isDiscSpinning = !isDiscSpinning;
-      invalidate();
-      const icon = document.getElementById('spinIcon');
-      const text = document.getElementById('spinStateText');
-      if (isDiscSpinning) {
-        icon.classList.add('animate-spin');
-        text.innerText = "Stop Putar";
+      isDiscSpinning = !isDiscSpinning; 
+      invalidate(); 
+      const icon = document.getElementById('spinIcon'); 
+      const text = document.getElementById('spinStateText'); 
+      if (isDiscSpinning) { 
+        icon.classList.add('animate-spin'); 
+        text.innerText = "Stop Putar"; 
         if (!isAudioPlaying && audioEl.src) playAudio();
-      } else {
-        icon.classList.remove('animate-spin');
-        text.innerText = "Putar CD";
+      } else { 
+        icon.classList.remove('animate-spin'); 
+        text.innerText = "Putar CD"; 
         if (isAudioPlaying) pauseAudio();
       }
+    }
+
+    function setupKeyboardShortcuts() {
+      window.addEventListener('keydown', (e) => {
+        const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+        if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+
+        if (e.code === 'Space') {
+          e.preventDefault();
+          toggleAudioPlayback();
+        } else if (e.key === 'o' || e.key === 'O') {
+          e.preventDefault();
+          toggleCase();
+        } else if (e.key === 'e' || e.key === 'E') {
+          e.preventDefault();
+          toggleDiscOut();
+        } else if (e.key === 'j' || e.key === 'J') {
+          e.preventDefault();
+          toggleObiStrip();
+        } else if (e.key === '1') {
+          e.preventDefault();
+          setQuickCameraAngle('front');
+        } else if (e.key === '2') {
+          e.preventDefault();
+          setQuickCameraAngle('back');
+        } else if (e.key === '3') {
+          e.preventDefault();
+          setQuickCameraAngle('spine');
+        } else if (e.key === '4') {
+          e.preventDefault();
+          setQuickCameraAngle('rack');
+        } else if (e.code === 'ArrowRight') {
+          e.preventDefault();
+          startRackSwap((currentSlotIndex + 1) % musicBrainzAlbums.length);
+        } else if (e.code === 'ArrowLeft') {
+          e.preventDefault();
+          startRackSwap((currentSlotIndex - 1 + musicBrainzAlbums.length) % musicBrainzAlbums.length);
+        }
+      });
     }
 
     function setupUIEvents() {
       document.getElementById('toggleCaseBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleCase(); });
       document.getElementById('toggleSpinBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleSpin(); });
-      document.getElementById('changeCoverBtn').addEventListener('click', (e) => { e.stopPropagation(); currentCustomImage = null; texturesPreRendered = false; currentCoverIndex = (currentCoverIndex + 1) % albumThemes.length; updateTextures(); });
+      document.getElementById('obiToggleBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleObiStrip(); });
+
+      document.querySelectorAll('.camPresetBtn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          setQuickCameraAngle(btn.getAttribute('data-cam'));
+        });
+      });
+
+      document.getElementById('caseTintBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        playMechanicalSFX('rackHover');
+        currentCaseTintIndex = (currentCaseTintIndex + 1) % caseTintPresets.length;
+        applyCaseTintAndWear();
+      });
+
+      document.getElementById('discFinishBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        playMechanicalSFX('rackHover');
+        currentDiscFinishIndex = (currentDiscFinishIndex + 1) % discFinishPresets.length;
+        applyDiscFinish();
+      });
+
+      document.getElementById('caseWearBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        playMechanicalSFX('rackHover');
+        caseWearMode = (caseWearMode + 1) % 3;
+        applyCaseTintAndWear();
+        showToast(`Kondisi Casing: ${caseWearNames[caseWearMode]}`);
+      });
+
+      document.getElementById('studioLightBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        playMechanicalSFX('rackHover');
+        currentStudioRigIndex = (currentStudioRigIndex + 1) % studioLightingRigs.length;
+        applyStudioLightingRig();
+      });
+
       document.getElementById('changeLabelBtn').addEventListener('click', (e) => { e.stopPropagation(); currentLidShape = (currentLidShape + 1) % lidShapes.length; refreshLidLabel(); });
       document.getElementById('ejectDiscBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleDiscOut(); });
-
+      
       document.getElementById('audioPlayBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleAudioPlayback(); });
       document.getElementById('widgetPlayToggle').addEventListener('click', (e) => { e.stopPropagation(); toggleAudioPlayback(); });
 
-      // Toggle SFX
+      document.getElementById('rackPresetSelect').addEventListener('change', (e) => {
+        e.stopPropagation();
+        applyCuratedRackPreset(e.target.value);
+      });
+
+      // Shareable URL Link & Cartridge Modal
+      const shareModal = document.getElementById('shareRackModal');
+      const shareUrlInput = document.getElementById('rackShareUrlInput');
+      const cartridgeTextarea = document.getElementById('rackCartridgeTextarea');
+      const urlLenBadge = document.getElementById('urlLengthBadge');
+
+      document.getElementById('shareRackBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        playMechanicalSFX('rackHover');
+        const compactToken = encodeRackToCompactToken();
+        const fullShareUrl = buildShareableRackUrl();
+        shareUrlInput.value = fullShareUrl;
+        cartridgeTextarea.value = compactToken;
+        if (urlLenBadge) urlLenBadge.innerText = `${fullShareUrl.length} chars (Compact Delta)`;
+        syncBrowserUrlBar();
+        shareModal.classList.remove('hidden');
+        shareModal.classList.add('flex');
+      });
+
+      document.getElementById('closeShareModalBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        shareModal.classList.add('hidden');
+        shareModal.classList.remove('flex');
+      });
+
+      document.getElementById('copyShareUrlBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        shareUrlInput.select();
+        document.execCommand('copy');
+        showToast("Tautan URL Koleksi Rak (?rack=...) berhasil disalin!");
+      });
+
+      document.getElementById('copyCartridgeBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        cartridgeTextarea.select();
+        document.execCommand('copy');
+        showToast("Kode Cartridge ringkas berhasil disalin!");
+      });
+
+      document.getElementById('importCartridgeBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        try {
+          const hydrated = decodeRackFromTokenOrInput(cartridgeTextarea.value);
+          if (hydrated) {
+            musicBrainzAlbums = hydrated;
+            saveRackToStorage(true);
+            buildDesktopAcrylicRack();
+            shareModal.classList.add('hidden');
+            shareModal.classList.remove('flex');
+            showToast("Koleksi Rak dari Tautan/Kode berhasil dimuat!");
+            startRackSwap(0);
+            invalidate();
+          } else {
+            showToast("Format URL atau kode Cartridge tidak dikenali.");
+          }
+        } catch (err) {
+          showToast("Format URL atau kode Cartridge tidak valid.");
+        }
+      });
+
       const sfxBtn = document.getElementById('sfxToggleBtn');
       sfxBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -2134,7 +3113,31 @@
         if (sfxEnabled) playMechanicalSFX('caseOpen');
       });
 
-      // Klik progress bar audio untuk loncat durasi
+      const hotkeyPopover = document.getElementById('hotkeyPopover');
+      document.getElementById('hotkeyHelpBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        hotkeyPopover.classList.toggle('hidden');
+        hotkeyPopover.classList.toggle('flex');
+      });
+
+      const jukeboxBtn = document.getElementById('jukeboxToggleBtn');
+      jukeboxBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        jukeboxAutoMode = !jukeboxAutoMode;
+        jukeboxBtn.innerText = jukeboxAutoMode ? "JUKEBOX: ON" : "JUKEBOX: OFF";
+        jukeboxBtn.className = jukeboxAutoMode
+          ? "px-2 py-1 rounded-lg bg-emerald-600 text-white font-bold transition"
+          : "px-2 py-1 rounded-lg bg-slate-900/5 hover:bg-slate-900/10 text-slate-700 font-bold transition";
+        showToast(jukeboxAutoMode ? "Mode Jukebox 14-Disc Aktif: Otomatis lanjut lagu & ganti kaset!" : "Mode Jukebox Dimatikan");
+      });
+
+      document.getElementById('closeSearchDropdownBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const dd = document.getElementById('searchResultsDropdown');
+        dd.classList.add('hidden');
+        dd.classList.remove('flex');
+      });
+
       document.getElementById('audioProgressContainer').addEventListener('click', (e) => {
         e.stopPropagation();
         if (!audioEl.duration) return;
@@ -2143,7 +3146,6 @@
         audioEl.currentTime = ratio * audioEl.duration;
       });
 
-      // Drawer Tracklist & Booklet Toggle
       const drawer = document.getElementById('tracklistDrawer');
       document.getElementById('toggleDrawerBtn').addEventListener('click', (e) => {
         e.stopPropagation();
@@ -2173,7 +3175,6 @@
         tracksView.classList.add('hidden');
       });
 
-      // Live Search Submit
       document.getElementById('liveSearchForm').addEventListener('submit', (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -2184,21 +3185,21 @@
       const fileInput = document.getElementById('imageUploadInput');
       document.getElementById('uploadImageBtn').addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
       fileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0]; if (!file) return;
-        const url = URL.createObjectURL(file); const img = new Image();
-        img.onload = () => {
-          URL.revokeObjectURL(url);
-          customMetadata = { title: "MY CUSTOM DISC", artist: "LOCAL USER", tracklist: null, barcode: null };
-          currentCustomImage = prepareCustomImage(img);
-          texturesPreRendered = false;
-          updateTextures();
-          showToast("Foto kustom berhasil dipasang!");
-        };
-        img.onerror = () => {
-          URL.revokeObjectURL(url);
-          showToast("Gagal memuat gambar dari perangkat.");
-        };
-        img.src = url; fileInput.value = '';
+         const file = e.target.files[0]; if (!file) return;
+         const url = URL.createObjectURL(file); const img = new Image();
+         img.onload = () => { 
+           URL.revokeObjectURL(url); 
+           customMetadata = { title: "MY CUSTOM DISC", artist: "LOCAL USER", tracklist: musicBrainzAlbums[currentSlotIndex].fallbackTracks, barcode: "CUSTOM-01" }; 
+           currentCustomImage = prepareCustomImage(img); 
+           texturesPreRendered = false;
+           updateTextures(); 
+           showToast("Foto kustom, Obi Strip & warna panggung berhasil disesuaikan!");
+         };
+         img.onerror = () => { 
+           URL.revokeObjectURL(url); 
+           showToast("Gagal memuat gambar dari perangkat."); 
+         }; 
+         img.src = url; fileInput.value = ''; 
       });
 
       document.getElementById('mbSyncBtn').addEventListener('click', (e) => {
@@ -2206,8 +3207,6 @@
         const nextIdx = (currentSlotIndex + 1) % musicBrainzAlbums.length;
         startRackSwap(nextIdx);
       });
-
-      document.getElementById('resetCamBtn').addEventListener('click', (e) => { e.stopPropagation(); targetRotX = 0.25; targetRotY = -0.45; invalidate(); });
     }
 
     function invalidate() {
@@ -2225,10 +3224,9 @@
       isAnimatingFrame = true;
 
       const hadPrev = lastFrameTime > 0; const rawDt = hadPrev ? (now - lastFrameTime) / 1000 : 0.016; lastFrameTime = now;
-      if (hadPrev) adaptPixelRatio(rawDt); const f = Math.min(rawDt, 0.05) * 60;
+      if (hadPrev) adaptPixelRatio(rawDt); const f = Math.min(rawDt, 0.05) * 60; 
       const approach = (cur, tgt, rate, eps = 0.0005) => { const n = cur + (tgt - cur) * (1 - Math.pow(1 - rate, f)); return Math.abs(tgt - n) < eps ? tgt : n; };
 
-      // 0. Real-Time Audio Visualizer & Rack Edge Bass Glow
       if (isAudioPlaying) {
         let b1 = 6, b2 = 10, b3 = 8, b4 = 5, bassNorm = 0.2;
         if (analyserNode && freqDataArray) {
@@ -2240,7 +3238,6 @@
             b3 = 4 + (freqDataArray[6] / 255) * 16;
             b4 = 4 + (freqDataArray[10] / 255) * 16;
           } else {
-            // Fallback ritme jika stream iTunes terkena batas CORS
             const t = now * 0.01;
             bassNorm = 0.35 + 0.3 * Math.sin(t * 1.3);
             b1 = 5 + Math.abs(Math.sin(t * 1.1)) * 14;
@@ -2257,7 +3254,11 @@
         if (rimLightRef) rimLightRef.intensity = 0.7 + bassNorm * 0.9;
       }
 
-      // 0B. Animasi Hover Peek pada Kaset di Rak Akrilik
+      if (studioDustPoints) {
+        studioDustPoints.rotation.y += 0.00045 * f;
+        studioDustPoints.position.y = Math.sin(now * 0.0004) * 0.12;
+      }
+
       let hoverAnimating = false;
       for (let i = 0; i < 14; i++) {
         const grp = rackDummyCases[i];
@@ -2287,8 +3288,6 @@
           rackSwapState = 'RETURN_FLY';
         }
       } else if (rackSwapState === 'RETURN_FLY') {
-        // Terbang ke titik tepat DI ATAS slot tujuan sambil menyesuaikan ukuran menjadi RACK_SCALE (0.6125)
-        // sehingga saat turun lurus ke dalam slot, ukurannya sudah selaras dan tidak menabrak kaset lain
         targetLidAngle = 0.0;
         if (rackSlotMarkers[_returnSlotIndex]) {
           rackSlotMarkers[_returnSlotIndex].getWorldPosition(_tempSlotPos);
@@ -2302,7 +3301,6 @@
           rackSwapState = 'RETURN_DROP';
         }
       } else if (rackSwapState === 'RETURN_DROP') {
-        // Turun vertikal lurus masuk ke dalam slot rak dengan ukuran RACK_SCALE yang sudah pas
         targetLidAngle = 0.0;
         if (rackSlotMarkers[_returnSlotIndex]) {
           rackSlotMarkers[_returnSlotIndex].getWorldPosition(_tempSlotPos);
@@ -2348,8 +3346,6 @@
           rackSwapState = 'RETRIEVE_LIFT';
         }
       } else if (rackSwapState === 'RETRIEVE_LIFT') {
-        // Ditarik lurus ke atas terlebih dahulu dengan ukuran tetap RACK_SCALE
-        // agar keluar bersih dari sela-sela rak tanpa menembus kaset di depan/belakangnya
         targetLidAngle = 0.0;
         if (rackSlotMarkers[_targetSlotIndex]) {
           rackSlotMarkers[_targetSlotIndex].getWorldPosition(_tempSlotPos);
@@ -2363,7 +3359,6 @@
           rackSwapState = 'FLY_STAGE';
         }
       } else if (rackSwapState === 'FLY_STAGE') {
-        // Setelah bebas di atas rak, barulah maju ke tengah panggung (display) sambil membesar ke STAGE_SCALE
         targetLidAngle = 0.0;
         targetAsmX = 0.0; targetAsmY = 0.0; targetAsmZ = 0.0;
         targetEulerX = showcaseRotX; targetEulerY = showcaseRotY;
@@ -2393,13 +3388,22 @@
       currentRotY = approach(currentRotY, targetEulerY, 0.09);
       currentAssemblyScale = approach(currentAssemblyScale, targetAssemblyScale, 0.10);
 
+      currentCamX = approach(currentCamX, targetCamX, 0.10, 0.002);
+      currentCamY = approach(currentCamY, targetCamY, 0.10, 0.002);
+      currentCamZ = approach(currentCamZ, targetCamZ, 0.12, 0.002);
+      camera.position.set(currentCamX, currentCamY, currentCamZ);
+
       currentLidAngle = approach(currentLidAngle, targetLidAngle, 0.1);
+
+      if (obiStripGroup) {
+        obiStripGroup.visible = isObiEnabled && (Math.abs(currentLidAngle) < 0.35);
+      }
+
       const openProgress = currentLidAngle / LID_OPEN_ANGLE;
       const discTarget = (isDiscOut && isOpen && openProgress > 0.85) ? 1 : 0;
       discOutAmt = approach(discOutAmt, discTarget, 0.07, 0.0015);
       const spinTarget = isDiscSpinning ? 1 : 0;
       bobAmp = approach(bobAmp, spinTarget, 0.06, 0.002);
-      // Matikan ayunan bobY saat kaset sedang berada di dalam/dekat slot rak agar presisi
       const inRackZone = (rackSwapState === 'RETURN_DROP' || rackSwapState === 'RACK_WAIT' || rackSwapState === 'RETRIEVE_LIFT');
       const bobY = inRackZone ? 0 : Math.sin((now / 1000) * 1.6) * 0.06 * bobAmp;
 
@@ -2423,8 +3427,9 @@
 
       const swapAnimating = rackSwapState !== 'IDLE';
       const scaleDone = Math.abs(currentAssemblyScale - targetAssemblyScale) < 0.002;
-      const animating = swapAnimating || hoverAnimating || isAudioPlaying || isScrubbingDisc || isDiscSpinning || currentRotX !== targetEulerX || currentRotY !== targetEulerY || currentLidAngle !== targetLidAngle || discOutAmt !== discTarget || bobAmp !== spinTarget || !scaleDone || (cdAssembly && (Math.abs(cdAssembly.position.x - targetAsmX) > 0.002 || Math.abs(cdAssembly.position.y - (targetAsmY + bobY)) > 0.002 || Math.abs(cdAssembly.position.z - targetAsmZ) > 0.002)) || activeGhostMaterials.length > 0;
-
+      const camDone = Math.abs(currentCamZ - targetCamZ) < 0.003 && Math.abs(currentCamX - targetCamX) < 0.003 && Math.abs(currentCamY - targetCamY) < 0.003;
+      const animating = swapAnimating || hoverAnimating || isAudioPlaying || isScrubbingDisc || isDiscSpinning || !camDone || currentRotX !== targetEulerX || currentRotY !== targetEulerY || currentLidAngle !== targetLidAngle || discOutAmt !== discTarget || bobAmp !== spinTarget || !scaleDone || (cdAssembly && (Math.abs(cdAssembly.position.x - targetAsmX) > 0.002 || Math.abs(cdAssembly.position.y - (targetAsmY + bobY)) > 0.002 || Math.abs(cdAssembly.position.z - targetAsmZ) > 0.002)) || activeGhostMaterials.length > 0;
+      
       isAnimatingFrame = false;
       if (animating) {
         if (!rafId) rafId = requestAnimationFrame(animate);
@@ -2433,11 +3438,10 @@
       }
     }
 
-    window.onload = async function () {
-      try { await Promise.race([Promise.all([document.fonts.load("bold 72px 'Space Mono'"), document.fonts.load("24px 'Space Mono'"), document.fonts.load("600 32px 'Plus Jakarta Sans'")]), new Promise(r => setTimeout(r, 2500))]); } catch (_) { }
+    window.onload = async function() {
+      try { await Promise.race([Promise.all([document.fonts.load("bold 72px 'Space Mono'"), document.fonts.load("24px 'Space Mono'"), document.fonts.load("600 32px 'Plus Jakarta Sans'"), document.fonts.load("700 72px 'Caveat'")]), new Promise(r => setTimeout(r, 2500))]); } catch (_) {}
       init(); invalidate();
     };
   </script>
 </body>
-
 </html>
