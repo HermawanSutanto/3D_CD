@@ -154,6 +154,16 @@
     .lrc-line.past{color:rgba(255,255,255,.5)}
     .lrc-line.active{color:#fff;transform:scale(1.04);text-shadow:0 0 18px rgba(var(--studio-accent-rgb),.45)}
     .lrc-plain{font-size:13px;line-height:1.6;color:rgba(255,255,255,.75);padding:2px 6px}
+    /* Bottom capsule: tombol ikon-saja di layar kecil agar tidak melebar keluar */
+    @media (max-width: 639px) {
+      .dock-row .dock-btn { width: 40px; padding: 0; justify-content: center; }
+      .dock-row .dock-lbl { display: none; }
+    }
+    @media (max-width: 359px) {
+      .dock-row, .dock-row > div { gap: 4px; }
+      .dock-row .dock-btn { width: 36px; height: 36px; }
+      .dock-row .dock-play { width: 40px; height: 40px; }
+    }
     .ui-Chrome {
       transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
     }
@@ -605,29 +615,29 @@
       </div>
 
       <!-- Bottom Row: Ergonomic 44px Transport & Action Controls -->
-      <div class="flex items-center justify-between gap-1.5 pt-0.5">
+      <div class="dock-row flex items-center justify-between gap-1.5 pt-0.5">
         <!-- Left Physical Case & Deck Actions -->
         <div class="flex items-center gap-1.5">
-          <button id="toggleCaseBtn" title="Open / Close Jewel Case (O)" class="hw-btn h-10 px-3.5 rounded-full text-xs font-medium flex items-center gap-1.5 whitespace-nowrap">
+          <button id="toggleCaseBtn" aria-label="Open / Close Case" title="Open / Close Jewel Case (O)" class="dock-btn hw-btn h-10 px-3.5 rounded-full text-xs font-medium flex items-center gap-1.5 whitespace-nowrap">
             <i class="fa-solid fa-box-open text-[11px] text-white/70"></i>
-            <span id="caseStateText">Open</span>
+            <span id="caseStateText" class="dock-lbl">Open</span>
           </button>
 
-          <button id="ejectDiscBtn" title="Load or Return CD from Reference Player (E)" class="hw-btn h-10 px-3.5 rounded-full text-xs font-medium flex items-center gap-1.5 whitespace-nowrap">
+          <button id="ejectDiscBtn" aria-label="Load Deck" title="Load or Return CD from Reference Player (E)" class="dock-btn hw-btn h-10 px-3.5 rounded-full text-xs font-medium flex items-center gap-1.5 whitespace-nowrap">
             <i class="fa-solid fa-compact-disc text-[11px] text-white/70"></i>
-            <span>Load Deck</span>
+            <span class="dock-lbl">Load Deck</span>
           </button>
         </div>
 
         <!-- Center Primary Playback Transport -->
         <div class="flex items-center gap-1.5">
           <button id="widgetPlayToggle" class="hidden"><i id="widgetPlayIcon"></i></button>
-          <button id="audioPlayBtn" title="Play / Pause Audio (Space)" class="hw-btn-primary w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0">
+          <button id="audioPlayBtn" aria-label="Play / Pause" title="Play / Pause Audio (Space)" class="dock-play hw-btn-primary w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0">
             <i id="audioIcon" class="fa-solid fa-play text-xs ml-0.5"></i>
             <span id="audioPlayText" class="hidden">Play</span>
           </button>
 
-          <button id="mbSyncBtn" title="Next Disc in Rack (→)" class="hw-btn w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+          <button id="mbSyncBtn" aria-label="Next" title="Next Disc in Rack (→)" class="dock-btn hw-btn w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
             <i class="fa-solid fa-forward-step text-xs"></i>
             <span id="mbBtnText" class="hidden">Next</span>
           </button>
@@ -635,14 +645,14 @@
 
         <!-- Right Drawer Toggles (Tracks & Studio FX) -->
         <div class="flex items-center gap-1.5">
-          <button id="headerTracklistToggleBtn" title="Tracklist & Liner Notes" class="hw-btn h-10 px-3.5 rounded-full text-xs font-medium flex items-center gap-1.5">
+          <button id="headerTracklistToggleBtn" aria-label="Tracks" title="Tracklist & Liner Notes" class="dock-btn hw-btn h-10 px-3.5 rounded-full text-xs font-medium flex items-center gap-1.5">
             <i class="fa-solid fa-list-ul text-[11px] text-white/70"></i>
             <span class="hidden sm:inline">Tracks</span>
             <i id="tracklistChevron" class="hidden"></i>
           </button>
           <button id="toggleDrawerBtn" class="hidden"></button>
 
-          <button id="toggleStudioToolsBtn" title="Studio Lighting, Obi, Stickers & DSP" class="hw-btn w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+          <button id="toggleStudioToolsBtn" aria-label="Studio" title="Studio Lighting, Obi, Stickers & DSP" class="dock-btn hw-btn w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
             <i class="fa-solid fa-sliders text-xs"></i>
             <i id="studioToolsChevron" class="hidden"></i>
           </button>
@@ -4189,8 +4199,8 @@
       const b = document.getElementById('ejectDiscBtn');
       if (b) {
         b.innerHTML = isDiscOut
-          ? '<i class="fa-solid fa-rotate-left"></i><span>Return CD</span>'
-          : '<i class="fa-solid fa-eject"></i><span>Load Deck</span>';
+          ? '<i class="fa-solid fa-rotate-left"></i><span class="dock-lbl">Return CD</span>'
+          : '<i class="fa-solid fa-eject"></i><span class="dock-lbl">Load Deck</span>';
       }
     }
 
