@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -8,7 +9,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
   <style>
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
@@ -18,8 +21,16 @@
       user-select: none;
       -webkit-user-select: none;
     }
-    .mono { font-family: 'Space Mono', monospace; }
-    canvas { outline: none; touch-action: none; }
+
+    .mono {
+      font-family: 'Space Mono', monospace;
+    }
+
+    canvas {
+      outline: none;
+      touch-action: none;
+    }
+
     .light-glass-panel {
       background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(20px);
@@ -27,113 +38,242 @@
       border: 1px solid rgba(15, 23, 42, 0.08);
       box-shadow: 0 16px 36px -12px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04);
     }
+
     .accent-gradient-text {
       background: linear-gradient(135deg, #f97316 20%, #4338ca 70%, #06b6d4 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
+
+    /* Custom Scrollbar for Tracklist */
+    .custom-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .custom-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(15, 23, 42, 0.2);
+      border-radius: 99px;
+    }
   </style>
 </head>
+
 <body class="w-screen h-screen text-slate-800">
 
-  <!-- Header Branding -->
-  <header class="absolute top-6 left-6 z-10 pointer-events-auto">
-    <div class="light-glass-panel px-4 py-2.5 rounded-2xl flex items-center gap-3">
-      <div class="w-7 h-7 rounded-full bg-slate-900 flex items-center justify-center shadow-md">
-        <div class="w-2.5 h-2.5 rounded-full bg-orange-500"></div>
+  <!-- Floating Tooltip for Rack Hover -->
+  <div id="rackTooltip"
+    class="fixed z-30 pointer-events-none hidden px-3 py-1.5 rounded-xl bg-slate-900/90 text-white shadow-xl backdrop-blur-md border border-white/10 transition-opacity duration-150">
+    <p id="rackTooltipSlot" class="mono text-[9px] text-cyan-400 uppercase tracking-wider">SLOT 01</p>
+    <p id="rackTooltipTitle" class="text-xs font-bold leading-tight">ALBUM TITLE</p>
+    <p id="rackTooltipArtist" class="mono text-[10px] text-slate-300">ARTIST</p>
+  </div>
+
+  <!-- Header Branding + Live Search -->
+  <header class="absolute top-6 left-6 z-10 pointer-events-auto flex flex-col gap-2.5 max-w-xs sm:max-w-sm">
+    <div class="light-glass-panel px-4 py-2.5 rounded-2xl flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 rounded-full bg-slate-900 flex items-center justify-center shadow-md">
+          <div class="w-2.5 h-2.5 rounded-full bg-orange-500" id="bassPulseDot"></div>
+        </div>
+        <div>
+          <h1 class="font-bold text-sm leading-none tracking-tight accent-gradient-text">CHROMA.DISC // v6.0</h1>
+          <p class="mono text-[10px] text-slate-500 mt-0.5 tracking-wider uppercase">MusicBrainz + iTunes Engine</p>
+        </div>
       </div>
-      <div>
-        <h1 class="font-bold text-sm leading-none tracking-tight accent-gradient-text">CHROMA.DISC // v5.1</h1>
-        <p class="mono text-[10px] text-slate-500 mt-0.5 tracking-wider uppercase">MusicBrainz Open Data Engine</p>
-      </div>
+      <button id="sfxToggleBtn" title="Toggle Efek Suara Mekanis"
+        class="px-2 py-1 rounded-lg bg-slate-900/5 hover:bg-slate-900/10 text-[10px] mono font-semibold text-slate-700 transition">
+        SFX: ON
+      </button>
     </div>
+
+    <!-- Live Search Input -->
+    <form id="liveSearchForm" class="light-glass-panel p-1.5 pl-3 rounded-2xl flex items-center gap-1.5">
+      <svg class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+      </svg>
+      <input id="liveSearchInput" type="text" placeholder="Cari artis / album (mis: Daft Punk)..."
+        class="bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none w-full">
+      <button type="submit" id="liveSearchBtn"
+        class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-semibold transition active:scale-95 flex-shrink-0">
+        Cari
+      </button>
+    </form>
   </header>
 
   <!-- Interactive Control Deck -->
   <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 w-11/12 max-w-4xl">
-    <div class="light-glass-panel rounded-2xl p-3 sm:p-4 flex flex-wrap items-center justify-center gap-2.5 text-xs">
-      
-      <button id="toggleCaseBtn" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold transition active:scale-95 shadow-sm flex items-center gap-2">
-        <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
+    <div class="light-glass-panel rounded-2xl p-3 sm:p-4 flex flex-wrap items-center justify-center gap-2 text-xs">
+
+      <button id="toggleCaseBtn"
+        class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold transition active:scale-95 shadow-sm flex items-center gap-2">
+        <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2">
+          </path>
+        </svg>
         <span id="caseStateText">Buka Casing</span>
       </button>
 
-      <button id="toggleSpinBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200 flex items-center gap-1.5">
-        <svg class="w-4 h-4 text-emerald-600 animate-spin" id="spinIcon" style="animation-duration: 4s;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+      <button id="toggleSpinBtn"
+        class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200 flex items-center gap-1.5">
+        <svg class="w-4 h-4 text-emerald-600 animate-spin" id="spinIcon" style="animation-duration: 4s;" fill="none"
+          stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+          </path>
+        </svg>
         <span id="spinStateText">Stop Putar</span>
       </button>
 
-      <button id="changeCoverBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">
+      <button id="changeCoverBtn"
+        class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">
         Tema Bawaan
       </button>
 
-      <button id="changeLabelBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">
+      <button id="changeLabelBtn"
+        class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">
         Label: Busur
       </button>
 
-      <button id="ejectDiscBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">Keluarkan CD</button>
-      
+      <button id="ejectDiscBtn"
+        class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-medium transition active:scale-95 border border-slate-200">Keluarkan
+        CD</button>
+
+      <button id="toggleDrawerBtn"
+        class="px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold transition active:scale-95 border border-indigo-200 flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3">
+          </path>
+        </svg>
+        <span>Tracklist & Buklet</span>
+      </button>
+
       <!-- Audio Playback Toggle Button -->
-      <button id="audioPlayBtn" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition active:scale-95 shadow-sm flex items-center gap-1.5">
-        <svg id="audioIcon" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      <button id="audioPlayBtn"
+        class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition active:scale-95 shadow-sm flex items-center gap-1.5">
+        <svg id="audioIcon" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M8 5v14l11-7z" />
+        </svg>
         <span id="audioPlayText">Play Audio</span>
       </button>
 
       <!-- File Input & Upload -->
       <input type="file" id="imageUploadInput" accept="image/*" class="hidden">
-      <button id="uploadImageBtn" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition active:scale-95 border border-slate-200 flex items-center gap-1.5 shadow-sm">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-        Upload Foto
+      <button id="uploadImageBtn"
+        class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition active:scale-95 border border-slate-200 flex items-center gap-1.5 shadow-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+        </svg>
+        Upload
       </button>
 
       <!-- MUSICBRAINZ SYNC BUTTON -->
-      <button id="mbSyncBtn" class="px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold transition active:scale-95 border border-orange-600 shadow-sm flex items-center gap-2">
-        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
-        <span id="mbBtnText">Next Album (MusicBrainz)</span>
+      <button id="mbSyncBtn"
+        class="px-3.5 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold transition active:scale-95 border border-orange-600 shadow-sm flex items-center gap-2">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z" />
+        </svg>
+        <span id="mbBtnText">Next Album</span>
       </button>
 
-      <button id="resetCamBtn" class="px-3 py-2 rounded-xl text-slate-500 hover:text-slate-900 transition font-medium mono">Reset</button>
+      <button id="resetCamBtn"
+        class="px-2.5 py-2 rounded-xl text-slate-500 hover:text-slate-900 transition font-medium mono">Reset</button>
     </div>
   </div>
 
-  <!-- Audio Info Card Top-Right -->
-  <div class="absolute top-6 right-6 z-10 hidden sm:flex flex-col gap-3 items-end pointer-events-auto">
-    <div class="light-glass-panel rounded-2xl p-3 px-4 flex items-center gap-3">
-      <div class="flex items-end gap-1 h-4 w-5">
-        <span id="eqBar1" class="w-1 bg-orange-500 rounded-full h-2"></span>
-        <span id="eqBar2" class="w-1 bg-amber-500 rounded-full h-3"></span>
-        <span id="eqBar3" class="w-1 bg-yellow-500 rounded-full h-2"></span>
-        <span id="eqBar4" class="w-1 bg-cyan-400 rounded-full h-1"></span>
+  <!-- Audio Info Card & Interactive Tracklist / Booklet Drawer Top-Right -->
+  <div class="absolute top-6 right-6 z-10 flex flex-col gap-2.5 items-end pointer-events-auto max-w-xs w-72">
+    <div class="light-glass-panel rounded-2xl p-3 px-4 flex items-center justify-between gap-3 w-full">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="flex items-end gap-1 h-5 w-6 flex-shrink-0">
+          <span id="eqBar1" class="w-1 bg-orange-500 rounded-full h-1.5 transition-all duration-75"></span>
+          <span id="eqBar2" class="w-1 bg-amber-500 rounded-full h-2.5 transition-all duration-75"></span>
+          <span id="eqBar3" class="w-1 bg-yellow-500 rounded-full h-1.5 transition-all duration-75"></span>
+          <span id="eqBar4" class="w-1 bg-cyan-400 rounded-full h-1 transition-all duration-75"></span>
+        </div>
+        <div class="min-w-0">
+          <p class="text-xs font-bold text-slate-800 uppercase truncate" id="albumTitleDisplay">NEO TOKYO '98</p>
+          <p class="mono text-[10px] text-slate-500 uppercase truncate" id="albumArtistDisplay">SYNTHETIX CORE</p>
+        </div>
       </div>
-      <div>
-        <p class="text-xs font-bold text-slate-800 uppercase" id="albumTitleDisplay">NEO TOKYO '98</p>
-        <p class="mono text-[10px] text-slate-500 uppercase" id="albumArtistDisplay">SYNTHETIX CORE</p>
-      </div>
+      <span id="slotBadge"
+        class="mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-900 text-cyan-400 flex-shrink-0">SLOT
+        01</span>
     </div>
 
     <!-- Audio Preview Player Widget -->
-    <div id="audioWidget" class="light-glass-panel rounded-2xl p-2.5 px-3 flex items-center gap-2.5 w-64 shadow-md transition-all duration-300">
-      <button id="widgetPlayToggle" class="w-7 h-7 rounded-full bg-slate-900 hover:bg-slate-800 text-white flex items-center justify-center transition active:scale-90 flex-shrink-0">
-        <svg id="widgetPlayIcon" class="w-3.5 h-3.5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    <div id="audioWidget"
+      class="light-glass-panel rounded-2xl p-2.5 px-3 flex items-center gap-2.5 w-full shadow-md transition-all duration-300">
+      <button id="widgetPlayToggle"
+        class="w-8 h-8 rounded-full bg-slate-900 hover:bg-slate-800 text-white flex items-center justify-center transition active:scale-90 flex-shrink-0">
+        <svg id="widgetPlayIcon" class="w-3.5 h-3.5 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M8 5v14l11-7z" />
+        </svg>
       </button>
       <div class="flex-1 min-w-0">
-        <p id="audioTrackName" class="text-[11px] font-bold text-slate-800 truncate leading-tight">PREVIEW AUDIO</p>
-        <p id="audioTrackStatus" class="mono text-[9px] text-slate-500 uppercase tracking-tight">iTunes Preview (30s)</p>
-        <div class="w-full bg-slate-200/80 rounded-full h-1 mt-1 overflow-hidden">
-          <div id="audioProgressBar" class="bg-emerald-500 h-1 rounded-full w-0 transition-all duration-200"></div>
+        <p id="audioTrackName" class="text-[11px] font-bold text-slate-800 truncate leading-tight">PILIH LAGU DI BAWAH
+        </p>
+        <p id="audioTrackStatus" class="mono text-[9px] text-slate-500 uppercase tracking-tight truncate">Klik Track /
+          Drag CD saat Eject</p>
+        <div id="audioProgressContainer"
+          class="w-full bg-slate-200/90 rounded-full h-1.5 mt-1 overflow-hidden cursor-pointer"
+          title="Klik untuk geser waktu lagu">
+          <div id="audioProgressBar" class="bg-emerald-500 h-1.5 rounded-full w-0 transition-all duration-100"></div>
         </div>
       </div>
-      <span id="audioTimeDisplay" class="mono text-[10px] text-slate-500 flex-shrink-0">0:00</span>
+      <span id="audioTimeDisplay" class="mono text-[10px] text-slate-600 flex-shrink-0">0:00</span>
+    </div>
+
+    <!-- Interactive Tracklist & Booklet Credits Drawer -->
+    <div id="tracklistDrawer"
+      class="light-glass-panel rounded-2xl p-3 w-full shadow-lg transition-all duration-300 flex flex-col gap-2">
+      <div class="flex items-center justify-between border-b border-slate-200/70 pb-1.5">
+        <div class="flex gap-1.5">
+          <button id="tabTracksBtn"
+            class="px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[10px] mono font-bold transition">TRACKLIST</button>
+          <button id="tabBookletBtn"
+            class="px-2.5 py-1 rounded-lg bg-transparent hover:bg-slate-200/60 text-slate-600 text-[10px] mono font-bold transition">BUKLET
+            INLAY</button>
+        </div>
+        <span class="mono text-[9px] text-slate-400" id="drawerReleaseYear">REL // 1998</span>
+      </div>
+
+      <!-- Track Selector View -->
+      <div id="drawerTracksView" class="flex flex-col gap-1 max-h-44 overflow-y-auto custom-scroll pr-1">
+        <!-- Populated dynamically via renderTracklistDrawer() -->
+      </div>
+
+      <!-- Booklet / Inlay Notes View -->
+      <div id="drawerBookletView"
+        class="hidden flex-col gap-2 text-[11px] text-slate-700 max-h-44 overflow-y-auto custom-scroll pr-1">
+        <div class="p-2.5 rounded-xl bg-slate-900 text-slate-100 mono text-[10px] leading-relaxed">
+          <p class="text-orange-400 font-bold mb-1" id="bookletHeader">// LINER NOTES & CREDITS</p>
+          <p id="bookletDetails">Format: Compact Disc Digital Audio (CD-DA)<br>Catalog Barcode: 001158107519<br>Country:
+            Worldwide Release</p>
+        </div>
+        <p class="text-[10px] text-slate-500 leading-snug">
+          💡 <b>Tips Interaktif:</b> Saat CD dikeluarkan (<i>Keluarkan CD</i>), tahan & putar kepingan CD secara
+          langsung untuk melakukan <i>DJ Scratch / Scrubbing</i> durasi lagu!
+        </p>
+      </div>
     </div>
 
     <!-- Status Toast Notification -->
-    <div id="statusToast" class="light-glass-panel px-3.5 py-2 rounded-xl text-xs mono text-slate-600 border border-slate-200/50 hidden transition-opacity duration-300"></div>
+    <div id="statusToast"
+      class="light-glass-panel px-3.5 py-2 rounded-xl text-xs mono text-slate-700 border border-slate-200/50 hidden transition-opacity duration-300">
+    </div>
   </div>
 
   <div id="canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
 
-  <!-- Audio Element -->
-  <audio id="audioElement" preload="auto" class="hidden"></audio>
+  <!-- Audio Element with CORS for Web Audio Analyser -->
+  <audio id="audioElement" crossorigin="anonymous" preload="auto" class="hidden"></audio>
 
   <script>
     // ==============================================================
@@ -141,85 +281,324 @@
     // ==============================================================
     const musicBrainzAlbums = [
       {
-        mbid: "27595ef8-7cff-472e-b678-7959ffce9708", // My Chemical Romance - The Black Parade
-        fallbackTitle: "THE BLACK PARADE",
-        fallbackArtist: "MY CHEMICAL ROMANCE",
-        searchQuery: "My Chemical Romance Welcome to the Black Parade",
-        fallbackBarcode: "093624442721",
-        fallbackCover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&q=80",
-        fallbackTracks: [
-          { n: "01", t: "THE END.", l: "01:52" },
-          { n: "02", t: "DEAD!", l: "03:15" },
-          { n: "03", t: "THIS IS HOW I DISAPPEAR", l: "03:59" },
-          { n: "04", t: "THE SHARPEST LIVES", l: "03:20" },
-          { n: "05", t: "WELCOME TO THE BLACK PARADE", l: "05:11" },
-          { n: "06", t: "I DON'T LOVE YOU", l: "03:58" }
-        ]
-      },
-      {
-        mbid: "4c12e0aa-ea26-47a1-b853-b1a65bc37281", // Nirvana - Nevermind
-        fallbackTitle: "NEVERMIND",
-        fallbackArtist: "NIRVANA",
-        searchQuery: "Nirvana Smells Like Teen Spirit",
-        fallbackBarcode: "602527779034",
+        slotIndex: 0, col: 0, row: 0, code: "VOL. 01", accent: "#ef4444", bg: ["#450a0a", "#881337", "#1e1b4b"],
+        mbid: "138c290a-115f-427c-9b88-beec4b8d76ec",
+        fallbackTitle: "GREATEST HITS",
+        fallbackArtist: "QUEEN",
+        searchQuery: "Queen Bohemian Rhapsody",
+        fallbackBarcode: "077778950424",
         fallbackCover: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80",
         fallbackTracks: [
-          { n: "01", t: "SMELLS LIKE TEEN SPIRIT", l: "05:01" },
-          { n: "02", t: "IN BLOOM", l: "04:14" },
-          { n: "03", t: "COME AS YOU ARE", l: "03:39" },
-          { n: "04", t: "BREED", l: "03:03" },
-          { n: "05", t: "LITHIUM", l: "04:17" }
+          { n: "01", t: "BOHEMIAN RHAPSODY", l: "05:55" },
+          { n: "02", t: "ANOTHER ONE BITES THE DUST", l: "03:36" },
+          { n: "03", t: "KILLER QUEEN", l: "03:00" },
+          { n: "04", t: "DON'T STOP ME NOW", l: "03:29" },
+          { n: "05", t: "WE WILL ROCK YOU", l: "02:01" }
         ]
       },
       {
-        mbid: "d073287b-d1bd-4f11-a933-a4386f8cf701", // Daft Punk - Discovery
-        fallbackTitle: "DISCOVERY",
-        fallbackArtist: "DAFT PUNK",
-        searchQuery: "Daft Punk One More Time",
-        fallbackBarcode: "724384960629",
+        slotIndex: 1, col: 1, row: 0, code: "VOL. 02", accent: "#facc15", bg: ["#09090b", "#27272a", "#3f3f46"],
+        mbid: "51fe0db1-eb6c-4ec7-b76b-c744f4d2f8ff",
+        fallbackTitle: "TIM",
+        fallbackArtist: "THE REPLACEMENTS",
+        searchQuery: "The Replacements Kiss Me on the Bus",
+        fallbackBarcode: "075992533028",
         fallbackCover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&q=80",
         fallbackTracks: [
-          { n: "01", t: "ONE MORE TIME", l: "05:20" },
-          { n: "02", t: "AERODYNAMIC", l: "03:27" },
-          { n: "03", t: "DIGITAL LOVE", l: "04:58" },
-          { n: "04", t: "HARDER, BETTER, FASTER", l: "03:45" },
-          { n: "05", t: "CRESCENDOLLS", l: "03:31" }
+          { n: "01", t: "HOLD MY LIFE", l: "04:18" },
+          { n: "02", t: "I'LL BUY", l: "03:20" },
+          { n: "03", t: "KISS ME ON THE BUS", l: "02:48" },
+          { n: "04", t: "BASTARD OF YOUNG", l: "03:35" }
         ]
       },
       {
-        mbid: "1a2a37a4-2ee5-3aa8-b1bf-4976dbb8007c", // Pink Floyd - The Dark Side of the Moon
-        fallbackTitle: "THE DARK SIDE OF THE MOON",
-        fallbackArtist: "PINK FLOYD",
-        searchQuery: "Pink Floyd Money",
-        fallbackBarcode: "724358213621",
-        fallbackCover: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80",
-        fallbackTracks: [
-          { n: "01", t: "SPEAK TO ME / BREATHE", l: "03:57" },
-          { n: "02", t: "ON THE RUN", l: "03:35" },
-          { n: "03", t: "TIME", l: "07:05" },
-          { n: "04", t: "MONEY", l: "06:22" },
-          { n: "05", t: "US AND THEM", l: "07:49" }
-        ]
-      },
-      {
-        mbid: "1834eae1-741b-3c03-9ca5-0df3decb43ea", // Radiohead - OK Computer
-        fallbackTitle: "OK COMPUTER",
-        fallbackArtist: "RADIOHEAD",
-        searchQuery: "Radiohead Karma Police",
-        fallbackBarcode: "4988006729254",
+        slotIndex: 2, col: 0, row: 1, code: "VOL. 03", accent: "#fbbf24", bg: ["#451a03", "#78350f", "#b45309"],
+        mbid: "991e0a29-07e7-49f9-aa2f-c5c8e2dc4ebf",
+        fallbackTitle: "LO SCHIACCIANOCI",
+        fallbackArtist: "TCHAIKOVSKY",
+        searchQuery: "Tchaikovsky Nutcracker Dance of the Sugar Plum Fairy",
+        fallbackBarcode: "5099704627028",
         fallbackCover: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=800&q=80",
         fallbackTracks: [
-          { n: "01", t: "AIRBAG", l: "04:44" },
-          { n: "02", t: "PARANOID ANDROID", l: "06:23" },
-          { n: "03", t: "SUBTERRANEAN HOMESICK", l: "04:27" },
-          { n: "04", t: "EXIT MUSIC (FOR A FILM)", l: "04:24" },
-          { n: "05", t: "KARMA POLICE", l: "04:21" }
+          { n: "01", t: "MINIATURE OVERTURE", l: "03:25" },
+          { n: "02", t: "MARCH", l: "02:30" },
+          { n: "03", t: "DANCE OF THE SUGAR PLUM FAIRY", l: "01:50" }
+        ]
+      },
+      {
+        slotIndex: 3, col: 1, row: 1, code: "VOL. 04", accent: "#ef4444", bg: ["#7f1d1d", "#991b1b", "#450a0a"],
+        mbid: "3e36e60b-8d7d-4c33-b9dc-c30c94622b78",
+        fallbackTitle: "REAL WORLD",
+        fallbackArtist: "AFRO CELT SYSTEM",
+        searchQuery: "Afro Celt Sound System Whirl-Y-Reel",
+        fallbackBarcode: "724384738228",
+        fallbackCover: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80",
+        fallbackTracks: [
+          { n: "01", t: "SAOR (FREE)", l: "04:50" },
+          { n: "02", t: "WHIRL-Y-REEL 1", l: "07:15" },
+          { n: "03", t: "IN DIONNAS", l: "06:34" }
+        ]
+      },
+      {
+        slotIndex: 4, col: 0, row: 2, code: "VOL. 05", accent: "#38bdf8", bg: ["#1e3a8a", "#2563eb", "#dc2626"],
+        mbid: "7329598a-1c62-4217-b789-f542479e0085",
+        fallbackTitle: "LIFE WITH IDÉE",
+        fallbackArtist: "IDÉE RECORDS",
+        searchQuery: "Idée Records Tokyo Lounge",
+        fallbackBarcode: "4988005391285",
+        fallbackCover: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80",
+        fallbackTracks: [
+          { n: "01", t: "MORNING COFFEE", l: "03:40" },
+          { n: "02", t: "AOYAMA DRIFT", l: "04:12" }
+        ]
+      },
+      {
+        slotIndex: 5, col: 1, row: 2, code: "VOL. 06", accent: "#a3e635", bg: ["#14532d", "#166534", "#15803d"],
+        mbid: "186359f4-34ad-436f-b258-00508ef33d59",
+        fallbackTitle: "LIRICA 2CD",
+        fallbackArtist: "VINCENZO BELLINI",
+        searchQuery: "Bellini Norma Casta Diva",
+        fallbackBarcode: "028942548827",
+        fallbackCover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&q=80",
+        fallbackTracks: [
+          { n: "01", t: "CASTA DIVA", l: "05:28" },
+          { n: "02", t: "AH! BELLO A ME RITORNA", l: "02:45" }
+        ]
+      },
+      {
+        slotIndex: 6, col: 0, row: 3, code: "VOL. 07", accent: "#fb923c", bg: ["#292524", "#44403c", "#78350f"],
+        mbid: "3d64c017-f273-41bb-aee5-2b47596200e0",
+        fallbackTitle: "BEST OF THE OUTLAWS",
+        fallbackArtist: "THE OUTLAWS",
+        searchQuery: "The Outlaws Green Grass and High Tides",
+        fallbackBarcode: "078221893320",
+        fallbackCover: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80",
+        fallbackTracks: [
+          { n: "01", t: "THERE GOES ANOTHER LOVE SONG", l: "03:03" },
+          { n: "02", t: "GREEN GRASS & HIGH TIDES", l: "09:47" }
+        ]
+      },
+      {
+        slotIndex: 7, col: 1, row: 3, code: "VOL. 08", accent: "#f87171", bg: ["#450a0a", "#991b1b", "#1f2937"],
+        mbid: "52aa0433-7221-4d10-858d-fa1fe56ceb95",
+        fallbackTitle: "RED ALERT 2 OST",
+        fallbackArtist: "COMMAND & CONQUER",
+        searchQuery: "Frank Klepacki Hell March 2",
+        fallbackBarcode: "014633142211",
+        fallbackCover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&q=80",
+        fallbackTracks: [
+          { n: "01", t: "HELL MARCH 2", l: "03:46" },
+          { n: "02", t: "IN DEEP", l: "03:25" },
+          { n: "03", t: "GRINDER", l: "02:28" }
+        ]
+      },
+      {
+        slotIndex: 8, col: 0, row: 4, code: "VOL. 09", accent: "#fde047", bg: ["#312e81", "#4338ca", "#6366f1"],
+        mbid: "acb17cf9-1d9c-4f76-857c-2b582531b268",
+        fallbackTitle: "AMADEUS",
+        fallbackArtist: "MOZART",
+        searchQuery: "Mozart Symphony No 40",
+        fallbackBarcode: "028941510023",
+        fallbackCover: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=800&q=80",
+        fallbackTracks: [
+          { n: "01", t: "SYMPHONY NO. 25 IN G MINOR", l: "04:30" },
+          { n: "02", t: "REQUIEM: DIES IRAE", l: "01:51" }
+        ]
+      },
+      {
+        slotIndex: 9, col: 1, row: 4, code: "VOL. 10", accent: "#38bdf8", bg: ["#0f172a", "#1e293b", "#334155"],
+        mbid: "6b080512-32b0-46fc-87fe-cfb297bcf52e",
+        fallbackTitle: "CARMINA BURANA",
+        fallbackArtist: "CARL ORFF",
+        searchQuery: "Carl Orff O Fortuna",
+        fallbackBarcode: "028941110421",
+        fallbackCover: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80",
+        fallbackTracks: [
+          { n: "01", t: "O FORTUNA", l: "02:35" },
+          { n: "02", t: "FORTUNE PLANGO VULNERA", l: "02:40" }
+        ]
+      },
+      {
+        slotIndex: 10, col: 0, row: 5, code: "VOL. 11", accent: "#fbbf24", bg: ["#fef08a", "#facc15", "#ca8a04"],
+        mbid: "56708b5f-f06b-4f05-89b0-b99e710b1447",
+        fallbackTitle: "KINKY MACHINE",
+        fallbackArtist: "BENT",
+        searchQuery: "Bent Always",
+        fallbackBarcode: "743217436021",
+        fallbackCover: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80",
+        fallbackTracks: [
+          { n: "01", t: "ALWAYS", l: "04:05" },
+          { n: "02", t: "SWOLLEN", l: "06:48" }
+        ]
+      },
+      {
+        slotIndex: 11, col: 1, row: 5, code: "VOL. 12", accent: "#06b6d4", bg: ["#082f49", "#0369a1", "#0284c7"],
+        mbid: "8c7b8db0-75b2-4d7a-b50a-e83cb2b083c5",
+        fallbackTitle: "CD-R AUDIO 80",
+        fallbackArtist: "CHROMA MASTER",
+        searchQuery: "Daft Punk Harder Better Faster",
+        fallbackBarcode: "4902580242220",
+        fallbackCover: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&q=80",
+        fallbackTracks: [
+          { n: "01", t: "TRACK 01 (RAW PCM)", l: "03:45" },
+          { n: "02", t: "TRACK 02 (MASTER DUB)", l: "04:12" }
+        ]
+      },
+      {
+        slotIndex: 12, col: 0, row: 6, code: "VOL. 13", accent: "#06b6d4", bg: ["#1e1b4b", "#312e81", "#4338ca"],
+        mbid: "9bcf3eb4-7ea6-42d4-850f-e9ad71360662",
+        fallbackTitle: "NEO TOKYO '98",
+        fallbackArtist: "SYNTHETIX CORE",
+        searchQuery: "Synthetix Core Cyberpunk",
+        fallbackBarcode: "001158107519",
+        fallbackCover: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=800&q=80",
+        fallbackTracks: [
+          { n: "01", t: "SYNTH WAVE RUNNER", l: "03:48" },
+          { n: "02", t: "NEO TOKYO SKYLINE", l: "04:15" },
+          { n: "03", t: "CHROMA DRIFT", l: "03:52" }
+        ]
+      },
+      {
+        slotIndex: 13, col: 1, row: 6, code: "VOL. 14", accent: "#4ade80", bg: ["#064e3b", "#065f46", "#047857"],
+        mbid: "e06c74d3-0d3f-4e08-9df5-f20364f33107",
+        fallbackTitle: "COSTELLO MUSIC",
+        fallbackArtist: "THE FRATELLIS",
+        searchQuery: "The Fratellis Chelsea Dagger",
+        fallbackBarcode: "602517056428",
+        fallbackCover: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80",
+        fallbackTracks: [
+          { n: "01", t: "HENRIETTA", l: "03:32" },
+          { n: "02", t: "FLATHEAD", l: "03:17" },
+          { n: "03", t: "CHELSEA DAGGER", l: "03:35" }
         ]
       }
     ];
 
-    let currentMbIndex = 0;
-    let customMetadata = { title: "CUSTOM MEDIA", artist: "USER IMPORT", tracklist: null, barcode: null };
+    let currentSlotIndex = 0;
+    let customMetadata = {
+      title: "NEO TOKYO '98",
+      artist: "SYNTHETIX CORE",
+      tracklist: musicBrainzAlbums[0].fallbackTracks,
+      barcode: musicBrainzAlbums[0].fallbackBarcode,
+      date: "1981-10-26",
+      country: "UK / INT",
+      label: "PARLOPHONE / OPEN ARCHIVE"
+    };
+    let activeTrackIndex = 0;
+
+    // ==============================================================
+    // 1B. PROCEDURAL MECHANICAL SOUND ENGINE & WEB AUDIO VISUALIZER
+    // ==============================================================
+    let audioCtx = null;
+    let analyserNode = null;
+    let mediaSourceNode = null;
+    let freqDataArray = null;
+    let sfxEnabled = true;
+
+    function ensureAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass();
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => { });
+      }
+      return audioCtx;
+    }
+
+    function connectVisualizerToAudioElement() {
+      const ctx = ensureAudioContext();
+      if (!ctx || analyserNode) return;
+      try {
+        analyserNode = ctx.createAnalyser();
+        analyserNode.fftSize = 64;
+        analyserNode.smoothingTimeConstant = 0.78;
+        freqDataArray = new Uint8Array(analyserNode.frequencyBinCount);
+        mediaSourceNode = ctx.createMediaElementSource(audioEl);
+        mediaSourceNode.connect(analyserNode);
+        analyserNode.connect(ctx.destination);
+      } catch (e) {
+        // Fallback jika CORS diblokir oleh stream tertentu
+        console.warn("Visualizer menggunakan mode simulasi ritme:", e);
+      }
+    }
+
+    // Synthesizer suara fisik tanpa file eksternal
+    function playMechanicalSFX(type) {
+      if (!sfxEnabled) return;
+      const ctx = ensureAudioContext();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+
+      if (type === 'caseOpen' || type === 'caseClose') {
+        // Suara klik akrilik tajam + resonansi plastik pendek
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        const startFreq = type === 'caseOpen' ? 1100 : 850;
+        const endFreq = type === 'caseOpen' ? 1650 : 420;
+        osc.frequency.setValueAtTime(startFreq, now);
+        osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.045);
+
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.06);
+      } else if (type === 'rackHover') {
+        // Tick halus saat melintasi slot rak
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(620, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.025);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.032);
+      } else if (type === 'rackSlide') {
+        // Suara gesekan halus akrilik saat kaset diambil dari rak
+        const bufferSize = ctx.sampleRate * 0.14;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.4));
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(900, now);
+        filter.frequency.exponentialRampToValueAtTime(1900, now + 0.13);
+        filter.Q.value = 3.0;
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.14, now);
+        gain.gain.exponentialRampToValueAtTime(0.002, now + 0.14);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+        noise.start(now);
+      } else if (type === 'eject') {
+        // Suara snap spindle tengah CD
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(520, now);
+        osc.frequency.exponentialRampToValueAtTime(980, now + 0.07);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.085);
+      }
+    }
 
     // ==========================================
     // AUDIO ENGINE (iTunes Search API Integration)
@@ -229,7 +608,7 @@
     let currentPreviewUrl = null;
     let activeTrackTitle = "NO AUDIO";
 
-    async function fetchItunesAudioPreview(term) {
+    async function fetchItunesAudioPreview(term, autoPlayAfterLoad = false) {
       const trackNameEl = document.getElementById('audioTrackName');
       const trackStatusEl = document.getElementById('audioTrackStatus');
       trackStatusEl.innerText = "Mencari di iTunes...";
@@ -247,15 +626,14 @@
           trackNameEl.innerText = activeTrackTitle;
           trackStatusEl.innerText = `iTunes 30s • ${song.artistName.toUpperCase()}`;
           audioEl.src = currentPreviewUrl;
-          
-          showToast(`Lagu dimuat: ${song.trackName} (iTunes Preview)`);
-          
-          // Autoplay jika disc sedang berputar
-          if (isDiscSpinning) {
+
+          showToast(`Lagu dimuat: ${song.trackName}`);
+
+          if (isDiscSpinning || autoPlayAfterLoad) {
             playAudio();
           }
         } else {
-          trackStatusEl.innerText = "Audio tidak ditemukan";
+          trackStatusEl.innerText = "Audio tidak ditemukan di iTunes";
           audioEl.src = "";
           currentPreviewUrl = null;
         }
@@ -267,14 +645,16 @@
 
     function playAudio() {
       if (!audioEl.src) return;
+      connectVisualizerToAudioElement();
       audioEl.play().then(() => {
         isAudioPlaying = true;
         updateAudioUI(true);
         if (!isDiscSpinning) {
           toggleSpin();
         }
+        invalidate();
       }).catch(err => {
-        console.log("Autoplay diblokir oleh browser sampai ada interaksi user:", err);
+        console.log("Autoplay menunggu interaksi user:", err);
         isAudioPlaying = false;
         updateAudioUI(false);
       });
@@ -308,18 +688,68 @@
         audioIcon.innerHTML = `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
         audioPlayText.innerText = "Pause";
         widgetPlayIcon.innerHTML = `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
-        eqBars.forEach((bar, idx) => {
-          bar.classList.add('animate-pulse');
-          bar.style.animationDuration = `${0.35 + (idx * 0.15)}s`;
-        });
       } else {
         audioIcon.innerHTML = `<path d="M8 5v14l11-7z"/>`;
         audioPlayText.innerText = "Play Audio";
         widgetPlayIcon.innerHTML = `<path d="M8 5v14l11-7z"/>`;
         eqBars.forEach(bar => {
-          bar.classList.remove('animate-pulse');
-          bar.style.height = "6px";
+          if (bar) bar.style.height = "6px";
         });
+      }
+      renderTracklistDrawer();
+    }
+
+    // Render daftar lagu interaktif & buklet di panel kanan
+    function renderTracklistDrawer() {
+      const container = document.getElementById('drawerTracksView');
+      if (!container) return;
+      const tracks = (customMetadata && customMetadata.tracklist && customMetadata.tracklist.length > 0)
+        ? customMetadata.tracklist
+        : musicBrainzAlbums[currentSlotIndex].fallbackTracks;
+
+      const artist = customMetadata.artist || musicBrainzAlbums[currentSlotIndex].fallbackArtist;
+      container.innerHTML = '';
+
+      tracks.forEach((tr, idx) => {
+        const isCurrent = idx === activeTrackIndex;
+        const btn = document.createElement('button');
+        btn.className = `w-full text-left px-2.5 py-1.5 rounded-xl flex items-center justify-between gap-2 transition ${isCurrent ? 'bg-slate-900 text-white shadow-sm' : 'hover:bg-slate-200/70 text-slate-700'
+          }`;
+        btn.innerHTML = `
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="mono text-[10px] ${isCurrent ? 'text-orange-400 font-bold' : 'text-slate-400'}">${tr.n || String(idx + 1).padStart(2, '0')}</span>
+            <span class="text-[11px] font-semibold truncate">${tr.t}</span>
+          </div>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <span class="mono text-[10px] ${isCurrent ? 'text-cyan-300' : 'text-slate-400'}">${tr.l || '03:30'}</span>
+          </div>
+        `;
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          activeTrackIndex = idx;
+          playMechanicalSFX('rackHover');
+          renderTracklistDrawer();
+          fetchItunesAudioPreview(`${artist} ${tr.t}`, true);
+        });
+        container.appendChild(btn);
+      });
+
+      // Update informasi buklet
+      const relYearEl = document.getElementById('drawerReleaseYear');
+      if (relYearEl) relYearEl.innerText = `SLOT ${String(currentSlotIndex + 1).padStart(2, '0')}`;
+      const slotBadge = document.getElementById('slotBadge');
+      if (slotBadge) slotBadge.innerText = `SLOT ${String(currentSlotIndex + 1).padStart(2, '0')}`;
+
+      const bookletHeader = document.getElementById('bookletHeader');
+      const bookletDetails = document.getElementById('bookletDetails');
+      if (bookletHeader && bookletDetails) {
+        bookletHeader.innerText = `// ${customMetadata.title} — ${customMetadata.artist}`;
+        bookletDetails.innerHTML = `
+          <b>Katalog / Barcode:</b> ${customMetadata.barcode || 'N/A'}<br>
+          <b>Rilis:</b> ${customMetadata.date || 'Archive Edition'} (${customMetadata.country || 'Global'})<br>
+          <b>Sumber Data:</b> ${customMetadata.label || 'MusicBrainz Open Database'}<br>
+          <b>Jumlah Lagu:</b> ${tracks.length} Tracks
+        `;
       }
     }
 
@@ -338,7 +768,6 @@
       document.getElementById('audioProgressBar').style.width = '0%';
     });
 
-    // Helper untuk menampilkan status info di UI tanpa alert()
     function showToast(message, duration = 3000) {
       const toast = document.getElementById('statusToast');
       if (!toast) return;
@@ -356,11 +785,14 @@
     // ==========================================
     let scene, camera, renderer;
     let cdAssembly, caseLidGroup, cdDiscGroup, cdDiscMesh;
+    let trayInsideMesh = null, trayOutsideMesh = null;
+    let rackEdgeMaterialRef = null, rimLightRef = null;
     let isOpen = false, targetLidAngle = 0.0, currentLidAngle = 0.0;
     let isDiscSpinning = true, currentCoverIndex = 0;
     let frontCoverTexture, backCoverTexture, discTexture, cdIridescenceMaterial;
     let isDragging = false, prevMouseX = 0, prevMouseY = 0;
-    
+    let isScrubbingDisc = false;
+
     let targetRotX = 0.25, targetRotY = -0.45;
     let currentRotX = 0.25, currentRotY = -0.45;
     let currentCustomImage = null;
@@ -369,25 +801,90 @@
     const LID_OPEN_ANGLE = -Math.PI * 0.78;
 
     let isDiscOut = false, discOutAmt = 0, bobAmp = 1;
-    let rafId = 0, lastFrameTime = 0;
+    let rafId = 0, isAnimatingFrame = false, lastFrameTime = 0;
     let shadowGroup, shadowMesh;
     let maxPixelRatio = Math.min(window.devicePixelRatio || 1, 2);
     let currentPixelRatio = maxPixelRatio;
     const perf = { frames: 0, acc: 0, ignore: 90 };
-    
+
+    let rackSwapState = 'IDLE';
+    let desktopRackGroup = null;
+    const rackSlotMarkers = [];
+    const rackDummyCases = [];
+    const rackDummyMeshes = [];
+    const rackSlotHoverOffsets = new Float32Array(14);
+    let hoveredRackSlot = -1;
+    let _returnSlotIndex = 0;
+    let _targetSlotIndex = 0;
+    const _tempSlotPos = new THREE.Vector3();
+    const _tempHoverPos = new THREE.Vector3();
+    // Offset tarikan lurus ke atas mengikuti sedikit kemiringan slot rak agar tidak menabrak kaset di depannya/belakangnya
+    const _hoverOffsetVec = new THREE.Vector3(0, 1.85, -0.15);
+    let currentAssemblyX = 0, currentAssemblyY = 0, currentAssemblyZ = 0;
+    let currentAssemblyScale = 1.0, targetAssemblyScale = 1.0;
+
+    // Skala diselaraskan persis dengan ukuran fisik dummy CD di rak:
+    // Dummy CD di rak memiliki lebar 2.45 * rackScale (0.70) = 1.715 world unit.
+    // cdAssembly utama memiliki lebar 2.80 world unit -> 1.715 / 2.80 = 0.6125.
+    const RACK_SCALE = 0.6125;
+    const STAGE_SCALE = 1.0;
+    // Sudut kemiringan dunia (world rotation) yang selaras dengan kaset di dalam rak
+    const RACK_ROT_X = -0.03;
+    const RACK_ROT_Y = 0.45;
+    const showcaseRotX = 0.25, showcaseRotY = -0.45;
+    let ghostPulseClock = 0;
+    let _swapAlbumConfig = null;
+    let pendingAlbumDataReady = false;
+    let texturesPreRendered = false;
+    let activeGhostMaterials = [];
+
     const smoothstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
     function mulberry32(a) {
-      return function() {
+      return function () {
         a |= 0; a = a + 0x6D2B79F5 | 0;
         let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
         return ((t ^ t >>> 14) >>> 0) / 4294967296;
       };
     }
 
-    function makeCanvasTexture(canvas, srgb) {
+    function makeCanvasTexture(canvas, srgb, maxAniso = 4) {
       const t = new THREE.CanvasTexture(canvas);
-      t.anisotropy = 8; if (srgb) t.encoding = THREE.sRGBEncoding;
+      t.anisotropy = maxAniso;
+      if (srgb) t.encoding = THREE.sRGBEncoding;
       return t;
+    }
+
+    // ==============================================================
+    // CANVASES & TEXTURES SINGLETON (Zero memory leak & GPU reuse)
+    // ==============================================================
+    let _skelCanvas = null, _skelCtx = null, _skeletonTex = null;
+    function getSkeletonTexture() {
+      if (!_skelCanvas) {
+        _skelCanvas = document.createElement('canvas');
+        _skelCanvas.width = 512; _skelCanvas.height = 512;
+        _skelCtx = _skelCanvas.getContext('2d');
+        _skeletonTex = new THREE.CanvasTexture(_skelCanvas);
+        _skeletonTex.anisotropy = 4;
+
+        const ctx = _skelCtx;
+        ctx.fillStyle = 'rgba(20,30,50,0.3)';
+        ctx.fillRect(0, 0, 512, 512);
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 512; i += 32) {
+          ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 512); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(512, i); ctx.stroke();
+        }
+
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        ctx.font = "24px 'Space Mono', monospace";
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('LOADING...', 256, 256);
+
+        _skeletonTex.needsUpdate = true;
+      }
+      return _skeletonTex;
     }
 
     const albumThemes = [
@@ -397,11 +894,19 @@
     ];
 
     // ==========================================
-    // 3. GENERATOR TEKSTUR COVER & DISC
+    // 3. GENERATOR TEKSTUR COVER & DISC (SINGLETON)
     // ==========================================
+    let _frontCanvas = null, _frontCtx = null;
     function generateFrontCoverTexture(themeIndex, customImg = null) {
-      const canvas = document.createElement('canvas'); canvas.width = 1024; canvas.height = 1024;
-      const ctx = canvas.getContext('2d');
+      if (!_frontCanvas) {
+        _frontCanvas = document.createElement('canvas'); _frontCanvas.width = 1024; _frontCanvas.height = 1024;
+        _frontCtx = _frontCanvas.getContext('2d');
+        frontCoverTexture = new THREE.CanvasTexture(_frontCanvas);
+        frontCoverTexture.anisotropy = 4;
+        frontCoverTexture.encoding = THREE.sRGBEncoding;
+      }
+      const ctx = _frontCtx;
+      ctx.clearRect(0, 0, 1024, 1024);
       const rand = mulberry32(1000 + themeIndex * 17 + (customImg ? 1 : 0));
       const theme = albumThemes[themeIndex];
 
@@ -409,19 +914,19 @@
         const size = Math.min(customImg.width, customImg.height);
         const startX = (customImg.width - size) / 2; const startY = (customImg.height - size) / 2;
         ctx.drawImage(customImg, startX, startY, size, size, 0, 0, 1024, 1024);
-        
+
         const vig = ctx.createRadialGradient(512, 512, 200, 512, 512, 800);
         vig.addColorStop(0, "rgba(0,0,0,0)"); vig.addColorStop(1, "rgba(0,0,0,0.6)");
-        ctx.fillStyle = vig; ctx.fillRect(0,0,1024,1024);
+        ctx.fillStyle = vig; ctx.fillRect(0, 0, 1024, 1024);
       } else {
         const grad = ctx.createLinearGradient(0, 0, 1024, 1024);
         grad.addColorStop(0, theme.bg[0]); grad.addColorStop(0.5, theme.bg[1]); grad.addColorStop(1, theme.bg[2]);
         ctx.fillStyle = grad; ctx.fillRect(0, 0, 1024, 1024);
 
         ctx.lineWidth = 2; ctx.strokeStyle = "rgba(255, 255, 255, 0.04)";
-        for(let i = -1024; i < 2048; i += 24) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + 1024, 1024); ctx.stroke(); }
-        
-        for(let i = 0; i < 4; i++) {
+        for (let i = -1024; i < 2048; i += 24) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + 1024, 1024); ctx.stroke(); }
+
+        for (let i = 0; i < 4; i++) {
           const x = rand() * 1024; const y = rand() * 1024; const r = rand() * 300 + 100;
           const blobGrad = ctx.createRadialGradient(x, y, 0, x, y, r);
           blobGrad.addColorStop(0, theme.accent + "44"); blobGrad.addColorStop(1, "transparent");
@@ -431,12 +936,23 @@
         ctx.strokeStyle = "rgba(255, 255, 255, 0.1)"; ctx.lineWidth = 1;
         for (let i = 0; i <= 1024; i += 64) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 1024); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(1024, i); ctx.stroke(); }
       }
-      return makeCanvasTexture(canvas, true);
+      frontCoverTexture.needsUpdate = true;
+      return frontCoverTexture;
     }
 
+    let _backCanvas = null, _backCtx = null, _backSmallCanvas = null, _backSmallCtx = null;
     function generateBackCoverTexture(themeIndex, customImg = null) {
-      const canvas = document.createElement('canvas'); canvas.width = 1024; canvas.height = 1024;
-      const ctx = canvas.getContext('2d');
+      if (!_backCanvas) {
+        _backCanvas = document.createElement('canvas'); _backCanvas.width = 1024; _backCanvas.height = 1024;
+        _backCtx = _backCanvas.getContext('2d');
+        _backSmallCanvas = document.createElement('canvas'); _backSmallCanvas.width = 48; _backSmallCanvas.height = 48;
+        _backSmallCtx = _backSmallCanvas.getContext('2d');
+        backCoverTexture = new THREE.CanvasTexture(_backCanvas);
+        backCoverTexture.anisotropy = 4;
+        backCoverTexture.encoding = THREE.sRGBEncoding;
+      }
+      const ctx = _backCtx;
+      ctx.clearRect(0, 0, 1024, 1024);
       const rand = mulberry32(5000 + themeIndex * 31 + (customImg ? 1 : 0));
       const theme = albumThemes[themeIndex];
       let title = theme.title, artist = theme.artist, accent = theme.accent, spineBg = theme.bg[0];
@@ -446,17 +962,14 @@
       if (customImg) {
         const size = Math.min(customImg.width, customImg.height);
         const startX = (customImg.width - size) / 2; const startY = (customImg.height - size) / 2;
-        const small = document.createElement('canvas'); small.width = 48; small.height = 48;
-        const sctx = small.getContext('2d');
-        sctx.imageSmoothingEnabled = true; sctx.imageSmoothingQuality = 'high';
-        sctx.drawImage(customImg, startX, startY, size, size, 0, 0, 48, 48);
-        ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(small, 0, 0, 1024, 1024);
-        ctx.fillStyle = "rgba(10, 15, 24, 0.85)"; ctx.fillRect(0,0,1024,1024);
+        _backSmallCtx.clearRect(0, 0, 48, 48);
+        _backSmallCtx.drawImage(customImg, startX, startY, size, size, 0, 0, 48, 48);
+        ctx.drawImage(_backSmallCanvas, 0, 0, 1024, 1024);
+        ctx.fillStyle = "rgba(10, 15, 24, 0.85)"; ctx.fillRect(0, 0, 1024, 1024);
         title = customMetadata.title; artist = customMetadata.artist; accent = "#f97316"; spineBg = "#111";
       } else {
         ctx.fillStyle = "rgba(255,255,255,0.03)";
-        for(let i=0; i<300; i++){ ctx.beginPath(); ctx.arc(rand()*1024, rand()*1024, rand()*1.5, 0, Math.PI*2); ctx.fill(); }
+        for (let i = 0; i < 120; i++) { ctx.fillRect(rand() * 1024, rand() * 1024, 2, 2); }
       }
 
       // 1. Spine
@@ -474,7 +987,7 @@
       ctx.strokeStyle = "rgba(255,255,255,0.15)"; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(120, 120); ctx.lineTo(920, 120); ctx.stroke();
       ctx.fillStyle = accent; ctx.font = "bold 20px 'Space Mono', monospace";
-      ctx.fillText("CAT: " + (customMetadata.barcode || Math.random().toString(36).substr(2, 6).toUpperCase()), 120, 100);
+      ctx.fillText("CAT: " + (customMetadata.barcode || "MB-884920"), 120, 100);
       ctx.fillText("MUSICBRAINZ // OPEN AUDIO", 600, 100);
 
       // 3. Tracklist dari MusicBrainz
@@ -482,12 +995,12 @@
       ctx.fillText("INDEX // TRACKLIST", 120, 180);
 
       const tracks = (customImg && customMetadata.tracklist) ? customMetadata.tracklist.slice(0, 7) :
-        [{n:"01", t:"NEON AWAKENING", l:"04:23"}, {n:"02", t:"DIGITAL HORIZONS", l:"05:12"}, {n:"03", t:"SYNTHETIC DREAMS", l:"03:45"}, {n:"04", t:"MIDNIGHT DRIFT", l:"06:01"}, {n:"05", t:"SYSTEM SHUTDOWN", l:"02:30"}];
+        [{ n: "01", t: "NEON AWAKENING", l: "04:23" }, { n: "02", t: "DIGITAL HORIZONS", l: "05:12" }, { n: "03", t: "SYNTHETIC DREAMS", l: "03:45" }, { n: "04", t: "MIDNIGHT DRIFT", l: "06:01" }, { n: "05", t: "SYSTEM SHUTDOWN", l: "02:30" }];
 
-      for(let i = 0; i < tracks.length; i++) {
+      for (let i = 0; i < tracks.length; i++) {
         const y = 250 + (i * 72);
         ctx.fillStyle = accent; ctx.font = "bold 28px 'Space Mono', monospace"; ctx.fillText(tracks[i].n, 120, y);
-        ctx.fillStyle = "#ffffff"; ctx.font = "600 32px 'Plus Jakarta Sans', sans-serif"; 
+        ctx.fillStyle = "#ffffff"; ctx.font = "600 32px 'Plus Jakarta Sans', sans-serif";
         const tName = tracks[i].t.length > 22 ? tracks[i].t.substring(0, 22) + "..." : tracks[i].t;
         ctx.fillText(tName, 180, y);
         const titleWidth = ctx.measureText(tName).width;
@@ -506,16 +1019,24 @@
 
       ctx.fillStyle = "#ffffff"; ctx.fillRect(680, 810, 240, 120);
       ctx.fillStyle = "#000000";
-      for (let x = 695; x < 900; x += (rand() > 0.5 ? 4 : 8)) { ctx.fillRect(x, 820, rand()*4+1, 80); }
-      ctx.font = "bold 15px 'Space Mono', monospace"; 
+      for (let x = 695; x < 900; x += (rand() > 0.5 ? 4 : 8)) { ctx.fillRect(x, 820, rand() * 4 + 1, 80); }
+      ctx.font = "bold 15px 'Space Mono', monospace";
       ctx.fillText(customMetadata.barcode ? customMetadata.barcode.substring(0, 13) : "1 0293 49120 4", 710, 920);
 
-      return makeCanvasTexture(canvas, true);
+      backCoverTexture.needsUpdate = true;
+      return backCoverTexture;
     }
 
+    let _discCanvas = null, _discCtx = null;
     function generateDiscTexture(themeIndex, customImg = null) {
-      const canvas = document.createElement('canvas'); canvas.width = 1024; canvas.height = 1024;
-      const ctx = canvas.getContext('2d');
+      if (!_discCanvas) {
+        _discCanvas = document.createElement('canvas'); _discCanvas.width = 1024; _discCanvas.height = 1024;
+        _discCtx = _discCanvas.getContext('2d');
+        discTexture = new THREE.CanvasTexture(_discCanvas);
+        discTexture.anisotropy = 4;
+      }
+      const ctx = _discCtx;
+      ctx.clearRect(0, 0, 1024, 1024);
       const theme = albumThemes[themeIndex];
       let title = theme.title, artist = theme.artist, accent = theme.accent;
 
@@ -537,11 +1058,11 @@
       }
 
       ctx.lineWidth = 18; ctx.strokeStyle = customImg ? "rgba(0,0,0,0.5)" : theme.bg[1];
-      ctx.beginPath(); ctx.arc(512, 512, 460, 0, Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(512, 512, 460, 0, Math.PI * 2); ctx.stroke();
       ctx.lineWidth = 2; ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
-      ctx.beginPath(); ctx.arc(512, 512, 390, 0, Math.PI*2); ctx.stroke();
-      
-      ctx.setLineDash([8, 12]); ctx.beginPath(); ctx.arc(512, 512, 280, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(512, 512, 390, 0, Math.PI * 2); ctx.stroke();
+
+      ctx.setLineDash([8, 12]); ctx.beginPath(); ctx.arc(512, 512, 280, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
       for (let r = 170; r < 210; r += 20) {
         ctx.beginPath(); ctx.arc(512, 512, r, 0, Math.PI * 2);
         ctx.lineWidth = 1; ctx.strokeStyle = "rgba(255, 255, 255, 0.15)"; ctx.stroke();
@@ -550,12 +1071,13 @@
       ctx.strokeStyle = "rgba(255, 255, 255, 0.8)"; ctx.lineWidth = 3; ctx.stroke();
 
       ctx.fillStyle = "#ffffff"; ctx.textAlign = "center"; ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 8;
-      ctx.font = "bold 52px 'Space Mono', monospace"; 
+      ctx.font = "bold 52px 'Space Mono', monospace";
       const displayTitle = title.length > 14 ? title.substring(0, 14) + "..." : title;
       ctx.fillText(displayTitle, 512, 200); ctx.shadowBlur = 0;
       ctx.fillStyle = accent; ctx.font = "600 34px 'Plus Jakarta Sans', sans-serif"; ctx.fillText(artist, 512, 260);
 
-      return makeCanvasTexture(canvas, false);
+      discTexture.needsUpdate = true;
+      return discTexture;
     }
 
     // ==========================================
@@ -565,14 +1087,22 @@
     let lidLabelTexture, lidLabelMesh, currentLidShape = 0;
 
     const lidShapes = [
-      { name: "Busur", barcode: "bottom", box: { x: LW - 400, y: 30, w: 370, h: 340 },
-        path(ctx) { const R = 620; ctx.moveTo(LW, 0); ctx.lineTo(LW - R, 0); ctx.arc(LW, 0, R, Math.PI, Math.PI / 2, true); ctx.closePath(); } },
-      { name: "Potong", barcode: "bottom", box: { x: LW - 480, y: LH - 360, w: 440, h: 330 },
-        path(ctx) { const x0 = LW - 520, y0 = LH - 490, c = 120; ctx.moveTo(x0 + c, y0); ctx.lineTo(LW, y0); ctx.lineTo(LW, LH); ctx.lineTo(x0, LH); ctx.lineTo(x0, y0 + c); ctx.closePath(); } },
-      { name: "Pita", barcode: "right", box: { x: 40, y: LH - 225, w: LW - 170, h: 200 },
-        path(ctx) { const y0 = LH - 250, n = 90; ctx.moveTo(0, y0); ctx.lineTo(LW - n, y0); ctx.lineTo(LW, y0 + 125); ctx.lineTo(LW - n, LH); ctx.lineTo(0, LH); ctx.closePath(); } },
-      { name: "Full Kaca", barcode: "bottom", box: { x: LW - 420, y: LH - 360, w: 380, h: 320 },
-        path(ctx) { ctx.moveTo(0,0); ctx.lineTo(LW,0); ctx.lineTo(LW,LH); ctx.lineTo(0,LH); ctx.closePath(); } }
+      {
+        name: "Busur", barcode: "bottom", box: { x: LW - 400, y: 30, w: 370, h: 340 },
+        path(ctx) { const R = 620; ctx.moveTo(LW, 0); ctx.lineTo(LW - R, 0); ctx.arc(LW, 0, R, Math.PI, Math.PI / 2, true); ctx.closePath(); }
+      },
+      {
+        name: "Potong", barcode: "bottom", box: { x: LW - 480, y: LH - 360, w: 440, h: 330 },
+        path(ctx) { const x0 = LW - 520, y0 = LH - 490, c = 120; ctx.moveTo(x0 + c, y0); ctx.lineTo(LW, y0); ctx.lineTo(LW, LH); ctx.lineTo(x0, LH); ctx.lineTo(x0, y0 + c); ctx.closePath(); }
+      },
+      {
+        name: "Pita", barcode: "right", box: { x: 40, y: LH - 225, w: LW - 170, h: 200 },
+        path(ctx) { const y0 = LH - 250, n = 90; ctx.moveTo(0, y0); ctx.lineTo(LW - n, y0); ctx.lineTo(LW, y0 + 125); ctx.lineTo(LW - n, LH); ctx.lineTo(0, LH); ctx.closePath(); }
+      },
+      {
+        name: "Full Kaca", barcode: "bottom", box: { x: LW - 420, y: LH - 360, w: 380, h: 320 },
+        path(ctx) { ctx.moveTo(0, 0); ctx.lineTo(LW, 0); ctx.lineTo(LW, LH); ctx.lineTo(0, LH); ctx.closePath(); }
+      }
     ];
 
     function hexToRgba(hex, a) { const n = parseInt(hex.slice(1), 16); return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`; }
@@ -586,17 +1116,17 @@
       const bw = 170, bh = 70, gap = 14; let bx, by, textW, textH;
       if (mode === 'right') { bx = box.x + box.w - bw; by = box.y + (box.h - bh) / 2; textW = box.w - bw - 30; textH = box.h; }
       else { bx = box.x + box.w - bw; by = box.y + box.h - bh; textW = box.w; textH = box.h - bh - gap; }
-      
+
       ctx.fillStyle = "#ffffff"; ctx.fillRect(bx, by, bw, bh); ctx.fillStyle = "#000000";
       for (let x = bx + 10; x < bx + bw - 10; x += (rand() > 0.5 ? 4 : 7)) ctx.fillRect(x, by + 8, rand() * 2.5 + 1, bh - 24);
-      ctx.font = "11px 'Space Mono', monospace"; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; 
+      ctx.font = "11px 'Space Mono', monospace"; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
       ctx.fillText(customMetadata.barcode ? customMetadata.barcode.substring(0, 13) : "8  02434  10294  9", bx + 12, by + bh - 5);
 
       if (currentLidShape === 3) {
-         ctx.fillStyle = accent;
-         for(let i=0; i<15; i++) { let h = rand() * 50 + 10; ctx.fillRect(40 + (i*14), 40, 8, h); }
-         ctx.fillStyle = "rgba(255, 255, 255, 0.6)"; ctx.font = "14px 'Space Mono', monospace"; ctx.textBaseline = 'top';
-         ctx.fillText("SYS.REV: 5.1 // MBID: " + (musicBrainzAlbums[currentMbIndex]?.mbid.substring(0, 8) || "N/A"), 40, 100);
+        ctx.fillStyle = accent;
+        for (let i = 0; i < 15; i++) { let h = rand() * 50 + 10; ctx.fillRect(40 + (i * 14), 40, 8, h); }
+        ctx.fillStyle = "rgba(255, 255, 255, 0.6)"; ctx.font = "14px 'Space Mono', monospace"; ctx.textBaseline = 'top';
+        ctx.fillText("SYS.REV: 5.3 // MBID: " + (musicBrainzAlbums[currentSlotIndex]?.mbid.substring(0, 8) || "N/A"), 40, 100);
       }
 
       ctx.textBaseline = 'top'; ctx.textAlign = 'left';
@@ -607,7 +1137,7 @@
         const widest = Math.max(...lines.map(l => ctx.measureText(l).width));
         const total = 18 + lines.length * size * 1.12 + 10 + artistSize * 1.2;
         if ((lines.length <= 3 && widest <= textW && total <= textH) || size <= 22) break;
-        size -= 2;
+        size -= 4;
       }
       ctx.font = `600 ${artistSize}px 'Plus Jakarta Sans', sans-serif`;
       while (artistSize > 14 && ctx.measureText(artist).width > textW) { artistSize -= 2; ctx.font = `600 ${artistSize}px 'Plus Jakarta Sans', sans-serif`; }
@@ -621,8 +1151,17 @@
       ctx.fillText(artist, box.x, y);
     }
 
+    let _labelCanvas = null, _labelCtx = null;
     function generateLidLabelTexture(themeIndex, customImg = null, shapeIndex = 0) {
-      const canvas = document.createElement('canvas'); canvas.width = LW; canvas.height = LH; const ctx = canvas.getContext('2d');
+      if (!_labelCanvas) {
+        _labelCanvas = document.createElement('canvas'); _labelCanvas.width = LW; _labelCanvas.height = LH;
+        _labelCtx = _labelCanvas.getContext('2d');
+        lidLabelTexture = new THREE.CanvasTexture(_labelCanvas);
+        lidLabelTexture.anisotropy = 4;
+        lidLabelTexture.encoding = THREE.sRGBEncoding;
+      }
+      const ctx = _labelCtx;
+      ctx.clearRect(0, 0, LW, LH);
       const theme = albumThemes[themeIndex];
       let title = theme.title, artist = theme.artist, accent = theme.accent, c0 = theme.bg[0], c1 = theme.bg[1];
       if (customImg) { title = customMetadata.title; artist = customMetadata.artist; accent = "#f97316"; c0 = "#0f172a"; c1 = "#1e293b"; }
@@ -636,41 +1175,77 @@
       grad.addColorStop(0, hexToRgba(c0, alpha)); grad.addColorStop(1, hexToRgba(c1, alpha));
       ctx.fillStyle = grad; ctx.fill();
 
-      if(shapeIndex !== 3) {
-         ctx.beginPath(); shape.path(ctx);
-         ctx.lineWidth = 5; ctx.strokeStyle = accent; ctx.stroke();
+      if (shapeIndex !== 3) {
+        ctx.beginPath(); shape.path(ctx);
+        ctx.lineWidth = 5; ctx.strokeStyle = accent; ctx.stroke();
       }
 
       ctx.strokeStyle = accent; ctx.lineWidth = 4; const m = 40, s = 60;
-      ctx.beginPath(); ctx.moveTo(m+s, m); ctx.lineTo(m, m); ctx.lineTo(m, m+s); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(LW-m-s, m); ctx.lineTo(LW-m, m); ctx.lineTo(LW-m, m+s); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(m+s, LH-m); ctx.lineTo(m, LH-m); ctx.lineTo(m, LH-m-s); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(LW-m-s, LH-m); ctx.lineTo(LW-m, LH-m); ctx.lineTo(LW-m, LH-m-s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(m + s, m); ctx.lineTo(m, m); ctx.lineTo(m, m + s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(LW - m - s, m); ctx.lineTo(LW - m, m); ctx.lineTo(LW - m, m + s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(m + s, LH - m); ctx.lineTo(m, LH - m); ctx.lineTo(m, LH - m - s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(LW - m - s, LH - m); ctx.lineTo(LW - m, LH - m); ctx.lineTo(LW - m, LH - m - s); ctx.stroke();
 
       drawLidLabelContent(ctx, shape.box, shape.barcode, title, artist, accent, rand);
-      return makeCanvasTexture(canvas, true);
+      lidLabelTexture.needsUpdate = true;
+      return lidLabelTexture;
     }
 
     function refreshLidLabel() {
-      const old = lidLabelTexture;
-      lidLabelTexture = generateLidLabelTexture(currentCoverIndex, currentCustomImage, currentLidShape);
-      if (lidLabelMesh) { lidLabelMesh.material.map = lidLabelTexture; lidLabelMesh.material.needsUpdate = true; }
-      if (old) old.dispose();
+      generateLidLabelTexture(currentCoverIndex, currentCustomImage, currentLidShape);
+      if (lidLabelMesh && lidLabelMesh.material.map !== lidLabelTexture) {
+        lidLabelMesh.material.map = lidLabelTexture;
+      }
       const btn = document.getElementById('changeLabelBtn');
       if (btn) btn.textContent = 'Label: ' + lidShapes[currentLidShape].name;
       perf.ignore = Math.max(perf.ignore, 25); invalidate();
+    }
+
+    function applySkeletonPhase() {
+      const skel = getSkeletonTexture();
+
+      if (trayInsideMesh) trayInsideMesh.material.map = skel;
+      if (trayOutsideMesh) trayOutsideMesh.material.map = skel;
+      if (cdIridescenceMaterial) cdIridescenceMaterial.uniforms.uCoverTex.value = skel;
+      if (lidLabelMesh) lidLabelMesh.material.map = skel;
+
+      invalidate();
+    }
+
+    function clearSkeletonPhase() {
+      activeGhostMaterials.length = 0;
+
+      if (trayInsideMesh && frontCoverTexture) trayInsideMesh.material.map = frontCoverTexture;
+      if (trayOutsideMesh && backCoverTexture) trayOutsideMesh.material.map = backCoverTexture;
+      if (cdIridescenceMaterial && discTexture) cdIridescenceMaterial.uniforms.uCoverTex.value = discTexture;
+      if (lidLabelMesh && lidLabelTexture) lidLabelMesh.material.map = lidLabelTexture;
+    }
+
+    function preRenderAlbumTexturesStaggered(onDone) {
+      requestAnimationFrame(() => {
+        generateFrontCoverTexture(currentCoverIndex, currentCustomImage);
+        requestAnimationFrame(() => {
+          generateBackCoverTexture(currentCoverIndex, currentCustomImage);
+          requestAnimationFrame(() => {
+            generateDiscTexture(currentCoverIndex, currentCustomImage);
+            generateLidLabelTexture(currentCoverIndex, currentCustomImage, currentLidShape);
+            texturesPreRendered = true;
+            if (onDone) onDone();
+          });
+        });
+      });
     }
 
     // ==========================================
     // 5. MATERIAL & LOGIKA 3D
     // ==========================================
     function createProceduralEnvMap() {
-      const W = 1024, H = 512; const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H; const ctx = canvas.getContext('2d');
+      const W = 512, H = 256; const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H; const ctx = canvas.getContext('2d');
       const grad = ctx.createLinearGradient(0, 0, 0, H);
       grad.addColorStop(0, '#222836'); grad.addColorStop(0.42, '#0b0d13'); grad.addColorStop(0.5, '#171b25'); grad.addColorStop(1, '#07080c');
       ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
       const box = (x, y, w, h, color, blur) => { ctx.shadowColor = color; ctx.shadowBlur = blur; ctx.fillStyle = color; ctx.fillRect(x, y, w, h); };
-      box(250, 14, 520, 70, '#ffffff', 40); box(120, 150, 240, 120, '#ffffff', 30); box(790, 190, 90, 210, '#e2ecff', 28); box(560, 200, 70, 150, '#cfe3ff', 24); box(440, 340, 140, 36, '#ffe6c4', 24); box(40, 120, 5, 280, '#ffffff', 10); box(700, 120, 5, 280, '#ffffff', 10); box(930, 140, 5, 260, '#ffffff', 10); ctx.shadowBlur = 0;
+      box(125, 7, 260, 35, '#ffffff', 20); box(60, 75, 120, 60, '#ffffff', 15); box(395, 95, 45, 105, '#e2ecff', 14); box(280, 100, 35, 75, '#cfe3ff', 12); box(220, 170, 70, 18, '#ffe6c4', 12); ctx.shadowBlur = 0;
       const texture = new THREE.CanvasTexture(canvas); texture.mapping = THREE.EquirectangularReflectionMapping; texture.encoding = THREE.sRGBEncoding; return texture;
     }
 
@@ -713,9 +1288,12 @@
     function updateShadow(bobY) {
       if (!shadowGroup || !cdAssembly) return;
       const open = Math.min(1, Math.max(0, currentLidAngle / LID_OPEN_ANGLE));
-      shadowGroup.position.x = cdAssembly.position.x; shadowGroup.rotation.y = currentRotY;
-      shadowMesh.position.x = -open * 1.1; shadowMesh.scale.set(3.8 + open * 2.0, 1.6 + open * 1.0, 1);
-      shadowMesh.material.opacity = 0.42 - bobY * 1.2;
+      shadowGroup.position.x = cdAssembly.position.x;
+      shadowGroup.position.z = cdAssembly.position.z;
+      shadowGroup.rotation.y = currentRotY;
+      shadowMesh.position.x = -open * 1.1;
+      shadowMesh.scale.set((3.8 + open * 2.0) * currentAssemblyScale, (1.6 + open * 1.0) * currentAssemblyScale, 1);
+      shadowMesh.material.opacity = Math.max(0.08, 0.42 - (cdAssembly.position.y + bobY) * 0.25);
     }
 
     function createCDMaterial(coverTexture) {
@@ -753,8 +1331,28 @@
       ctx.moveTo(x, y + radius); ctx.lineTo(x, y + height - radius); ctx.quadraticCurveTo(x, y + height, x + radius, y + height); ctx.lineTo(x + width - radius, y + height); ctx.quadraticCurveTo(x + width, y + height, x + width, y + height - radius); ctx.lineTo(x + width, y + radius); ctx.quadraticCurveTo(x + width, y, x + width - radius, y); ctx.lineTo(x + radius, y); ctx.quadraticCurveTo(x, y, x, y + radius); return ctx;
     }
 
+    function disposeCDAssembly() {
+      if (!cdAssembly) return;
+      cdAssembly.traverse(obj => {
+        if (obj.isMesh) {
+          if (obj.geometry) obj.geometry.dispose();
+          const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+          mats.forEach(mat => {
+            if (!mat) return;
+            ['map', 'roughnessMap', 'metalnessMap', 'normalMap', 'clearcoatMap',
+              'clearcoatRoughnessMap', 'envMap', 'emissiveMap', 'aoMap', 'lightMap'].forEach(key => {
+                if (mat[key]) { mat[key].dispose(); mat[key] = null; }
+              });
+            mat.dispose();
+          });
+        }
+      });
+      scene.remove(cdAssembly);
+      cdAssembly = null;
+    }
+
     function buildProceduralCDAssembly() {
-      if (cdAssembly) scene.remove(cdAssembly);
+      disposeCDAssembly();
       cdAssembly = new THREE.Group(); scene.add(cdAssembly);
 
       const acrylicRoughMap = getAcrylicRoughnessMap();
@@ -766,41 +1364,41 @@
       const cornerRadius = 0.12, rimThick = 0.045, edgeDepth = caseD / 2;
 
       const baseShape = getRoundedRectShape(caseW, caseH, cornerRadius);
-      const plateGeo = new THREE.ExtrudeGeometry(baseShape, { depth: t, bevelEnabled: false }); plateGeo.translate(0, 0, -t/2);
+      const plateGeo = new THREE.ExtrudeGeometry(baseShape, { depth: t, bevelEnabled: false }); plateGeo.translate(0, 0, -t / 2);
 
       const rimShape = getRoundedRectShape(caseW, caseH, cornerRadius);
-      const holeShape = getRoundedRectShape(caseW - rimThick*2, caseH - rimThick*2, Math.max(0, cornerRadius - rimThick));
+      const holeShape = getRoundedRectShape(caseW - rimThick * 2, caseH - rimThick * 2, Math.max(0, cornerRadius - rimThick));
       rimShape.holes.push(holeShape);
-      const rimGeo = new THREE.ExtrudeGeometry(rimShape, { depth: edgeDepth, bevelEnabled: false }); rimGeo.translate(0, 0, -edgeDepth/2);
+      const rimGeo = new THREE.ExtrudeGeometry(rimShape, { depth: edgeDepth, bevelEnabled: false }); rimGeo.translate(0, 0, -edgeDepth / 2);
 
       // Back Group
       const backGroup = new THREE.Group();
-      const backPlate = new THREE.Mesh(plateGeo, clearAcrylicMaterial); backPlate.position.z = -caseD/2 + t/2; backGroup.add(backPlate);
-      const backRim = new THREE.Mesh(rimGeo, clearEdgeMaterial); backRim.position.z = -caseD/4; backGroup.add(backRim);
+      const backPlate = new THREE.Mesh(plateGeo, clearAcrylicMaterial); backPlate.position.z = -caseD / 2 + t / 2; backGroup.add(backPlate);
+      const backRim = new THREE.Mesh(rimGeo, clearEdgeMaterial); backRim.position.z = -caseD / 4; backGroup.add(backRim);
 
       frontCoverTexture = generateFrontCoverTexture(currentCoverIndex, currentCustomImage);
       backCoverTexture = generateBackCoverTexture(currentCoverIndex, currentCustomImage);
 
-      const inlayGeo = new THREE.PlaneGeometry(caseW - rimThick*2 - 0.01, caseH - rimThick*2 - 0.01);
+      const inlayGeo = new THREE.PlaneGeometry(caseW - rimThick * 2 - 0.01, caseH - rimThick * 2 - 0.01);
       const trayOutsideMat = new THREE.MeshStandardMaterial({ map: backCoverTexture, roughness: 0.8, metalness: 0 });
-      const trayOutside = new THREE.Mesh(inlayGeo, trayOutsideMat); trayOutside.name = "trayOutside"; trayOutside.rotation.y = Math.PI; trayOutside.position.z = -caseD/2 + t + 0.001; backGroup.add(trayOutside);
+      trayOutsideMesh = new THREE.Mesh(inlayGeo, trayOutsideMat); trayOutsideMesh.name = "trayOutside"; trayOutsideMesh.rotation.y = Math.PI; trayOutsideMesh.position.z = -caseD / 2 + t + 0.001; backGroup.add(trayOutsideMesh);
       const trayInsideMat = new THREE.MeshStandardMaterial({ map: frontCoverTexture, roughness: 0.8, metalness: 0 });
-      const trayInside = new THREE.Mesh(inlayGeo, trayInsideMat); trayInside.name = "trayInside"; trayInside.position.z = -caseD/2 + t + 0.002; backGroup.add(trayInside);
+      trayInsideMesh = new THREE.Mesh(inlayGeo, trayInsideMat); trayInsideMesh.name = "trayInside"; trayInsideMesh.position.z = -caseD / 2 + t + 0.002; backGroup.add(trayInsideMesh);
 
       // Frame L-brackets
-      const frameGroup = new THREE.Group(); frameGroup.position.z = -caseD/2 + t + 0.015;
-      const bracketDistX = caseW/2 - rimThick - 0.12, bracketDistY = caseH/2 - rimThick - 0.12;
+      const frameGroup = new THREE.Group(); frameGroup.position.z = -caseD / 2 + t + 0.015;
+      const bracketDistX = caseW / 2 - rimThick - 0.12, bracketDistY = caseH / 2 - rimThick - 0.12;
       const bLength = 0.45, bThick = 0.06, bHeight = 0.12;
 
       const frameParts = [];
       [[1, 1], [-1, 1], [1, -1], [-1, -1]].forEach(([dirX, dirY]) => {
-        frameParts.push(new THREE.BoxGeometry(bLength, bThick, bHeight).translate(dirX * (bracketDistX - bLength/2 + bThick/2), dirY * bracketDistY, 0));
-        frameParts.push(new THREE.BoxGeometry(bThick, bLength - bThick, bHeight).translate(dirX * bracketDistX, dirY * (bracketDistY - bLength/2), 0));
+        frameParts.push(new THREE.BoxGeometry(bLength, bThick, bHeight).translate(dirX * (bracketDistX - bLength / 2 + bThick / 2), dirY * bracketDistY, 0));
+        frameParts.push(new THREE.BoxGeometry(bThick, bLength - bThick, bHeight).translate(dirX * bracketDistX, dirY * (bracketDistY - bLength / 2), 0));
       });
       [[1.2, 0], [-1.2, 0], [0, 1.15], [0, -1.15]].forEach(([x, y]) => { frameParts.push(new THREE.BoxGeometry(0.08, 0.08, 0.12).translate(x, y, 0)); });
-      frameParts.push(new THREE.CylinderGeometry(0.18, 0.18, 0.08, 32).rotateX(Math.PI/2));
-      for (let k = 0; k < 4; k++) frameParts.push(new THREE.BoxGeometry(0.05, 0.05, 0.12).translate(Math.cos(k * Math.PI/2) * 0.13, Math.sin(k * Math.PI/2) * 0.13, 0.03));
-      
+      frameParts.push(new THREE.CylinderGeometry(0.18, 0.18, 0.08, 32).rotateX(Math.PI / 2));
+      for (let k = 0; k < 4; k++) frameParts.push(new THREE.BoxGeometry(0.05, 0.05, 0.12).translate(Math.cos(k * Math.PI / 2) * 0.13, Math.sin(k * Math.PI / 2) * 0.13, 0.03));
+
       frameGroup.add(new THREE.Mesh(mergeGeometries(frameParts), clearEdgeMaterial));
       backGroup.add(frameGroup); cdAssembly.add(backGroup);
 
@@ -808,13 +1406,13 @@
       cdDiscGroup = new THREE.Group(); cdDiscGroup.position.set(0, 0, frameGroup.position.z + 0.04); cdDiscGroup.userData.baseZ = cdDiscGroup.position.z;
       const discGeo = new THREE.CylinderGeometry(1.15, 1.15, 0.012, 64); discGeo.rotateX(Math.PI / 2);
       discTexture = generateDiscTexture(currentCoverIndex, currentCustomImage);
-      if(!cdIridescenceMaterial) cdIridescenceMaterial = createCDMaterial(discTexture);
+      if (!cdIridescenceMaterial) cdIridescenceMaterial = createCDMaterial(discTexture);
       cdDiscMesh = new THREE.Mesh(discGeo, cdIridescenceMaterial); cdDiscGroup.add(cdDiscMesh); cdAssembly.add(cdDiscGroup);
 
       // Front Lid
-      caseLidGroup = new THREE.Group(); caseLidGroup.position.set(-caseW/2, 0, 0);
-      const lidPlate = new THREE.Mesh(plateGeo, clearAcrylicMaterial); lidPlate.position.set(caseW/2, 0, caseD/2 - t/2); caseLidGroup.add(lidPlate);
-      const lidRim = new THREE.Mesh(rimGeo, clearEdgeMaterial); lidRim.position.set(caseW/2, 0, caseD/4); caseLidGroup.add(lidRim);
+      caseLidGroup = new THREE.Group(); caseLidGroup.position.set(-caseW / 2, 0, 0);
+      const lidPlate = new THREE.Mesh(plateGeo, clearAcrylicMaterial); lidPlate.position.set(caseW / 2, 0, caseD / 2 - t / 2); caseLidGroup.add(lidPlate);
+      const lidRim = new THREE.Mesh(rimGeo, clearEdgeMaterial); lidRim.position.set(caseW / 2, 0, caseD / 4); caseLidGroup.add(lidRim);
 
       lidLabelTexture = generateLidLabelTexture(currentCoverIndex, currentCustomImage, currentLidShape);
       lidLabelMesh = new THREE.Mesh(new THREE.PlaneGeometry(caseW, caseH), new THREE.MeshBasicMaterial({ map: lidLabelTexture, transparent: true, depthWrite: false, side: THREE.DoubleSide }));
@@ -825,6 +1423,207 @@
       cdAssembly.userData.targetPosX = isOpen ? OPEN_OFFSET_X : 0.0; cdAssembly.position.x = cdAssembly.userData.targetPosX;
     }
 
+    function createDummySpineCanvas(title, code, accentHex, bgHex) {
+      const canvas = document.createElement('canvas'); canvas.width = 64; canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = bgHex; ctx.fillRect(0, 0, 64, 256);
+      ctx.fillStyle = accentHex; ctx.fillRect(0, 0, 64, 4); ctx.fillRect(0, 252, 4, 4);
+      ctx.save(); ctx.translate(32, 230); ctx.rotate(-Math.PI / 2);
+      ctx.fillStyle = "#ffffff"; ctx.font = "bold 10px 'Space Mono', monospace";
+      ctx.fillText(title.substring(0, 18), 0, 0);
+      ctx.fillStyle = accentHex; ctx.font = "bold 8px 'Space Mono', monospace";
+      ctx.fillText(code, 155, 0);
+      ctx.restore();
+      return makeCanvasTexture(canvas, true, 2);
+    }
+
+    function createDummyCoverCanvas(title, artist, accentHex, bgGradColors, customImg = null) {
+      const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      if (customImg) {
+        const size = Math.min(customImg.width, customImg.height);
+        ctx.drawImage(customImg, (customImg.width - size) / 2, (customImg.height - size) / 2, size, size, 0, 0, 256, 256);
+        ctx.fillStyle = "rgba(0,0,0,0.35)";
+        ctx.fillRect(0, 195, 256, 61);
+      } else {
+        const grad = ctx.createLinearGradient(0, 0, 256, 256);
+        grad.addColorStop(0, bgGradColors[0]); grad.addColorStop(0.5, bgGradColors[1]); grad.addColorStop(1, bgGradColors[2]);
+        ctx.fillStyle = grad; ctx.fillRect(0, 0, 256, 256);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.12)"; ctx.lineWidth = 1;
+        for (let i = -256; i < 512; i += 16) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + 256, 256); ctx.stroke(); }
+      }
+      ctx.fillStyle = "#ffffff"; ctx.font = "bold 12px 'Space Mono', monospace";
+      ctx.fillText(title.substring(0, 18), 16, 216);
+      ctx.fillStyle = accentHex; ctx.font = "600 9px 'Plus Jakarta Sans', sans-serif";
+      ctx.fillText(artist.substring(0, 22), 16, 232);
+      return makeCanvasTexture(canvas, true, 2);
+    }
+
+    // Sinkronisasi sampul asli yang sudah dimuat ke kaset dummy di rak
+    function syncDummyRackSlotArtwork(slotIdx, imgSource, title, artist) {
+      const dummyMesh = rackDummyMeshes[slotIdx];
+      const alb = musicBrainzAlbums[slotIdx];
+      if (!dummyMesh || !alb) return;
+      alb.fallbackTitle = title || alb.fallbackTitle;
+      alb.fallbackArtist = artist || alb.fallbackArtist;
+
+      const newCoverTex = createDummyCoverCanvas(alb.fallbackTitle, alb.fallbackArtist, alb.accent, alb.bg, imgSource);
+      const newSpineTex = createDummySpineCanvas(alb.fallbackTitle, alb.code, alb.accent, alb.bg[0]);
+      if (Array.isArray(dummyMesh.material)) {
+        if (dummyMesh.material[0].map) dummyMesh.material[0].map.dispose();
+        if (dummyMesh.material[4].map) dummyMesh.material[4].map.dispose();
+        dummyMesh.material[0].map = newSpineTex;
+        dummyMesh.material[0].needsUpdate = true;
+        dummyMesh.material[4].map = newCoverTex;
+        dummyMesh.material[4].needsUpdate = true;
+      }
+    }
+
+    function buildDesktopAcrylicRack() {
+      if (desktopRackGroup) {
+        desktopRackGroup.traverse(obj => {
+          if (obj.isMesh) {
+            if (obj.geometry) obj.geometry.dispose();
+            const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+            mats.forEach(mat => { if (mat) { if (mat.map) mat.map.dispose(); mat.dispose(); } });
+          }
+        });
+        scene.remove(desktopRackGroup);
+      }
+      desktopRackGroup = new THREE.Group();
+      // Rak digeser lebih jauh ke belakang (Z = -4.2) dan sedikit ke kiri (X = -3.8)
+      // agar ketika kaset di tengah diputar 360 derajat atau dibuka, sama sekali tidak menembus rak.
+      desktopRackGroup.position.set(-3.8, -1.05, -4.2);
+      desktopRackGroup.rotation.set(0.12, 0.45, -0.02);
+      desktopRackGroup.scale.set(0.70, 0.70, 0.70);
+
+      rackSlotMarkers.length = 0;
+      rackDummyCases.length = 0;
+      rackDummyMeshes.length = 0;
+
+      const rackClearMat = new THREE.MeshStandardMaterial({
+        color: 0xf8fafc,
+        opacity: 0.28,
+        transparent: true,
+        depthWrite: false,
+        metalness: 0.2,
+        roughness: 0.12,
+        envMapIntensity: 1.4,
+        side: THREE.DoubleSide
+      });
+
+      const rackEdgeMat = new THREE.MeshStandardMaterial({
+        color: 0x38bdf8,
+        emissive: 0x0284c7,
+        emissiveIntensity: 0.25,
+        opacity: 0.55,
+        transparent: true,
+        depthWrite: false,
+        metalness: 0.1,
+        roughness: 0.18,
+        side: THREE.DoubleSide
+      });
+      rackEdgeMaterialRef = rackEdgeMat;
+
+      const colW = 2.65;
+      const rackW = colW * 2 + 0.12;
+      const stepDY = 0.28;
+      const stepDZ = 0.32;
+      const tiltX = -0.15;
+
+      const clearGeos = [];
+      const edgeGeos = [];
+
+      const wallThickness = 0.08;
+      const wallPositions = [-rackW / 2 + wallThickness / 2, 0, rackW / 2 - wallThickness / 2];
+
+      for (const wx of wallPositions) {
+        for (let r = 0; r < 7; r++) {
+          const stepY = r * stepDY;
+          const stepZ = 1.1 - r * stepDZ;
+          const blockH = stepY + 0.55;
+          const blockD = stepDZ + 0.04;
+          const g = new THREE.BoxGeometry(wallThickness, blockH, blockD).translate(wx, blockH / 2, stepZ);
+          if (wx === 0) edgeGeos.push(g); else clearGeos.push(g);
+        }
+      }
+
+      for (let r = 0; r < 7; r++) {
+        const stepY = r * stepDY;
+        const stepZ = 1.1 - r * stepDZ;
+        clearGeos.push(new THREE.BoxGeometry(rackW, 0.06, stepDZ + 0.08).translate(0, stepY, stepZ));
+        const lipH = 0.18;
+        edgeGeos.push(new THREE.BoxGeometry(rackW, lipH, 0.05).translate(0, stepY + lipH / 2, stepZ + stepDZ / 2));
+      }
+
+      const backH = 7 * stepDY + 0.4;
+      const backZ = 1.1 - 6 * stepDZ - 0.18;
+      clearGeos.push(new THREE.BoxGeometry(rackW, backH, 0.08).translate(0, backH / 2, backZ));
+
+      desktopRackGroup.add(new THREE.Mesh(mergeGeometries(clearGeos), rackClearMat));
+      desktopRackGroup.add(new THREE.Mesh(mergeGeometries(edgeGeos), rackEdgeMat));
+
+      // Proporsi Dummy CD disesuaikan (2.45 x 2.32 x 0.245) agar rasionya 100% identik dengan cdAssembly (2.8 x 2.65 x 0.28)
+      const caseW = 2.45, caseH = 2.32, caseD = 0.245;
+      const sharedDummyGeo = new THREE.BoxGeometry(caseW, caseH, caseD);
+      const sharedSideMat1 = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.6 });
+      const sharedSideMat2 = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.5 });
+      const sharedBackMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.7 });
+
+      for (let i = 0; i < 14; i++) {
+        const alb = musicBrainzAlbums[i];
+        const col = i % 2;
+        const row = Math.floor(i / 2);
+
+        const slotX = col === 0 ? -colW / 2 : colW / 2;
+        const slotY = row * stepDY + caseH / 2 + 0.02;
+        const slotZ = 1.1 - row * stepDZ - 0.04;
+
+        const marker = new THREE.Object3D();
+        marker.position.set(slotX, slotY, slotZ);
+        marker.rotation.x = tiltX;
+        desktopRackGroup.add(marker);
+        rackSlotMarkers.push(marker);
+
+        const dummyGroup = new THREE.Group();
+        dummyGroup.position.set(slotX, slotY, slotZ);
+        dummyGroup.rotation.x = tiltX;
+        dummyGroup.userData = { slotIndex: i, baseX: slotX, baseY: slotY, baseZ: slotZ };
+
+        const coverTex = createDummyCoverCanvas(alb.fallbackTitle, alb.fallbackArtist, alb.accent, alb.bg);
+        const spineTex = createDummySpineCanvas(alb.fallbackTitle, alb.code, alb.accent, alb.bg[0]);
+
+        const mats = [
+          new THREE.MeshStandardMaterial({ map: spineTex, roughness: 0.5 }),
+          sharedSideMat1,
+          sharedSideMat2,
+          sharedSideMat2,
+          new THREE.MeshStandardMaterial({ map: coverTex, roughness: 0.6 }),
+          sharedBackMat
+        ];
+
+        const dummyBox = new THREE.Mesh(sharedDummyGeo, mats);
+        dummyBox.userData = { slotIndex: i };
+        dummyGroup.add(dummyBox);
+
+        dummyGroup.visible = (i !== currentSlotIndex);
+
+        desktopRackGroup.add(dummyGroup);
+        rackDummyCases.push(dummyGroup);
+        rackDummyMeshes.push(dummyBox);
+      }
+
+      const rackShadow = new THREE.Mesh(
+        new THREE.PlaneGeometry(6.2, 4.4),
+        new THREE.MeshBasicMaterial({ map: shadowMesh.material.map, transparent: true, opacity: 0.42, depthWrite: false })
+      );
+      rackShadow.rotation.x = -Math.PI / 2;
+      rackShadow.position.set(0, -0.05, 0);
+      desktopRackGroup.add(rackShadow);
+
+      scene.add(desktopRackGroup);
+    }
+
     function init() {
       const container = document.getElementById('canvas-container');
       scene = new THREE.Scene(); scene.environment = createProceduralEnvMap();
@@ -832,78 +1631,137 @@
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
       applyPixelRatio(); renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
       container.appendChild(renderer.domElement);
+      window.scene = scene; window.renderer = renderer; window.camera = camera;
 
       scene.add(new THREE.AmbientLight(0xffffff, 0.9));
       const keyLight = new THREE.DirectionalLight(0xffffff, 1.4); keyLight.position.set(5, 8, 5); scene.add(keyLight);
       const softFill = new THREE.DirectionalLight(0xe0e7ff, 0.6); softFill.position.set(-5, 4, 3); scene.add(softFill);
       const subtleRim = new THREE.PointLight(0x60a5fa, 0.8, 12); subtleRim.position.set(-3, -3, -2); scene.add(subtleRim);
+      rimLightRef = subtleRim;
 
       createGroundShadow();
-      buildProceduralCDAssembly(); setupInteractions(); setupUIEvents();
+      buildProceduralCDAssembly();
+      buildDesktopAcrylicRack();
+      setupInteractions();
+      setupUIEvents();
+      renderTracklistDrawer();
       window.addEventListener('resize', onWindowResize);
     }
 
-    function prepareCustomImage(img, maxSide = 2048) {
-      const size = Math.min(img.width, img.height), target = Math.min(size, maxSide);
-      const c = document.createElement('canvas'); c.width = c.height = target; const cx = c.getContext('2d');
-      cx.imageSmoothingEnabled = true; cx.imageSmoothingQuality = 'high';
-      cx.drawImage(img, (img.width - size) / 2, (img.height - size) / 2, size, size, 0, 0, target, target); return c;
+    let _prepareCanvas = null, _prepareCtx = null;
+    function prepareCustomImage(img, maxSide = 1024) {
+      if (!_prepareCanvas) {
+        _prepareCanvas = document.createElement('canvas');
+        _prepareCanvas.width = 1024; _prepareCanvas.height = 1024;
+        _prepareCtx = _prepareCanvas.getContext('2d');
+      }
+      const size = Math.min(img.width, img.height);
+      const target = Math.min(size, maxSide);
+      if (_prepareCanvas.width !== target || _prepareCanvas.height !== target) {
+        _prepareCanvas.width = target;
+        _prepareCanvas.height = target;
+      }
+      _prepareCtx.imageSmoothingEnabled = true;
+      _prepareCtx.imageSmoothingQuality = 'high';
+      _prepareCtx.clearRect(0, 0, target, target);
+      _prepareCtx.drawImage(img, (img.width - size) / 2, (img.height - size) / 2, size, size, 0, 0, target, target);
+      return _prepareCanvas;
     }
 
     function updateTextures() {
-      const oldTextures = [frontCoverTexture, backCoverTexture, discTexture];
-      frontCoverTexture = generateFrontCoverTexture(currentCoverIndex, currentCustomImage);
-      backCoverTexture = generateBackCoverTexture(currentCoverIndex, currentCustomImage);
-      discTexture = generateDiscTexture(currentCoverIndex, currentCustomImage);
-
-      const trayInsideMesh = scene.getObjectByName("trayInside"); if (trayInsideMesh) { trayInsideMesh.material.map = frontCoverTexture; trayInsideMesh.material.needsUpdate = true; }
-      const trayOutsideMesh = scene.getObjectByName("trayOutside"); if (trayOutsideMesh) { trayOutsideMesh.material.map = backCoverTexture; trayOutsideMesh.material.needsUpdate = true; }
-      if (cdIridescenceMaterial) cdIridescenceMaterial.uniforms.uCoverTex.value = discTexture;
-      oldTextures.forEach(t => { if (t) t.dispose(); }); refreshLidLabel();
-
-      if(currentCustomImage) {
-         document.getElementById('albumTitleDisplay').innerText = customMetadata.title; document.getElementById('albumArtistDisplay').innerText = customMetadata.artist;
-         document.body.style.backgroundColor = "#18181b";
+      rackSwapState = 'IDLE';
+      if (!texturesPreRendered) {
+        generateFrontCoverTexture(currentCoverIndex, currentCustomImage);
+        generateBackCoverTexture(currentCoverIndex, currentCustomImage);
+        generateDiscTexture(currentCoverIndex, currentCustomImage);
+        refreshLidLabel();
       } else {
-         const theme = albumThemes[currentCoverIndex];
-         document.getElementById('albumTitleDisplay').innerText = theme.title; document.getElementById('albumArtistDisplay').innerText = theme.artist;
-         document.body.style.backgroundColor = theme.pageBg;
+        if (lidLabelMesh && lidLabelMesh.material.map !== lidLabelTexture) {
+          lidLabelMesh.material.map = lidLabelTexture;
+        }
+        texturesPreRendered = false;
       }
+      clearSkeletonPhase();
+
+      if (currentCustomImage) {
+        document.getElementById('albumTitleDisplay').innerText = customMetadata.title;
+        document.getElementById('albumArtistDisplay').innerText = customMetadata.artist;
+        document.body.style.backgroundColor = "#18181b";
+        syncDummyRackSlotArtwork(currentSlotIndex, currentCustomImage, customMetadata.title, customMetadata.artist);
+      } else {
+        const theme = albumThemes[currentCoverIndex];
+        document.getElementById('albumTitleDisplay').innerText = theme.title;
+        document.getElementById('albumArtistDisplay').innerText = theme.artist;
+        document.body.style.backgroundColor = theme.pageBg;
+      }
+      renderTracklistDrawer();
+      invalidate();
     }
 
     // ==============================================================
-    // 6. IMPLEMENTASI FETCH API MUSICBRAINZ + ITUNES AUDIO PREVIEW
+    // 6. IMPLEMENTASI FETCH API MUSICBRAINZ + LIVE SEARCH
     // ==============================================================
     async function fetchMusicBrainzAlbum(albumConfig) {
       const btnText = document.getElementById('mbBtnText');
       const mbid = albumConfig.mbid;
       btnText.innerText = "Mengambil Data...";
-      showToast(`Mengambil data MBID: ${mbid.substring(0, 8)}...`);
+      texturesPreRendered = false;
+      activeTrackIndex = 0;
+      applySkeletonPhase();
+
+      showToast(`Mengambil data album: ${albumConfig.fallbackTitle}...`);
+
+      const finalizeLoadedImage = (img, statusLabel, toastMsg, searchTerm) => {
+        currentCustomImage = img ? prepareCustomImage(img) : null;
+        btnText.innerText = statusLabel;
+        if (toastMsg) showToast(toastMsg);
+        preRenderAlbumTexturesStaggered(() => {
+          pendingAlbumDataReady = true;
+          invalidate();
+        });
+        if (searchTerm) fetchItunesAudioPreview(searchTerm);
+      };
+
+      // Jika hasil Live Search sudah memiliki customCoverUrl langsung (tanpa MBID atau dengan MBID)
+      if (albumConfig.isLiveSearch && albumConfig.fallbackCover) {
+        customMetadata = {
+          title: albumConfig.fallbackTitle,
+          artist: albumConfig.fallbackArtist,
+          barcode: albumConfig.fallbackBarcode || "LIVE-SEARCH",
+          tracklist: albumConfig.fallbackTracks,
+          date: albumConfig.date || "2025",
+          country: albumConfig.country || "INT",
+          label: "LIVE SEARCH ENGINE"
+        };
+        const liveImg = new Image();
+        liveImg.crossOrigin = "anonymous";
+        liveImg.onload = () => finalizeLoadedImage(liveImg, `Loaded: ${albumConfig.fallbackTitle.substring(0, 12)}`, `Album dimuat: ${albumConfig.fallbackTitle}`, albumConfig.searchQuery);
+        liveImg.onerror = () => finalizeLoadedImage(null, `Loaded`, null, albumConfig.searchQuery);
+        liveImg.src = albumConfig.fallbackCover;
+        return;
+      }
 
       try {
-        // 1. Request Metadata Album ke MusicBrainz API (Format JSON)
-        const mbRes = await fetch(`https://musicbrainz.org/ws/2/release/${mbid}?inc=recordings+artists&fmt=json`, {
-          headers: {
-            'Accept': 'application/json'
-          }
+        const mbRes = await fetch(`https://musicbrainz.org/ws/2/release/${mbid}?inc=recordings+artists+labels&fmt=json`, {
+          headers: { 'Accept': 'application/json' }
         });
 
-        if (!mbRes.ok) {
-          throw new Error(`MusicBrainz Error: ${mbRes.status}`);
-        }
-        
+        if (!mbRes.ok) throw new Error(`MusicBrainz Error: ${mbRes.status}`);
+
         const data = await mbRes.json();
 
-        // 2. Olah Metadata (Title, Artist, Barcode, Tracklist)
         const albumTitle = (data.title || albumConfig.fallbackTitle).toUpperCase();
         const artistName = (data['artist-credit']?.[0]?.name || albumConfig.fallbackArtist).toUpperCase();
         const barcode = data.barcode || albumConfig.fallbackBarcode;
+        const releaseDate = data.date || "Archive";
+        const releaseCountry = data.country || "Global";
+        const labelName = data['label-info']?.[0]?.label?.name || "MusicBrainz Open Data";
 
         let tracklist = [];
         let firstTrackName = "";
         if (data.media && data.media[0] && data.media[0].tracks && data.media[0].tracks.length > 0) {
           firstTrackName = data.media[0].tracks[0].title;
-          tracklist = data.media[0].tracks.slice(0, 6).map((t, idx) => {
+          tracklist = data.media[0].tracks.slice(0, 10).map((t, idx) => {
             const min = Math.floor((t.length || 180000) / 60000);
             const sec = Math.floor(((t.length || 180000) % 60000) / 1000).toString().padStart(2, '0');
             return {
@@ -921,106 +1779,338 @@
           title: albumTitle,
           artist: artistName,
           barcode: barcode,
-          tracklist: tracklist
+          tracklist: tracklist,
+          date: releaseDate,
+          country: releaseCountry,
+          label: labelName.toUpperCase()
         };
 
-        // 3. Ambil Cover Art dari Cover Art Archive
         const coverUrl = `https://coverartarchive.org/release/${mbid}/front-500.jpg`;
         btnText.innerText = "Memuat Cover...";
 
+        const searchTerm = `${artistName} ${firstTrackName}`;
+        const shortTitle = albumTitle.length > 14 ? albumTitle.substring(0, 14) + "..." : albumTitle;
+
         const img = new Image();
         img.crossOrigin = "anonymous";
-        img.onload = () => {
-          currentCustomImage = prepareCustomImage(img);
-          updateTextures();
-          const shortTitle = albumTitle.length > 15 ? albumTitle.substring(0, 15) + "..." : albumTitle;
-          btnText.innerText = `Loaded: ${shortTitle}`;
-          showToast(`Berhasil sinkron: ${albumTitle}`);
-
-          // 4. Sinkronisasi Audio Preview melalui iTunes API
-          const searchTerm = albumConfig.searchQuery || `${artistName} ${firstTrackName}`;
-          fetchItunesAudioPreview(searchTerm);
-        };
+        img.onload = () => finalizeLoadedImage(img, `Loaded: ${shortTitle}`, `Berhasil sinkron: ${albumTitle}`, searchTerm);
         img.onerror = () => {
-          console.warn("Cover Art Archive tidak merespons, memuat fallback artwork.");
           const fallbackImg = new Image();
           fallbackImg.crossOrigin = "anonymous";
-          fallbackImg.onload = () => {
-            currentCustomImage = prepareCustomImage(fallbackImg);
-            updateTextures();
-            btnText.innerText = `Loaded (HQ Art)`;
-            showToast(`Data dimuat dengan fallback cover: ${albumTitle}`);
-            
-            // Tetap fetch iTunes audio preview
-            const searchTerm = albumConfig.searchQuery || `${artistName} ${firstTrackName}`;
-            fetchItunesAudioPreview(searchTerm);
-          };
-          fallbackImg.onerror = () => {
-            currentCustomImage = null;
-            updateTextures();
-            btnText.innerText = `Loaded (Procedural)`;
-          };
+          fallbackImg.onload = () => finalizeLoadedImage(fallbackImg, `Loaded (HQ Art)`, `Data dimuat dengan fallback cover: ${albumTitle}`, searchTerm);
+          fallbackImg.onerror = () => finalizeLoadedImage(null, `Loaded (Procedural)`, null, searchTerm);
           fallbackImg.src = albumConfig.fallbackCover;
         };
         img.src = coverUrl;
 
       } catch (err) {
         console.warn("Gagal terhubung ke MusicBrainz API, mengaktifkan data fallback lokal:", err);
-        
+
         customMetadata = {
           title: albumConfig.fallbackTitle,
           artist: albumConfig.fallbackArtist,
           barcode: albumConfig.fallbackBarcode,
-          tracklist: albumConfig.fallbackTracks
+          tracklist: albumConfig.fallbackTracks,
+          date: "Archive",
+          country: "Global",
+          label: "LOCAL CACHE"
         };
 
         const fallbackImg = new Image();
         fallbackImg.crossOrigin = "anonymous";
-        fallbackImg.onload = () => {
-          currentCustomImage = prepareCustomImage(fallbackImg);
-          updateTextures();
-          btnText.innerText = `Offline: ${albumConfig.fallbackTitle.substring(0, 14)}`;
-          showToast(`Offline mode aktif untuk ${albumConfig.fallbackTitle}`);
-
-          // Fetch preview audio untuk fallback track
-          fetchItunesAudioPreview(albumConfig.searchQuery);
-        };
+        fallbackImg.onload = () => finalizeLoadedImage(
+          fallbackImg,
+          `Offline: ${albumConfig.fallbackTitle.substring(0, 12)}`,
+          `Offline mode aktif untuk ${albumConfig.fallbackTitle}`,
+          albumConfig.searchQuery
+        );
+        fallbackImg.onerror = () => finalizeLoadedImage(null, `Offline: Fallback`, null, null);
         fallbackImg.src = albumConfig.fallbackCover;
       }
     }
 
+    // Live Search Album via iTunes Search API (cepat, mendukung CORS cover 600x600 & daftar lagu)
+    async function performLiveAlbumSearch(queryText) {
+      if (!queryText || !queryText.trim()) return;
+      const searchBtn = document.getElementById('liveSearchBtn');
+      searchBtn.innerText = "...";
+      showToast(`Mencari album "${queryText}"...`);
+
+      try {
+        const q = encodeURIComponent(queryText.trim());
+        const res = await fetch(`https://itunes.apple.com/search?term=${q}&entity=song&limit=8`);
+        if (!res.ok) throw new Error("Search failed");
+        const data = await res.json();
+
+        if (!data.results || data.results.length === 0) {
+          showToast(`Tidak ditemukan hasil untuk "${queryText}"`);
+          searchBtn.innerText = "Cari";
+          return;
+        }
+
+        const first = data.results[0];
+        const albumTitle = (first.collectionName || first.trackName || queryText).toUpperCase();
+        const artistName = (first.artistName || "UNKNOWN ARTIST").toUpperCase();
+        const highResCover = (first.artworkUrl100 || "").replace("100x100bb", "600x600bb");
+
+        const tracks = data.results.slice(0, 7).map((item, idx) => {
+          const ms = item.trackTimeMillis || 200000;
+          const min = Math.floor(ms / 60000);
+          const sec = Math.floor((ms % 60000) / 1000).toString().padStart(2, '0');
+          return {
+            n: String(idx + 1).padStart(2, '0'),
+            t: (item.trackName || `TRACK ${idx + 1}`).toUpperCase(),
+            l: `${min}:${sec}`
+          };
+        });
+
+        // Simpan ke slot berikutnya di rak lalu lakukan animasi pertukaran rak
+        const targetSlot = (currentSlotIndex + 1) % musicBrainzAlbums.length;
+        musicBrainzAlbums[targetSlot] = Object.assign({}, musicBrainzAlbums[targetSlot], {
+          isLiveSearch: true,
+          fallbackTitle: albumTitle,
+          fallbackArtist: artistName,
+          searchQuery: `${artistName} ${tracks[0].t}`,
+          fallbackBarcode: String(first.collectionId || "88492019283"),
+          fallbackCover: highResCover,
+          fallbackTracks: tracks,
+          date: first.releaseDate ? first.releaseDate.substring(0, 10) : "2024",
+          country: first.country || "USA"
+        });
+
+        searchBtn.innerText = "Cari";
+        startRackSwap(targetSlot);
+      } catch (e) {
+        console.warn("Live search error:", e);
+        searchBtn.innerText = "Cari";
+        showToast("Gagal mencari album. Coba kata kunci lain.");
+      }
+    }
+
+    function startRackSwap(targetArg) {
+      if (rackSwapState !== 'IDLE') return;
+      let targetIdx = 0;
+      if (typeof targetArg === 'number') {
+        targetIdx = targetArg;
+      } else if (targetArg && targetArg.slotIndex !== undefined) {
+        targetIdx = targetArg.slotIndex;
+      } else {
+        targetIdx = (currentSlotIndex + 1) % musicBrainzAlbums.length;
+      }
+
+      if (targetIdx === currentSlotIndex) return;
+
+      playMechanicalSFX('rackSlide');
+      _returnSlotIndex = currentSlotIndex;
+      _targetSlotIndex = targetIdx;
+      _swapAlbumConfig = musicBrainzAlbums[_targetSlotIndex];
+      pendingAlbumDataReady = false;
+      texturesPreRendered = false;
+      isOpen = false;
+      isDiscOut = false;
+      updateEjectButton();
+      document.getElementById('caseStateText').innerText = "Buka Casing";
+      showToast(`Mengembalikan ke Slot ${_returnSlotIndex + 1} & mengambil Slot ${_targetSlotIndex + 1} (${_swapAlbumConfig.fallbackTitle})...`);
+      rackSwapState = 'RETURN_CLOSE';
+      invalidate();
+    }
+
     // ==========================================
-    // 7. EVENT & INTERAKSI
+    // 7. EVENT & INTERAKSI (HOVER PEEK + DJ SCRUBBING)
     // ==========================================
+    const raycaster = new THREE.Raycaster();
+    const mouseVec = new THREE.Vector2();
+
+    function updateRackHover(e) {
+      const tooltip = document.getElementById('rackTooltip');
+      if (rackSwapState !== 'IDLE' || isDragging || isScrubbingDisc) {
+        if (hoveredRackSlot !== -1) {
+          hoveredRackSlot = -1;
+          if (tooltip) tooltip.classList.add('hidden');
+          invalidate();
+        }
+        return;
+      }
+
+      const container = document.getElementById('canvas-container');
+      const rect = container.getBoundingClientRect();
+      mouseVec.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouseVec.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(mouseVec, camera);
+
+      const visibleDummyMeshes = rackDummyMeshes.filter((_, idx) => rackDummyCases[idx] && rackDummyCases[idx].visible);
+      const hits = raycaster.intersectObjects(visibleDummyMeshes, false);
+
+      if (hits.length > 0) {
+        const slotIdx = hits[0].object.userData.slotIndex;
+        if (slotIdx !== undefined && slotIdx !== currentSlotIndex) {
+          if (hoveredRackSlot !== slotIdx) {
+            hoveredRackSlot = slotIdx;
+            playMechanicalSFX('rackHover');
+            const alb = musicBrainzAlbums[slotIdx];
+            if (tooltip && alb) {
+              document.getElementById('rackTooltipSlot').innerText = `SLOT ${String(slotIdx + 1).padStart(2, '0')} // KLIK UNTUK AMBIL`;
+              document.getElementById('rackTooltipTitle').innerText = alb.fallbackTitle;
+              document.getElementById('rackTooltipArtist').innerText = alb.fallbackArtist;
+              tooltip.classList.remove('hidden');
+            }
+          }
+          if (tooltip) {
+            tooltip.style.left = `${Math.min(window.innerWidth - 190, e.clientX + 16)}px`;
+            tooltip.style.top = `${Math.max(16, e.clientY - 20)}px`;
+          }
+          container.style.cursor = 'pointer';
+          invalidate();
+          return;
+        }
+      }
+
+      if (hoveredRackSlot !== -1) {
+        hoveredRackSlot = -1;
+        if (tooltip) tooltip.classList.add('hidden');
+        container.style.cursor = '';
+        invalidate();
+      }
+    }
+
+    function handlePointerClick(e) {
+      const container = document.getElementById('canvas-container');
+      const rect = container.getBoundingClientRect();
+      mouseVec.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouseVec.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(mouseVec, camera);
+
+      const visibleDummyMeshes = rackDummyMeshes.filter((_, idx) => rackDummyCases[idx] && rackDummyCases[idx].visible);
+      const hits = raycaster.intersectObjects(visibleDummyMeshes, false);
+      if (hits.length > 0) {
+        const hitSlot = hits[0].object.userData.slotIndex;
+        if (hitSlot !== undefined && hitSlot !== currentSlotIndex) {
+          hoveredRackSlot = -1;
+          const tooltip = document.getElementById('rackTooltip');
+          if (tooltip) tooltip.classList.add('hidden');
+          startRackSwap(hitSlot);
+          return;
+        }
+      }
+
+      toggleCase();
+    }
+
     function setupInteractions() {
       const container = document.getElementById('canvas-container');
       let startX = 0, startY = 0, hasDragged = false, activePointerId = null;
       const clampX = v => Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, v));
-      function onPointerDown(e) { if (e.pointerType === 'mouse' && e.button !== 0) return; if (activePointerId !== null) return; isDragging = true; activePointerId = e.pointerId; prevMouseX = startX = e.clientX; prevMouseY = startY = e.clientY; hasDragged = false; try { container.setPointerCapture(e.pointerId); } catch (_) {} }
-      function onPointerMove(e) { if (!isDragging || e.pointerId !== activePointerId) return; if (Math.hypot(e.clientX - startX, e.clientY - startY) > 6) hasDragged = true; targetRotY += (e.clientX - prevMouseX) * 0.006; targetRotX = clampX(targetRotX + (e.clientY - prevMouseY) * 0.006); prevMouseX = e.clientX; prevMouseY = e.clientY; invalidate(); }
-      function endDrag(e, allowToggle) { if (!isDragging || e.pointerId !== activePointerId) return; isDragging = false; activePointerId = null; try { container.releasePointerCapture(e.pointerId); } catch (_) {} if (allowToggle && !hasDragged) toggleCase(); }
-      container.addEventListener('pointerdown', onPointerDown); window.addEventListener('pointermove', onPointerMove); window.addEventListener('pointerup', e => endDrag(e, true)); window.addEventListener('pointercancel', e => endDrag(e, false));
+
+      function onPointerDown(e) {
+        if (rackSwapState !== 'IDLE') return;
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        if (activePointerId !== null) return;
+
+        // Cek apakah user mengklik kepingan CD saat sedang Ejected (untuk DJ Scrubbing)
+        if (isDiscOut && cdDiscMesh) {
+          const rect = container.getBoundingClientRect();
+          mouseVec.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+          mouseVec.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+          raycaster.setFromCamera(mouseVec, camera);
+          const discHits = raycaster.intersectObject(cdDiscMesh, false);
+          if (discHits.length > 0) {
+            isScrubbingDisc = true;
+            activePointerId = e.pointerId;
+            prevMouseX = startX = e.clientX;
+            prevMouseY = startY = e.clientY;
+            hasDragged = true;
+            showToast("DJ Scrubbing aktif: Geser untuk memutar durasi lagu", 1800);
+            try { container.setPointerCapture(e.pointerId); } catch (_) { }
+            return;
+          }
+        }
+
+        isDragging = true;
+        activePointerId = e.pointerId;
+        prevMouseX = startX = e.clientX;
+        prevMouseY = startY = e.clientY;
+        hasDragged = false;
+        try { container.setPointerCapture(e.pointerId); } catch (_) { }
+      }
+
+      function onPointerMove(e) {
+        if (activePointerId === null) {
+          updateRackHover(e);
+          return;
+        }
+        if (e.pointerId !== activePointerId) return;
+
+        if (isScrubbingDisc) {
+          const dx = e.clientX - prevMouseX;
+          prevMouseX = e.clientX;
+          prevMouseY = e.clientY;
+          if (cdDiscMesh) cdDiscMesh.rotation.z -= dx * 0.035;
+          if (audioEl && audioEl.duration) {
+            audioEl.currentTime = Math.max(0, Math.min(audioEl.duration - 0.1, audioEl.currentTime + dx * 0.06));
+          }
+          invalidate();
+          return;
+        }
+
+        if (!isDragging) return;
+        if (Math.hypot(e.clientX - startX, e.clientY - startY) > 6) hasDragged = true;
+        targetRotY += (e.clientX - prevMouseX) * 0.006;
+        targetRotX = clampX(targetRotX + (e.clientY - prevMouseY) * 0.006);
+        prevMouseX = e.clientX;
+        prevMouseY = e.clientY;
+        invalidate();
+      }
+
+      function endDrag(e, allowToggle) {
+        if (e.pointerId !== activePointerId) return;
+        if (isScrubbingDisc) {
+          isScrubbingDisc = false;
+          activePointerId = null;
+          try { container.releasePointerCapture(e.pointerId); } catch (_) { }
+          return;
+        }
+        if (!isDragging) return;
+        isDragging = false;
+        activePointerId = null;
+        try { container.releasePointerCapture(e.pointerId); } catch (_) { }
+        if (allowToggle && !hasDragged) handlePointerClick(e);
+      }
+
+      container.addEventListener('pointerdown', onPointerDown);
+      window.addEventListener('pointermove', onPointerMove);
+      window.addEventListener('pointerup', e => endDrag(e, true));
+      window.addEventListener('pointercancel', e => endDrag(e, false));
     }
 
     function toggleCase() {
-      isOpen = !isOpen; if (!isOpen) isDiscOut = false;
-      document.getElementById('caseStateText').innerText = isOpen ? "Tutup Casing" : "Buka Casing"; updateEjectButton(); invalidate();
+      isOpen = !isOpen;
+      if (!isOpen) isDiscOut = false;
+      playMechanicalSFX(isOpen ? 'caseOpen' : 'caseClose');
+      document.getElementById('caseStateText').innerText = isOpen ? "Tutup Casing" : "Buka Casing";
+      updateEjectButton();
+      invalidate();
     }
-    function toggleDiscOut() { isDiscOut = !isDiscOut; if (isDiscOut && !isOpen) toggleCase(); updateEjectButton(); invalidate(); }
+    function toggleDiscOut() {
+      isDiscOut = !isDiscOut;
+      playMechanicalSFX('eject');
+      if (isDiscOut && !isOpen) toggleCase();
+      updateEjectButton();
+      invalidate();
+    }
     function updateEjectButton() { const b = document.getElementById('ejectDiscBtn'); if (b) b.textContent = isDiscOut ? 'Masukkan CD' : 'Keluarkan CD'; }
 
     function toggleSpin() {
-      isDiscSpinning = !isDiscSpinning; 
-      invalidate(); 
-      const icon = document.getElementById('spinIcon'); 
-      const text = document.getElementById('spinStateText'); 
-      if (isDiscSpinning) { 
-        icon.classList.add('animate-spin'); 
-        text.innerText = "Stop Putar"; 
+      isDiscSpinning = !isDiscSpinning;
+      invalidate();
+      const icon = document.getElementById('spinIcon');
+      const text = document.getElementById('spinStateText');
+      if (isDiscSpinning) {
+        icon.classList.add('animate-spin');
+        text.innerText = "Stop Putar";
         if (!isAudioPlaying && audioEl.src) playAudio();
-      } else { 
-        icon.classList.remove('animate-spin'); 
-        text.innerText = "Putar CD"; 
+      } else {
+        icon.classList.remove('animate-spin');
+        text.innerText = "Putar CD";
         if (isAudioPlaying) pauseAudio();
       }
     }
@@ -1028,78 +2118,326 @@
     function setupUIEvents() {
       document.getElementById('toggleCaseBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleCase(); });
       document.getElementById('toggleSpinBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleSpin(); });
-      document.getElementById('changeCoverBtn').addEventListener('click', (e) => { e.stopPropagation(); currentCustomImage = null; currentCoverIndex = (currentCoverIndex + 1) % albumThemes.length; updateTextures(); });
+      document.getElementById('changeCoverBtn').addEventListener('click', (e) => { e.stopPropagation(); currentCustomImage = null; texturesPreRendered = false; currentCoverIndex = (currentCoverIndex + 1) % albumThemes.length; updateTextures(); });
       document.getElementById('changeLabelBtn').addEventListener('click', (e) => { e.stopPropagation(); currentLidShape = (currentLidShape + 1) % lidShapes.length; refreshLidLabel(); });
       document.getElementById('ejectDiscBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleDiscOut(); });
-      
-      // Audio playback triggers
+
       document.getElementById('audioPlayBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleAudioPlayback(); });
       document.getElementById('widgetPlayToggle').addEventListener('click', (e) => { e.stopPropagation(); toggleAudioPlayback(); });
+
+      // Toggle SFX
+      const sfxBtn = document.getElementById('sfxToggleBtn');
+      sfxBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sfxEnabled = !sfxEnabled;
+        sfxBtn.innerText = sfxEnabled ? "SFX: ON" : "SFX: OFF";
+        if (sfxEnabled) playMechanicalSFX('caseOpen');
+      });
+
+      // Klik progress bar audio untuk loncat durasi
+      document.getElementById('audioProgressContainer').addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!audioEl.duration) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        audioEl.currentTime = ratio * audioEl.duration;
+      });
+
+      // Drawer Tracklist & Booklet Toggle
+      const drawer = document.getElementById('tracklistDrawer');
+      document.getElementById('toggleDrawerBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        playMechanicalSFX('rackHover');
+        drawer.classList.toggle('hidden');
+      });
+
+      const tabTracksBtn = document.getElementById('tabTracksBtn');
+      const tabBookletBtn = document.getElementById('tabBookletBtn');
+      const tracksView = document.getElementById('drawerTracksView');
+      const bookletView = document.getElementById('drawerBookletView');
+
+      tabTracksBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        tabTracksBtn.className = "px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[10px] mono font-bold transition";
+        tabBookletBtn.className = "px-2.5 py-1 rounded-lg bg-transparent hover:bg-slate-200/60 text-slate-600 text-[10px] mono font-bold transition";
+        tracksView.classList.remove('hidden');
+        bookletView.classList.add('hidden');
+      });
+
+      tabBookletBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        tabBookletBtn.className = "px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[10px] mono font-bold transition";
+        tabTracksBtn.className = "px-2.5 py-1 rounded-lg bg-transparent hover:bg-slate-200/60 text-slate-600 text-[10px] mono font-bold transition";
+        bookletView.classList.remove('hidden');
+        bookletView.classList.add('flex');
+        tracksView.classList.add('hidden');
+      });
+
+      // Live Search Submit
+      document.getElementById('liveSearchForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const input = document.getElementById('liveSearchInput');
+        performLiveAlbumSearch(input.value);
+      });
 
       const fileInput = document.getElementById('imageUploadInput');
       document.getElementById('uploadImageBtn').addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
       fileInput.addEventListener('change', (e) => {
-         const file = e.target.files[0]; if (!file) return;
-         const url = URL.createObjectURL(file); const img = new Image();
-         img.onload = () => { 
-           URL.revokeObjectURL(url); 
-           customMetadata = { title: "MY CUSTOM DISC", artist: "LOCAL USER", tracklist: null, barcode: null }; 
-           currentCustomImage = prepareCustomImage(img); 
-           updateTextures(); 
-           showToast("Foto kustom berhasil dipasang!");
-         };
-         img.onerror = () => { 
-           URL.revokeObjectURL(url); 
-           showToast("Gagal memuat gambar dari perangkat."); 
-         }; 
-         img.src = url; fileInput.value = ''; 
+        const file = e.target.files[0]; if (!file) return;
+        const url = URL.createObjectURL(file); const img = new Image();
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          customMetadata = { title: "MY CUSTOM DISC", artist: "LOCAL USER", tracklist: null, barcode: null };
+          currentCustomImage = prepareCustomImage(img);
+          texturesPreRendered = false;
+          updateTextures();
+          showToast("Foto kustom berhasil dipasang!");
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          showToast("Gagal memuat gambar dari perangkat.");
+        };
+        img.src = url; fileInput.value = '';
       });
 
-      // Tombol MusicBrainz Sync
       document.getElementById('mbSyncBtn').addEventListener('click', (e) => {
         e.stopPropagation();
-        const selected = musicBrainzAlbums[currentMbIndex];
-        fetchMusicBrainzAlbum(selected);
-        currentMbIndex = (currentMbIndex + 1) % musicBrainzAlbums.length;
+        const nextIdx = (currentSlotIndex + 1) % musicBrainzAlbums.length;
+        startRackSwap(nextIdx);
       });
 
       document.getElementById('resetCamBtn').addEventListener('click', (e) => { e.stopPropagation(); targetRotX = 0.25; targetRotY = -0.45; invalidate(); });
     }
 
-    function invalidate() { if (!rafId && renderer) rafId = requestAnimationFrame(animate); }
+    function invalidate() {
+      if (!rafId && !isAnimatingFrame && renderer) {
+        rafId = requestAnimationFrame(animate);
+      }
+    }
+
     function applyPixelRatio() { renderer.setPixelRatio(currentPixelRatio); renderer.setSize(window.innerWidth, window.innerHeight); }
     function onWindowResize() { const prevMax = maxPixelRatio; maxPixelRatio = Math.min(window.devicePixelRatio || 1, 2); currentPixelRatio = maxPixelRatio !== prevMax ? maxPixelRatio : Math.min(currentPixelRatio, maxPixelRatio); perf.ignore = Math.max(perf.ignore, 30); camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); applyPixelRatio(); invalidate(); }
     function adaptPixelRatio(dt) { if (dt > 0.1) { perf.frames = 0; perf.acc = 0; return; } if (perf.ignore > 0) { perf.ignore--; return; } perf.acc += dt; perf.frames++; if (perf.frames >= 40) { const avg = perf.acc / perf.frames; perf.frames = 0; perf.acc = 0; if (avg > 1 / 40 && currentPixelRatio > 1) { currentPixelRatio = Math.max(1, currentPixelRatio - 0.25); applyPixelRatio(); perf.ignore = 20; } } }
 
     function animate(now) {
-      rafId = 0; const hadPrev = lastFrameTime > 0; const rawDt = hadPrev ? (now - lastFrameTime) / 1000 : 0.016; lastFrameTime = now;
-      if (hadPrev) adaptPixelRatio(rawDt); const f = Math.min(rawDt, 0.05) * 60; 
+      rafId = 0;
+      isAnimatingFrame = true;
+
+      const hadPrev = lastFrameTime > 0; const rawDt = hadPrev ? (now - lastFrameTime) / 1000 : 0.016; lastFrameTime = now;
+      if (hadPrev) adaptPixelRatio(rawDt); const f = Math.min(rawDt, 0.05) * 60;
       const approach = (cur, tgt, rate, eps = 0.0005) => { const n = cur + (tgt - cur) * (1 - Math.pow(1 - rate, f)); return Math.abs(tgt - n) < eps ? tgt : n; };
 
-      currentRotX = approach(currentRotX, targetRotX, 0.08); currentRotY = approach(currentRotY, targetRotY, 0.08);
+      // 0. Real-Time Audio Visualizer & Rack Edge Bass Glow
+      if (isAudioPlaying) {
+        let b1 = 6, b2 = 10, b3 = 8, b4 = 5, bassNorm = 0.2;
+        if (analyserNode && freqDataArray) {
+          analyserNode.getByteFrequencyData(freqDataArray);
+          if (freqDataArray[1] > 0 || freqDataArray[3] > 0) {
+            bassNorm = freqDataArray[1] / 255;
+            b1 = 4 + (freqDataArray[1] / 255) * 16;
+            b2 = 4 + (freqDataArray[3] / 255) * 16;
+            b3 = 4 + (freqDataArray[6] / 255) * 16;
+            b4 = 4 + (freqDataArray[10] / 255) * 16;
+          } else {
+            // Fallback ritme jika stream iTunes terkena batas CORS
+            const t = now * 0.01;
+            bassNorm = 0.35 + 0.3 * Math.sin(t * 1.3);
+            b1 = 5 + Math.abs(Math.sin(t * 1.1)) * 14;
+            b2 = 5 + Math.abs(Math.cos(t * 1.7)) * 15;
+            b3 = 5 + Math.abs(Math.sin(t * 2.3)) * 13;
+            b4 = 5 + Math.abs(Math.cos(t * 2.9)) * 11;
+          }
+        }
+        document.getElementById('eqBar1').style.height = `${b1.toFixed(1)}px`;
+        document.getElementById('eqBar2').style.height = `${b2.toFixed(1)}px`;
+        document.getElementById('eqBar3').style.height = `${b3.toFixed(1)}px`;
+        document.getElementById('eqBar4').style.height = `${b4.toFixed(1)}px`;
+        if (rackEdgeMaterialRef) rackEdgeMaterialRef.emissiveIntensity = 0.2 + bassNorm * 0.65;
+        if (rimLightRef) rimLightRef.intensity = 0.7 + bassNorm * 0.9;
+      }
 
-      const holdOpen = isOpen || discOutAmt > 0.12;
-      targetLidAngle = holdOpen ? LID_OPEN_ANGLE : 0.0; const targetPosX = holdOpen ? OPEN_OFFSET_X : 0.0;
+      // 0B. Animasi Hover Peek pada Kaset di Rak Akrilik
+      let hoverAnimating = false;
+      for (let i = 0; i < 14; i++) {
+        const grp = rackDummyCases[i];
+        if (!grp) continue;
+        const tgtLift = (i === hoveredRackSlot && grp.visible && rackSwapState === 'IDLE') ? 0.36 : 0.0;
+        rackSlotHoverOffsets[i] = approach(rackSlotHoverOffsets[i], tgtLift, 0.16, 0.001);
+        if (Math.abs(rackSlotHoverOffsets[i] - tgtLift) > 0.001) hoverAnimating = true;
+        grp.position.y = grp.userData.baseY + rackSlotHoverOffsets[i];
+        grp.position.z = grp.userData.baseZ + rackSlotHoverOffsets[i] * 0.15;
+      }
+
+      if (activeGhostMaterials.length > 0) {
+        ghostPulseClock += Math.min(rawDt, 0.05);
+        const ghostIntensity = 0.35 + 0.35 * (1 + Math.sin(ghostPulseClock * Math.PI * 1.5));
+        for (const mat of activeGhostMaterials) mat.emissiveIntensity = ghostIntensity;
+      }
+
+      let targetAsmX = 0, targetAsmY = 0, targetAsmZ = 0;
+      let targetEulerX = targetRotX, targetEulerY = targetRotY;
+
+      if (rackSwapState === 'RETURN_CLOSE') {
+        targetLidAngle = 0.0;
+        targetAsmX = 0.0; targetAsmY = 0.0; targetAsmZ = 0.0;
+        targetEulerX = RACK_ROT_X; targetEulerY = RACK_ROT_Y;
+        targetAssemblyScale = STAGE_SCALE;
+        if (Math.abs(currentLidAngle) < 0.04) {
+          rackSwapState = 'RETURN_FLY';
+        }
+      } else if (rackSwapState === 'RETURN_FLY') {
+        // Terbang ke titik tepat DI ATAS slot tujuan sambil menyesuaikan ukuran menjadi RACK_SCALE (0.6125)
+        // sehingga saat turun lurus ke dalam slot, ukurannya sudah selaras dan tidak menabrak kaset lain
+        targetLidAngle = 0.0;
+        if (rackSlotMarkers[_returnSlotIndex]) {
+          rackSlotMarkers[_returnSlotIndex].getWorldPosition(_tempSlotPos);
+          _tempHoverPos.copy(_tempSlotPos).add(_hoverOffsetVec);
+        }
+        targetAsmX = _tempHoverPos.x; targetAsmY = _tempHoverPos.y; targetAsmZ = _tempHoverPos.z;
+        targetEulerX = RACK_ROT_X; targetEulerY = RACK_ROT_Y;
+        targetAssemblyScale = RACK_SCALE;
+        const d = Math.hypot(currentAssemblyX - _tempHoverPos.x, currentAssemblyY - _tempHoverPos.y, currentAssemblyZ - _tempHoverPos.z);
+        if (d < 0.14 && Math.abs(currentAssemblyScale - RACK_SCALE) < 0.03) {
+          rackSwapState = 'RETURN_DROP';
+        }
+      } else if (rackSwapState === 'RETURN_DROP') {
+        // Turun vertikal lurus masuk ke dalam slot rak dengan ukuran RACK_SCALE yang sudah pas
+        targetLidAngle = 0.0;
+        if (rackSlotMarkers[_returnSlotIndex]) {
+          rackSlotMarkers[_returnSlotIndex].getWorldPosition(_tempSlotPos);
+        }
+        targetAsmX = _tempSlotPos.x; targetAsmY = _tempSlotPos.y; targetAsmZ = _tempSlotPos.z;
+        targetEulerX = RACK_ROT_X; targetEulerY = RACK_ROT_Y;
+        targetAssemblyScale = RACK_SCALE;
+        const d = Math.hypot(currentAssemblyX - _tempSlotPos.x, currentAssemblyY - _tempSlotPos.y, currentAssemblyZ - _tempSlotPos.z);
+        if (d < 0.06) {
+          if (rackDummyCases[_returnSlotIndex]) rackDummyCases[_returnSlotIndex].visible = true;
+
+          currentSlotIndex = _targetSlotIndex;
+          if (rackDummyCases[_targetSlotIndex]) rackDummyCases[_targetSlotIndex].visible = false;
+
+          if (rackSlotMarkers[_targetSlotIndex]) {
+            rackSlotMarkers[_targetSlotIndex].getWorldPosition(_tempSlotPos);
+            currentAssemblyX = _tempSlotPos.x;
+            currentAssemblyY = _tempSlotPos.y;
+            currentAssemblyZ = _tempSlotPos.z;
+            currentAssemblyScale = RACK_SCALE;
+            if (cdAssembly) {
+              cdAssembly.position.set(currentAssemblyX, currentAssemblyY, currentAssemblyZ);
+              cdAssembly.scale.setScalar(currentAssemblyScale);
+            }
+          }
+
+          applySkeletonPhase();
+          if (_swapAlbumConfig) {
+            fetchMusicBrainzAlbum(_swapAlbumConfig);
+            _swapAlbumConfig = null;
+          }
+          rackSwapState = 'RACK_WAIT';
+        }
+      } else if (rackSwapState === 'RACK_WAIT') {
+        targetLidAngle = 0.0;
+        if (rackSlotMarkers[_targetSlotIndex]) {
+          rackSlotMarkers[_targetSlotIndex].getWorldPosition(_tempSlotPos);
+        }
+        targetAsmX = _tempSlotPos.x; targetAsmY = _tempSlotPos.y; targetAsmZ = _tempSlotPos.z;
+        targetEulerX = RACK_ROT_X; targetEulerY = RACK_ROT_Y;
+        targetAssemblyScale = RACK_SCALE;
+        if (pendingAlbumDataReady) {
+          rackSwapState = 'RETRIEVE_LIFT';
+        }
+      } else if (rackSwapState === 'RETRIEVE_LIFT') {
+        // Ditarik lurus ke atas terlebih dahulu dengan ukuran tetap RACK_SCALE
+        // agar keluar bersih dari sela-sela rak tanpa menembus kaset di depan/belakangnya
+        targetLidAngle = 0.0;
+        if (rackSlotMarkers[_targetSlotIndex]) {
+          rackSlotMarkers[_targetSlotIndex].getWorldPosition(_tempSlotPos);
+          _tempHoverPos.copy(_tempSlotPos).add(_hoverOffsetVec);
+        }
+        targetAsmX = _tempHoverPos.x; targetAsmY = _tempHoverPos.y; targetAsmZ = _tempHoverPos.z;
+        targetEulerX = RACK_ROT_X; targetEulerY = RACK_ROT_Y;
+        targetAssemblyScale = RACK_SCALE;
+        const d = Math.hypot(currentAssemblyX - _tempHoverPos.x, currentAssemblyY - _tempHoverPos.y, currentAssemblyZ - _tempHoverPos.z);
+        if (d < 0.14) {
+          rackSwapState = 'FLY_STAGE';
+        }
+      } else if (rackSwapState === 'FLY_STAGE') {
+        // Setelah bebas di atas rak, barulah maju ke tengah panggung (display) sambil membesar ke STAGE_SCALE
+        targetLidAngle = 0.0;
+        targetAsmX = 0.0; targetAsmY = 0.0; targetAsmZ = 0.0;
+        targetEulerX = showcaseRotX; targetEulerY = showcaseRotY;
+        targetAssemblyScale = STAGE_SCALE;
+        const d = Math.hypot(currentAssemblyX, currentAssemblyY, currentAssemblyZ);
+        if (d < 0.18 && Math.abs(currentAssemblyScale - STAGE_SCALE) < 0.03) {
+          updateTextures();
+          isOpen = true;
+          playMechanicalSFX('caseOpen');
+          document.getElementById('caseStateText').innerText = "Tutup Casing";
+          rackSwapState = 'IDLE';
+        }
+      } else {
+        const holdOpen = isOpen || discOutAmt > 0.12;
+        targetLidAngle = holdOpen ? LID_OPEN_ANGLE : 0.0;
+        targetAsmX = holdOpen ? OPEN_OFFSET_X : 0.0;
+        targetAsmY = 0.0; targetAsmZ = 0.0;
+        targetEulerX = targetRotX; targetEulerY = targetRotY;
+        targetAssemblyScale = STAGE_SCALE;
+      }
+
+      const posRate = (rackSwapState === 'RETURN_DROP' || rackSwapState === 'RETRIEVE_LIFT') ? 0.12 : 0.085;
+      currentAssemblyX = approach(currentAssemblyX, targetAsmX, posRate);
+      currentAssemblyY = approach(currentAssemblyY, targetAsmY, posRate);
+      currentAssemblyZ = approach(currentAssemblyZ, targetAsmZ, posRate);
+      currentRotX = approach(currentRotX, targetEulerX, 0.09);
+      currentRotY = approach(currentRotY, targetEulerY, 0.09);
+      currentAssemblyScale = approach(currentAssemblyScale, targetAssemblyScale, 0.10);
+
       currentLidAngle = approach(currentLidAngle, targetLidAngle, 0.1);
-      const openProgress = currentLidAngle / LID_OPEN_ANGLE; const discTarget = (isDiscOut && isOpen && openProgress > 0.85) ? 1 : 0;
+      const openProgress = currentLidAngle / LID_OPEN_ANGLE;
+      const discTarget = (isDiscOut && isOpen && openProgress > 0.85) ? 1 : 0;
       discOutAmt = approach(discOutAmt, discTarget, 0.07, 0.0015);
-      const spinTarget = isDiscSpinning ? 1 : 0; bobAmp = approach(bobAmp, spinTarget, 0.06, 0.002);
-      const bobY = Math.sin((now / 1000) * 1.6) * 0.06 * bobAmp;
+      const spinTarget = isDiscSpinning ? 1 : 0;
+      bobAmp = approach(bobAmp, spinTarget, 0.06, 0.002);
+      // Matikan ayunan bobY saat kaset sedang berada di dalam/dekat slot rak agar presisi
+      const inRackZone = (rackSwapState === 'RETURN_DROP' || rackSwapState === 'RACK_WAIT' || rackSwapState === 'RETRIEVE_LIFT');
+      const bobY = inRackZone ? 0 : Math.sin((now / 1000) * 1.6) * 0.06 * bobAmp;
 
-      if (cdAssembly) { cdAssembly.rotation.x = currentRotX; cdAssembly.rotation.y = currentRotY; cdAssembly.position.y = bobY; cdAssembly.position.x = approach(cdAssembly.position.x, targetPosX, 0.08); }
+      if (cdAssembly) {
+        cdAssembly.rotation.x = currentRotX;
+        cdAssembly.rotation.y = currentRotY;
+        cdAssembly.position.x = currentAssemblyX;
+        cdAssembly.position.y = currentAssemblyY + bobY;
+        cdAssembly.position.z = currentAssemblyZ;
+        cdAssembly.scale.setScalar(currentAssemblyScale);
+      }
       if (caseLidGroup) caseLidGroup.rotation.y = currentLidAngle;
-      if (cdDiscGroup) { const lift = smoothstep(0, 0.45, discOutAmt), rise = smoothstep(0.3, 1, discOutAmt); cdDiscGroup.position.set(0, 1.15 * rise, cdDiscGroup.userData.baseZ + 0.6 * lift); cdDiscGroup.rotation.x = -0.5 * rise; }
-      if (cdDiscMesh && isDiscSpinning) cdDiscMesh.rotation.z += 0.022 * f;
-      updateShadow(bobY); renderer.render(scene, camera);
+      if (cdDiscGroup) {
+        const lift = smoothstep(0, 0.45, discOutAmt), rise = smoothstep(0.3, 1, discOutAmt);
+        cdDiscGroup.position.set(0, 1.15 * rise, cdDiscGroup.userData.baseZ + 0.6 * lift);
+        cdDiscGroup.rotation.x = -0.5 * rise;
+      }
+      if (cdDiscMesh && isDiscSpinning && !isScrubbingDisc) cdDiscMesh.rotation.z += 0.022 * f;
+      updateShadow(bobY);
+      renderer.render(scene, camera);
 
-      const animating = isDiscSpinning || currentRotX !== targetRotX || currentRotY !== targetRotY || currentLidAngle !== targetLidAngle || discOutAmt !== discTarget || bobAmp !== spinTarget || (cdAssembly && cdAssembly.position.x !== targetPosX);
-      if (animating) rafId = requestAnimationFrame(animate); else lastFrameTime = 0;
+      const swapAnimating = rackSwapState !== 'IDLE';
+      const scaleDone = Math.abs(currentAssemblyScale - targetAssemblyScale) < 0.002;
+      const animating = swapAnimating || hoverAnimating || isAudioPlaying || isScrubbingDisc || isDiscSpinning || currentRotX !== targetEulerX || currentRotY !== targetEulerY || currentLidAngle !== targetLidAngle || discOutAmt !== discTarget || bobAmp !== spinTarget || !scaleDone || (cdAssembly && (Math.abs(cdAssembly.position.x - targetAsmX) > 0.002 || Math.abs(cdAssembly.position.y - (targetAsmY + bobY)) > 0.002 || Math.abs(cdAssembly.position.z - targetAsmZ) > 0.002)) || activeGhostMaterials.length > 0;
+
+      isAnimatingFrame = false;
+      if (animating) {
+        if (!rafId) rafId = requestAnimationFrame(animate);
+      } else {
+        lastFrameTime = 0;
+      }
     }
 
-    window.onload = async function() {
-      try { await Promise.race([Promise.all([document.fonts.load("bold 72px 'Space Mono'"), document.fonts.load("24px 'Space Mono'"), document.fonts.load("600 32px 'Plus Jakarta Sans'")]), new Promise(r => setTimeout(r, 2500))]); } catch (_) {}
+    window.onload = async function () {
+      try { await Promise.race([Promise.all([document.fonts.load("bold 72px 'Space Mono'"), document.fonts.load("24px 'Space Mono'"), document.fonts.load("600 32px 'Plus Jakarta Sans'")]), new Promise(r => setTimeout(r, 2500))]); } catch (_) { }
       init(); invalidate();
     };
   </script>
 </body>
+
 </html>
