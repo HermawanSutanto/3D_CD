@@ -12,152 +12,162 @@
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --studio-accent: #f59e0b;
-      --studio-accent-rgb: 245, 158, 11;
-      --studio-copper: #d4875e;
-      --chassis-bg: rgba(14, 17, 24, 0.88);
-      --chassis-border: rgba(212, 135, 94, 0.28);
-      --oled-bg: #05070b;
-      --oled-text: #fb923c;
+      --studio-accent: #ffffff;
+      --studio-accent-rgb: 255, 255, 255;
+      --glass-bg: rgba(18, 20, 26, 0.56);
+      --glass-bg-elevated: rgba(28, 31, 40, 0.72);
+      --glass-border: rgba(255, 255, 255, 0.11);
+      --glass-highlight: rgba(255, 255, 255, 0.22);
+      --text-primary: #f8fafc;
+      --text-secondary: rgba(248, 250, 252, 0.58);
     }
     body.rig-midnight {
-      --studio-accent: #22d3ee;
-      --studio-accent-rgb: 34, 211, 238;
-      --studio-copper: #38bdf8;
-      --chassis-bg: rgba(9, 13, 24, 0.90);
-      --chassis-border: rgba(34, 211, 238, 0.28);
-      --oled-text: #22d3ee;
+      --studio-accent: #38bdf8;
+      --studio-accent-rgb: 56, 189, 248;
+      --glass-bg: rgba(10, 15, 28, 0.58);
+      --glass-border: rgba(56, 189, 248, 0.18);
     }
     body.rig-lounge {
       --studio-accent: #fbbf24;
       --studio-accent-rgb: 251, 191, 36;
-      --studio-copper: #ea580c;
-      --chassis-bg: rgba(24, 17, 15, 0.90);
-      --chassis-border: rgba(234, 88, 12, 0.32);
-      --oled-text: #fbbf24;
+      --glass-bg: rgba(24, 18, 15, 0.60);
+      --glass-border: rgba(251, 191, 36, 0.18);
     }
     body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       overflow: hidden;
-      background-color: #12151e;
-      transition: background 0.8s ease;
+      background-color: #111318;
+      transition: background-color 0.8s cubic-bezier(0.16, 1, 0.3, 1);
       user-select: none;
       -webkit-user-select: none;
       touch-action: none;
-      color: #e2e8f0;
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
     }
-    .mono { font-family: 'Space Mono', monospace; }
+    .mono {
+      font-family: 'Space Mono', monospace;
+      font-variant-numeric: tabular-nums;
+    }
     canvas { outline: none; touch-action: none; display: block; }
 
-    /* Brushed Anodized Hardware Chassis Panel */
-    .hw-chassis {
-      background: linear-gradient(165deg, rgba(26, 31, 44, 0.92) 0%, var(--chassis-bg) 100%);
-      backdrop-filter: blur(24px) saturate(180%);
-      -webkit-backdrop-filter: blur(24px) saturate(180%);
-      border: 1px solid var(--chassis-border);
+    /* True Specular Liquid Glass Surface */
+    .liquid-glass {
+      background: var(--glass-bg);
+      backdrop-filter: blur(36px) saturate(190%);
+      -webkit-backdrop-filter: blur(36px) saturate(190%);
+      border: 1px solid var(--glass-border);
       box-shadow:
-        0 22px 48px -12px rgba(0, 0, 0, 0.72),
-        inset 0 1px 0 rgba(255, 255, 255, 0.10),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+        0 20px 50px -12px rgba(0, 0, 0, 0.55),
+        inset 0 1px 0 0 var(--glass-highlight);
     }
 
-    /* Recessed Matrix OLED Screen */
-    .oled-screen {
-      background-color: var(--oled-bg);
-      background-image:
-        radial-gradient(rgba(var(--studio-accent-rgb), 0.08) 1px, transparent 0),
-        linear-gradient(180deg, rgba(0, 0, 0, 0.65) 0%, rgba(15, 23, 42, 0.15) 100%);
-      background-size: 3px 3px, 100% 100%;
-      border: 1px solid rgba(var(--studio-accent-rgb), 0.28);
+    .liquid-glass-sheet {
+      background: var(--glass-bg-elevated);
+      backdrop-filter: blur(44px) saturate(200%);
+      -webkit-backdrop-filter: blur(44px) saturate(200%);
+      border: 1px solid var(--glass-border);
       box-shadow:
-        inset 0 3px 10px rgba(0, 0, 0, 0.95),
-        0 1px 0 rgba(255, 255, 255, 0.06);
-      color: var(--oled-text);
-    }
-    .oled-glow {
-      color: var(--oled-text);
-      text-shadow: 0 0 10px rgba(var(--studio-accent-rgb), 0.55);
+        0 28px 64px -12px rgba(0, 0, 0, 0.7),
+        inset 0 1px 0 0 var(--glass-highlight);
     }
 
-    /* Tactile Physical Hardware Buttons */
+    /* Recessed Subtle Well */
+    .liquid-well {
+      background: rgba(0, 0, 0, 0.28);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.45);
+    }
+
+    /* Clean Tactile Pill Buttons (iOS/Android 44px ergonomic target) */
     .hw-btn {
-      background: linear-gradient(180deg, #283044 0%, #171c28 100%);
-      border: 1px solid rgba(255, 255, 255, 0.10);
-      box-shadow:
-        0 3px 6px rgba(0, 0, 0, 0.45),
-        inset 0 1px 0 rgba(255, 255, 255, 0.12);
-      color: #cbd5e1;
-      transition: all 0.15s ease;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.82);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .hw-btn:hover {
-      background: linear-gradient(180deg, #323c54 0%, #1e2536 100%);
+      background: rgba(255, 255, 255, 0.13);
       color: #ffffff;
-      border-color: rgba(var(--studio-accent-rgb), 0.45);
+      border-color: rgba(255, 255, 255, 0.18);
     }
     .hw-btn:active {
-      transform: translateY(1px);
-      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.65);
+      transform: scale(0.95);
     }
-    .hw-btn-copper {
-      background: linear-gradient(180deg, #d98a5f 0%, #a85d38 100%);
-      border: 1px solid rgba(255, 224, 194, 0.35);
-      box-shadow:
-        0 4px 12px rgba(212, 135, 94, 0.32),
-        inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    .hw-btn-primary {
+      background: #ffffff;
       color: #090b10;
+      border: 1px solid #ffffff;
+      box-shadow: 0 4px 16px rgba(255, 255, 255, 0.18);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .hw-btn-copper:hover {
-      background: linear-gradient(180deg, #e5986e 0%, #b96a43 100%);
-      color: #000000;
+    .hw-btn-primary:hover {
+      background: #f1f5f9;
+      box-shadow: 0 6px 20px rgba(255, 255, 255, 0.26);
+    }
+    .hw-btn-primary:active {
+      transform: scale(0.94);
     }
     .hw-btn-active {
-      background: linear-gradient(180deg, rgba(var(--studio-accent-rgb), 0.24) 0%, rgba(var(--studio-accent-rgb), 0.10) 100%);
-      border-color: var(--studio-accent);
-      color: var(--studio-accent);
-      box-shadow: 0 0 14px rgba(var(--studio-accent-rgb), 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.36);
+      color: #ffffff;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
     }
 
-    /* Corner Chassis Screws */
-    .screw-dot {
-      width: 5px;
-      height: 5px;
-      border-radius: 9999px;
-      background: radial-gradient(circle at 30% 30%, #64748b, #1e293b);
-      border: 1px solid rgba(0, 0, 0, 0.7);
-      box-shadow: inset 0 0.5px 0.5px rgba(255, 255, 255, 0.3);
+    /* Legacy compatibility aliases for dynamic JS classes */
+    .hw-chassis {
+      background: var(--glass-bg);
+      backdrop-filter: blur(36px) saturate(190%);
+      -webkit-backdrop-filter: blur(36px) saturate(190%);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.55), inset 0 1px 0 0 var(--glass-highlight);
     }
+    .oled-screen {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #ffffff;
+    }
+    .oled-glow { color: #ffffff; }
+
+    /* Safe Area Padding for iOS Home Indicator & Notch */
+    .safe-top { top: max(0.75rem, env(safe-area-inset-top)); }
+    .safe-bottom { bottom: max(0.85rem, env(safe-area-inset-bottom)); }
 
     .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
-    .custom-scroll::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.25); }
-    .custom-scroll::-webkit-scrollbar-thumb { background: rgba(212, 135, 94, 0.45); border-radius: 99px; }
+    .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 99px; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
     kbd {
       font-family: 'Space Mono', monospace;
-      font-size: 9px;
-      padding: 1px 5px;
-      border-radius: 4px;
-      background: rgba(0, 0, 0, 0.45);
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      color: var(--studio-accent);
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #f8fafc;
     }
+
     .ui-Chrome {
       transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
     }
     body.zen-active .ui-Chrome {
       opacity: 0;
       pointer-events: none !important;
-      transform: translateY(10px) scale(0.98);
+      transform: translateY(12px) scale(0.98);
     }
+
     @keyframes spinSlow {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
     .spin-disc-slow {
-      animation: spinSlow 9s linear infinite;
+      animation: spinSlow 12s linear infinite;
     }
+
     #splashScreen {
-      transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.75s ease;
+      transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.65s ease;
     }
     #splashScreen.splash-hidden {
       opacity: 0;
@@ -169,509 +179,450 @@
 <body class="w-screen h-screen overflow-hidden select-none">
 
   <!-- ===================================================================== -->
-  <!-- AUDIOPHILE HARDWARE BOOT SPLASH SCREEN                                -->
+  <!-- MINIMAL LIQUID GLASS SPLASH SCREEN                                    -->
   <!-- ===================================================================== -->
-  <div id="splashScreen" class="fixed inset-0 z-[100] flex items-center justify-center bg-[#080a0f]/95 backdrop-blur-2xl p-4">
-    <div class="hw-chassis rounded-3xl p-6 sm:p-8 max-w-md w-full flex flex-col items-center text-center relative overflow-hidden border border-amber-500/30">
-      <!-- Decorative Corner Screws -->
-      <span class="screw-dot absolute top-3.5 left-3.5"></span>
-      <span class="screw-dot absolute top-3.5 right-3.5"></span>
-      <span class="screw-dot absolute bottom-3.5 left-3.5"></span>
-      <span class="screw-dot absolute bottom-3.5 right-3.5"></span>
-
-      <!-- Top Model Badge -->
-      <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-black/50 border border-white/10 mb-5">
-        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-        <span class="mono text-[10px] tracking-widest text-amber-300/90 uppercase">MODEL CD-957 // REFERENCE DECK</span>
-      </div>
-
-      <!-- Animated Optical CD Turntable Emblem -->
-      <div class="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full flex items-center justify-center mb-5 shadow-2xl" style="background: radial-gradient(circle, #1e293b 0%, #090d16 70%); border: 2px solid rgba(212, 135, 94, 0.45);">
-        <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full spin-disc-slow flex items-center justify-center" style="background: conic-gradient(from 0deg, rgba(245,158,11,0.18), rgba(34,211,238,0.22), rgba(236,72,153,0.18), rgba(245,158,11,0.18)); border: 1px solid rgba(255,255,255,0.18);">
-          <div class="w-9 h-9 rounded-full bg-[#090b10] border-2 border-[#d4875e] flex items-center justify-center shadow-inner">
-            <i class="fa-solid fa-compact-disc text-amber-400 text-sm"></i>
+  <div id="splashScreen" class="fixed inset-0 z-[100] flex items-center justify-center bg-[#090b10]/80 backdrop-blur-3xl p-5">
+    <div class="liquid-glass-sheet rounded-[32px] p-7 sm:p-9 max-w-sm w-full flex flex-col items-center text-center relative overflow-hidden">
+      <!-- Subtle top specular glow -->
+      <div class="w-24 h-24 rounded-full flex items-center justify-center mb-6 relative liquid-well">
+        <div class="w-20 h-20 rounded-full spin-disc-slow flex items-center justify-center" style="background: conic-gradient(from 0deg, rgba(255,255,255,0.06), rgba(255,255,255,0.28), rgba(56,189,248,0.2), rgba(255,255,255,0.06)); border: 1px solid rgba(255,255,255,0.16);">
+          <div class="w-7 h-7 rounded-full bg-[#090b10] border border-white/20 flex items-center justify-center">
+            <div class="w-2 h-2 rounded-full bg-white/80"></div>
           </div>
         </div>
-        <div class="absolute -bottom-1.5 px-2.5 py-0.5 rounded bg-[#d4875e] text-[#090b10] mono text-[9px] font-bold tracking-wider uppercase shadow">
-          24-BIT / 96KHZ DSP
+      </div>
+
+      <span class="mono text-[10px] tracking-[0.2em] text-white/50 uppercase">Spatial Audio Turntable</span>
+      <h1 class="text-xl sm:text-2xl font-semibold tracking-tight text-white mt-1">Chroma.Disc</h1>
+      <p class="text-xs text-white/60 mt-1.5 leading-relaxed">Interactive 3D Jewel Case, 14-Disc Acrylic Rack & Reference CD Player</p>
+
+      <!-- Minimal Progress Line -->
+      <div class="w-full mt-6 space-y-2">
+        <div class="w-full bg-white/10 h-1 rounded-full overflow-hidden">
+          <div id="splashProgressFill" class="h-full bg-white w-1/3 transition-all duration-500 rounded-full"></div>
+        </div>
+        <div class="flex items-center justify-between mono text-[10px] text-white/45 px-0.5">
+          <span>CD-957 ENGINE</span>
+          <span id="splashStatusText">INITIALIZING...</span>
         </div>
       </div>
 
-      <!-- Brand Title & Subtitle -->
-      <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white uppercase">CHROMA.DISC STUDIO</h1>
-      <p class="mono text-[11px] text-slate-400 mt-1">Interactive 3D Jewel Case & Top-Loading CD Console</p>
-
-      <!-- OLED Diagnostic Boot Box -->
-      <div class="oled-screen w-full rounded-2xl p-3.5 mt-5 text-left mono text-[10px] space-y-2">
-        <div class="flex items-center justify-between border-b border-amber-500/20 pb-1.5">
-          <span class="text-slate-400"><i class="fa-solid fa-microchip mr-1.5 text-amber-400"></i>OPTICAL SERVO</span>
-          <span id="splashStatusText" class="oled-glow font-bold">CALIBRATING LASER...</span>
-        </div>
-        <div class="grid grid-cols-3 gap-1.5 text-[9px] text-slate-400 pt-0.5">
-          <div class="bg-white/5 rounded px-2 py-1"><i class="fa-solid fa-layer-group mr-1 text-amber-400"></i>14-SLOT RACK</div>
-          <div class="bg-white/5 rounded px-2 py-1"><i class="fa-solid fa-sliders mr-1 text-amber-400"></i>BIQUAD DSP</div>
-          <div class="bg-white/5 rounded px-2 py-1"><i class="fa-solid fa-Database mr-1 text-amber-400"></i>MUSICBRAINZ</div>
-        </div>
-        <div class="w-full bg-black/80 h-1.5 rounded-full overflow-hidden border border-white/10">
-          <div id="splashProgressFill" class="h-full bg-gradient-to-r from-amber-500 via-orange-400 to-cyan-400 w-1/3 transition-all duration-500"></div>
-        </div>
-      </div>
-
-      <!-- Power On Action Button -->
-      <button id="enterStudioBtn" class="hw-btn-copper w-full py-3 px-5 rounded-2xl font-bold text-xs sm:text-sm uppercase tracking-wider mt-5 flex items-center justify-center gap-2.5 transition active:scale-95 cursor-pointer">
-        <i class="fa-solid fa-power-off"></i>
-        <span>Power On Studio Deck</span>
+      <button id="enterStudioBtn" class="hw-btn-primary w-full h-12 rounded-full font-semibold text-xs sm:text-sm tracking-tight mt-6 flex items-center justify-center gap-2 cursor-pointer">
+        <span>Enter Listening Room</span>
+        <i class="fa-solid fa-arrow-right text-xs"></i>
       </button>
-      <p class="mono text-[9px] text-slate-500 mt-2.5">Mengaktifkan Web Audio Synthesizer & 3D Turntable Stage</p>
     </div>
   </div>
 
   <!-- Floating Tooltip for Rack Hover -->
-  <div id="rackTooltip" class="fixed z-40 pointer-events-none hidden px-3.5 py-2.5 rounded-xl hw-chassis text-white transition-opacity duration-150">
-    <div class="flex items-center gap-1.5">
-      <i class="fa-solid fa-compact-disc text-[10px] text-amber-400"></i>
-      <p id="rackTooltipSlot" class="mono text-[9px] text-amber-400 uppercase tracking-widest">SLOT 01</p>
-    </div>
-    <p id="rackTooltipTitle" class="text-xs font-bold leading-tight mt-0.5 text-white">ALBUM TITLE</p>
-    <p id="rackTooltipArtist" class="mono text-[10px] text-slate-400">ARTIST</p>
+  <div id="rackTooltip" class="fixed z-40 pointer-events-none hidden px-3.5 py-2 rounded-2xl liquid-glass text-white transition-opacity duration-150">
+    <p id="rackTooltipSlot" class="mono text-[9px] text-white/55 uppercase tracking-wider">SLOT 01</p>
+    <p id="rackTooltipTitle" class="text-xs font-semibold leading-tight mt-0.5 text-white">ALBUM TITLE</p>
+    <p id="rackTooltipArtist" class="text-[10px] text-white/65">ARTIST</p>
   </div>
 
-  <!-- Zen Mode Minimal Floating Pill -->
-  <div id="zenOverlayBar" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 hidden items-center gap-3 sm:gap-4 px-4 sm:px-5 py-2.5 rounded-2xl hw-chassis text-white w-[92vw] sm:w-auto max-w-md justify-between">
-    <div class="flex items-center gap-3 min-w-0">
-      <div class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse flex-shrink-0"></div>
+  <!-- Zen Mode Minimal Floating Island -->
+  <div id="zenOverlayBar" class="fixed safe-bottom left-1/2 -translate-x-1/2 z-40 hidden items-center gap-4 px-4 py-2.5 rounded-full liquid-glass text-white w-[90vw] sm:w-auto max-w-md justify-between">
+    <div class="flex items-center gap-3 min-w-0 pl-1">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0"></span>
       <div class="text-left min-w-0">
-        <p id="zenTrackTitle" class="text-xs font-bold tracking-wide uppercase truncate oled-glow">CHROMA.DISC // ZEN SHOWCASE</p>
-        <p id="zenArtistSub" class="mono text-[10px] text-slate-400 uppercase truncate">AUDIOPHILE DESKTOP TURNTABLE</p>
+        <p id="zenTrackTitle" class="text-xs font-semibold truncate text-white">CHROMA.DISC</p>
+        <p id="zenArtistSub" class="text-[10px] text-white/55 truncate">Listening Room</p>
       </div>
     </div>
-    <button id="exitZenBtn" class="hw-btn px-3 py-1.5 rounded-xl text-[10px] mono font-bold uppercase transition flex-shrink-0 flex items-center gap-1.5">
-      <i class="fa-solid fa-xmark"></i>
-      <span>Exit (Z)</span>
+    <button id="exitZenBtn" class="hw-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition flex-shrink-0 flex items-center gap-1.5">
+      <span>Exit</span>
     </button>
   </div>
 
   <!-- Modal Shareable URL Link, Custom Rack Title & Slot Swap -->
-  <div id="shareRackModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-md p-3 sm:p-4">
-    <div class="hw-chassis rounded-3xl p-4 sm:p-5 max-w-md w-full shadow-2xl flex flex-col gap-3.5 max-h-[90vh] overflow-y-auto custom-scroll text-slate-200">
-      <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
-            <i class="fa-solid fa-sliders text-xs"></i>
-          </div>
-          <div>
-            <h2 class="text-xs sm:text-sm font-bold text-white uppercase tracking-tight">Rack Console & Share URL</h2>
-            <p class="mono text-[9px] text-slate-400">Kustomisasi Nama Rak, Tukar Slot & Bagikan Tautan</p>
-          </div>
+  <div id="shareRackModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-md p-4">
+    <div class="liquid-glass-sheet rounded-[28px] p-5 sm:p-6 max-w-md w-full flex flex-col gap-4 max-h-[88vh] overflow-y-auto custom-scroll text-white">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-sm font-semibold text-white">Share & Organize Rack</h2>
+          <p class="text-xs text-white/55">Custom shelf title, slot order & shareable link</p>
         </div>
-        <button id="closeShareModalBtn" class="hw-btn w-8 h-8 rounded-xl text-xs mono font-bold flex items-center justify-center">
+        <button id="closeShareModalBtn" class="hw-btn w-8 h-8 rounded-full text-xs flex items-center justify-center">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
       <!-- Custom Rack Title -->
-      <div class="flex flex-col gap-1">
-        <span class="mono text-[9px] font-bold text-slate-400 uppercase"><i class="fa-solid fa-tag mr-1 text-amber-400"></i>Nama Koleksi Rak Kustom</span>
-        <div class="flex items-center gap-1.5">
-          <input id="customRackTitleInput" type="text" maxlength="36" placeholder="Contoh: Late Night Coding Mix — Budi" class="w-full rounded-xl bg-black/50 border border-white/15 px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400">
-          <button id="saveRackTitleBtn" class="hw-btn-copper py-2 px-3.5 rounded-xl text-xs font-bold transition flex-shrink-0">
-            Simpan
+      <div class="flex flex-col gap-1.5">
+        <label class="text-[11px] font-medium text-white/65">Shelf Name</label>
+        <div class="flex items-center gap-2">
+          <input id="customRackTitleInput" type="text" maxlength="36" placeholder="e.g. Late Night Coding Mix" class="liquid-well w-full rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/35 focus:outline-none focus:border-white/30">
+          <button id="saveRackTitleBtn" class="hw-btn-primary px-4 py-2.5 rounded-xl text-xs font-semibold flex-shrink-0">
+            Save
           </button>
         </div>
       </div>
 
       <!-- Quick Slot Reorder / Swap -->
-      <div class="flex flex-col gap-1.5 bg-black/35 p-3 rounded-2xl border border-white/10">
-        <span class="mono text-[9px] font-bold text-slate-400 uppercase"><i class="fa-solid fa-right-left mr-1 text-amber-400"></i>Tukar Posisi Slot Rak (Slot Reorder)</span>
-        <div class="flex items-center gap-1.5">
-          <select id="swapSlotA" class="bg-slate-900 border border-white/15 text-slate-200 rounded-xl px-2 py-1.5 text-xs mono font-bold flex-1 min-w-0"></select>
-          <i class="fa-solid fa-arrows-left-right text-xs text-amber-400"></i>
-          <select id="swapSlotB" class="bg-slate-900 border border-white/15 text-slate-200 rounded-xl px-2 py-1.5 text-xs mono font-bold flex-1 min-w-0"></select>
-          <button id="execSwapSlotsBtn" class="hw-btn py-1.5 px-3 rounded-xl text-xs font-semibold transition flex-shrink-0">
-            Tukar
+      <div class="flex flex-col gap-2 liquid-well p-3.5 rounded-2xl">
+        <span class="text-[11px] font-medium text-white/65">Swap Slot Positions</span>
+        <div class="flex items-center gap-2">
+          <select id="swapSlotA" class="bg-white/5 border border-white/10 text-white rounded-xl px-2.5 py-2 text-xs mono flex-1 min-w-0 focus:outline-none"></select>
+          <i class="fa-solid fa-arrow-right-arrow-left text-xs text-white/40"></i>
+          <select id="swapSlotB" class="bg-white/5 border border-white/10 text-white rounded-xl px-2.5 py-2 text-xs mono flex-1 min-w-0 focus:outline-none"></select>
+          <button id="execSwapSlotsBtn" class="hw-btn px-3.5 py-2 rounded-xl text-xs font-medium flex-shrink-0">
+            Swap
           </button>
         </div>
       </div>
 
       <!-- Shareable URL Input Box -->
-      <div class="flex flex-col gap-1">
+      <div class="flex flex-col gap-1.5">
         <div class="flex items-center justify-between">
-          <span class="mono text-[9px] font-bold text-amber-400 uppercase"><i class="fa-solid fa-link mr-1"></i>Tautan Langsung (Shareable URL)</span>
-          <span id="urlLengthBadge" class="mono text-[9px] text-slate-400">0 chars</span>
+          <span class="text-[11px] font-medium text-white/65">Shareable Link</span>
+          <span id="urlLengthBadge" class="mono text-[10px] text-white/40">0 chars</span>
         </div>
-        <div class="flex items-center gap-1.5">
-          <input id="rackShareUrlInput" type="text" readonly class="oled-screen w-full rounded-xl px-3 py-2 mono text-[10px] focus:outline-none" value="">
-          <button id="copyShareUrlBtn" class="hw-btn-copper py-2 px-3.5 rounded-xl text-xs font-bold transition flex-shrink-0 flex items-center gap-1.5">
+        <div class="flex items-center gap-2">
+          <input id="rackShareUrlInput" type="text" readonly class="liquid-well w-full rounded-xl px-3 py-2.5 mono text-[11px] text-white/80 focus:outline-none" value="">
+          <button id="copyShareUrlBtn" class="hw-btn-primary px-4 py-2.5 rounded-xl text-xs font-semibold flex-shrink-0 flex items-center gap-1.5">
             <i class="fa-regular fa-copy"></i>
-            <span>Salin</span>
+            <span>Copy</span>
           </button>
         </div>
       </div>
 
       <!-- Compact Cartridge Code Box -->
-      <div class="flex flex-col gap-1">
-        <span class="mono text-[9px] font-bold text-slate-400 uppercase">Atau Tempel URL / Kode Cartridge</span>
-        <textarea id="rackCartridgeTextarea" rows="2" class="w-full rounded-xl bg-black/50 border border-white/15 p-2.5 mono text-[10px] text-slate-200 focus:outline-none focus:border-amber-400" placeholder="Tempel URL lengkap (?rack=...) atau kode cartridge di sini..."></textarea>
+      <div class="flex flex-col gap-1.5">
+        <span class="text-[11px] font-medium text-white/65">Import Link or Cartridge Token</span>
+        <textarea id="rackCartridgeTextarea" rows="2" class="liquid-well w-full rounded-xl p-3 mono text-[11px] text-white/80 placeholder-white/35 focus:outline-none focus:border-white/30" placeholder="Paste ?rack=... link or token here"></textarea>
       </div>
 
-      <div class="flex items-center justify-between gap-2 pt-1">
-        <button id="copyCartridgeBtn" class="hw-btn flex-1 py-2.5 px-3 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5">
-          <i class="fa-solid fa-code"></i>
-          <span>Salin Kode</span>
+      <div class="flex items-center gap-2 pt-1">
+        <button id="copyCartridgeBtn" class="hw-btn flex-1 py-2.5 px-3 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-code text-[11px]"></i>
+          <span>Copy Token</span>
         </button>
-        <button id="importCartridgeBtn" class="hw-btn-copper flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
-          <i class="fa-solid fa-download"></i>
-          <span>Muat ke Rak</span>
+        <button id="importCartridgeBtn" class="hw-btn-primary flex-1 py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-download text-[11px]"></i>
+          <span>Load Rack</span>
         </button>
       </div>
     </div>
   </div>
 
   <!-- ===================================================================== -->
-  <!-- TOP HUD AREA: HI-FI HARDWARE CONSOLE & OLED MONITOR DECK              -->
+  <!-- TOP NAVIGATION BAR: MINIMAL FLOATING LIQUID GLASS PILLS               -->
   <!-- ===================================================================== -->
-  <div class="ui-Chrome fixed top-2.5 sm:top-4 inset-x-2.5 sm:inset-x-4 z-30 pointer-events-none flex flex-col lg:flex-row lg:items-start lg:justify-between gap-2">
-    
-    <!-- LEFT COLUMN: HARDWARE BRANDING, CAMERA SELECTOR & RACK BROWSER -->
-    <div class="pointer-events-auto flex flex-col gap-1.5 w-full lg:w-[360px] max-w-full">
-      
-      <!-- Main Hardware Header Unit -->
-      <div class="hw-chassis px-3 py-2.5 rounded-2xl flex items-center justify-between gap-2 relative">
-        <div class="flex items-center gap-2.5 min-w-0">
-          <div class="w-8 h-8 rounded-xl bg-black/60 border border-amber-500/40 flex items-center justify-center shadow-inner flex-shrink-0">
-            <i class="fa-solid fa-record-vinyl text-amber-400 text-sm transition-transform duration-75" id="bassPulseDot"></i>
-          </div>
-          <div class="min-w-0">
-            <div class="flex items-center gap-1.5">
-              <h1 class="font-bold text-xs sm:text-sm leading-none tracking-wider text-white uppercase truncate">CHROMA.DISC</h1>
-              <span class="mono text-[8px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">CD-957</span>
-            </div>
-            <p id="customRackHeaderBanner" class="mono text-[9px] text-slate-400 mt-0.5 tracking-wider uppercase truncate">Audiophile Studio Deck</p>
-          </div>
+  <div class="ui-Chrome fixed safe-top inset-x-3 sm:inset-x-6 z-30 pointer-events-none flex flex-col gap-2">
+    <div class="flex items-center justify-between gap-2 w-full">
+
+      <!-- Left: Brand Identity Pill -->
+      <div class="pointer-events-auto liquid-glass pl-3 pr-3.5 py-2 rounded-full flex items-center gap-2.5">
+        <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+          <span id="colorSwatchDot" class="w-2.5 h-2.5 rounded-full bg-white transition-transform duration-75"></span>
+          <i id="bassPulseDot" class="hidden"></i>
         </div>
-
-        <!-- Top Right Hardware Switches -->
-        <div class="flex items-center gap-1 flex-shrink-0">
-          <!-- Mobile Toggle Search & Rack Drawer -->
-          <button id="mobileSearchToggleBtn" title="Buka Pencarian & Pengaturan Rak" class="lg:hidden hw-btn-copper px-2.5 py-1.5 rounded-xl text-[10px] mono font-bold flex items-center gap-1.5">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <span>Rak</span>
-          </button>
-
-          <button id="sfxToggleBtn" title="Toggle Efek Suara Mekanis" class="hw-btn px-2.5 py-1.5 rounded-xl text-[10px] mono font-semibold flex items-center gap-1">
-            <i class="fa-solid fa-volume-high text-amber-400"></i>
-            <span>SFX</span>
-          </button>
-          <button id="zenModeBtn" title="Mode Zen Screensaver Audiophile (Shortcut: Z)" class="hw-btn px-2.5 py-1.5 rounded-xl text-[10px] mono font-bold flex items-center gap-1">
-            <i class="fa-solid fa-expand text-amber-400"></i>
-            <span class="hidden sm:inline">ZEN</span>
-          </button>
-          <button id="hotkeyHelpBtn" title="Tampilkan Shortcut Keyboard (?)" class="hidden sm:flex hw-btn w-7 h-7 rounded-xl text-[11px] mono font-bold items-center justify-center">
-            <i class="fa-regular fa-keyboard"></i>
-          </button>
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="font-semibold text-xs tracking-tight text-white truncate">Chroma.Disc</span>
+          <span class="text-white/25 text-xs hidden sm:inline">/</span>
+          <span id="customRackHeaderBanner" class="text-[11px] text-white/55 truncate hidden sm:inline max-w-[180px]">Studio Deck</span>
         </div>
       </div>
 
-      <!-- Quick Camera Angle Selector Bar (1-5) -->
-      <div class="hw-chassis px-2.5 py-1.5 rounded-2xl flex items-center justify-between gap-1.5 text-[10px] mono overflow-x-auto no-scrollbar">
-        <span class="text-slate-400 font-bold pl-1 flex-shrink-0 hidden sm:flex items-center gap-1">
-          <i class="fa-solid fa-video text-amber-400 text-[9px]"></i>
-          <span>VIEW:</span>
-        </span>
-        <div class="flex items-center gap-1 w-full sm:w-auto justify-between sm:justify-end">
-          <button data-cam="front" class="camPresetBtn hw-btn hw-btn-active px-2 py-1 rounded-lg font-bold transition whitespace-nowrap flex-1 sm:flex-initial text-center" title="Sudut 3/4 Klasik (Shortcut: 1)">1:Front</button>
-          <button data-cam="back" class="camPresetBtn hw-btn px-2 py-1 rounded-lg font-bold transition whitespace-nowrap flex-1 sm:flex-initial text-center" title="Baca Tracklist Belakang (Shortcut: 2)">2:Back</button>
-          <button data-cam="spine" class="camPresetBtn hw-btn px-2 py-1 rounded-lg font-bold transition whitespace-nowrap flex-1 sm:flex-initial text-center" title="Inspeksi Punggung & Obi Strip (Shortcut: 3)">3:Spine</button>
-          <button data-cam="rack" class="camPresetBtn hw-btn px-2 py-1 rounded-lg font-bold transition whitespace-nowrap flex-1 sm:flex-initial text-center" title="Fokus ke Rak Koleksi (Shortcut: 4)">4:Rack</button>
-          <button data-cam="player" class="camPresetBtn hw-btn px-2 py-1 rounded-lg font-bold transition whitespace-nowrap flex-1 sm:flex-initial text-center" title="Fokus ke Audiophile CD Player (Shortcut: 5)">5:Deck</button>
-        </div>
+      <!-- Center: Segmented Camera View Pill (Desktop) -->
+      <div class="pointer-events-auto hidden md:flex liquid-glass p-1 rounded-full items-center gap-0.5 text-xs">
+        <button data-cam="front" class="camPresetBtn hw-btn hw-btn-active px-3 py-1.5 rounded-full text-[11px] font-medium transition">Case</button>
+        <button data-cam="back" class="camPresetBtn hw-btn px-3 py-1.5 rounded-full text-[11px] font-medium transition">Back</button>
+        <button data-cam="spine" class="camPresetBtn hw-btn px-3 py-1.5 rounded-full text-[11px] font-medium transition">Spine</button>
+        <button data-cam="rack" class="camPresetBtn hw-btn px-3 py-1.5 rounded-full text-[11px] font-medium transition">Rack</button>
+        <button data-cam="player" class="camPresetBtn hw-btn px-3 py-1.5 rounded-full text-[11px] font-medium transition">Player</button>
       </div>
 
-      <!-- Collapsible Search & Rack Management Drawer -->
-      <div id="leftSearchDrawer" class="hidden lg:flex flex-col gap-1.5">
-        <!-- Live Search Input + Slot Target -->
-        <div class="relative">
-          <form id="liveSearchForm" class="hw-chassis p-1.5 pl-3 rounded-2xl flex items-center gap-1.5">
-            <i class="fa-solid fa-magnifying-glass text-xs text-amber-400 flex-shrink-0"></i>
-            <input id="liveSearchInput" type="text" placeholder="Cari album / artis di database..." class="bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none w-full min-w-0">
-            <select id="searchSlotSelect" title="Pilih Slot Rak Tujuan" class="bg-black/50 border border-white/10 text-[10px] mono font-semibold text-amber-300 rounded-xl px-1.5 py-1.5 focus:outline-none cursor-pointer flex-shrink-0">
-              <option value="next">Next</option>
-              <option value="0">S-01</option>
-              <option value="1">S-02</option>
-              <option value="2">S-03</option>
-              <option value="3">S-04</option>
-              <option value="4">S-05</option>
-              <option value="5">S-06</option>
-              <option value="6">S-07</option>
-              <option value="7">S-08</option>
-              <option value="8">S-09</option>
-              <option value="9">S-10</option>
-              <option value="10">S-11</option>
-              <option value="11">S-12</option>
-              <option value="12">S-13</option>
-              <option value="13">S-14</option>
-            </select>
-            <button type="submit" id="liveSearchBtn" class="hw-btn-copper px-3 py-1.5 rounded-xl text-[11px] font-bold transition flex-shrink-0">
-              Cari
-            </button>
-          </form>
-
-          <!-- Search Results Picker Dropdown -->
-          <div id="searchResultsDropdown" class="hidden absolute top-full left-0 right-0 mt-1.5 hw-chassis rounded-2xl p-2 shadow-2xl z-40 flex-col gap-1 max-h-60 overflow-y-auto custom-scroll">
-            <div class="flex items-center justify-between px-2 py-1 border-b border-white/10">
-              <span class="mono text-[9px] font-bold text-amber-400 uppercase"><i class="fa-solid fa-compact-disc mr-1"></i>Pilih Hasil Album</span>
-              <button id="closeSearchDropdownBtn" class="text-[10px] mono text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div id="searchResultsList" class="flex flex-col gap-1 mt-1"></div>
-          </div>
-        </div>
-
-        <!-- Collection Management Bar -->
-        <div class="hw-chassis px-2.5 py-2 rounded-2xl flex items-center justify-between gap-1.5 text-[10px] mono">
-          <div class="flex items-center gap-1.5 flex-1 min-w-0 bg-black/40 border border-white/10 rounded-xl px-2 py-1">
-            <i class="fa-solid fa-box-archive text-amber-400 text-[10px]"></i>
-            <select id="rackPresetSelect" title="Pilih Tema Kurasi Rak 14-Slot" class="bg-transparent text-slate-200 font-bold focus:outline-none cursor-pointer w-full truncate">
-              <option value="default" class="bg-slate-900">Rack: Default Eclectic</option>
-              <option value="britpop" class="bg-slate-900">Rack: 90s Alt & Rock</option>
-              <option value="electronic" class="bg-slate-900">Rack: Electronic & Synth</option>
-              <option value="classical" class="bg-slate-900">Rack: Classical Master</option>
-            </select>
-          </div>
-          <div class="flex items-center gap-1 flex-shrink-0">
-            <button id="shareRackBtn" title="Atur Nama Rak, Tukar Slot & Salin URL (?rack=...)" class="hw-btn px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1">
-              <i class="fa-solid fa-share-nodes text-amber-400"></i>
-              <span>URL</span>
-            </button>
-            <button id="jukeboxToggleBtn" title="Auto-Play & Auto-Changer 14-Disc" class="hw-btn px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1">
-              <i class="fa-solid fa-repeat text-amber-400"></i>
-              <span>AUTO: OFF</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Keyboard Shortcuts Helper Popover -->
-      <div id="hotkeyPopover" class="hidden hw-chassis rounded-2xl p-3 text-[11px] flex-col gap-1.5 shadow-xl text-slate-300">
-        <div class="flex items-center justify-between border-b border-white/10 pb-1">
-          <span class="mono text-[10px] font-bold text-amber-400 uppercase"><i class="fa-regular fa-keyboard mr-1"></i>Hardware Hotkeys</span>
-          <span class="mono text-[9px] text-slate-400">SCROLL = ZOOM</span>
-        </div>
-        <div class="grid grid-cols-2 gap-x-3 gap-y-1 text-[10px]">
-          <div class="flex justify-between"><span>Play / Pause</span><kbd>Space</kbd></div>
-          <div class="flex justify-between"><span>Open Case</span><kbd>O</kbd></div>
-          <div class="flex justify-between"><span>Load Deck</span><kbd>E</kbd></div>
-          <div class="flex justify-between"><span>Camera 1-5</span><kbd>1</kbd>-<kbd>5</kbd></div>
-          <div class="flex justify-between"><span>Prev / Next Slot</span><kbd>←</kbd><kbd>→</kbd></div>
-          <div class="flex justify-between"><span>Zen Mode</span><kbd>Z</kbd></div>
-        </div>
+      <!-- Right: Quick Utility Pill -->
+      <div class="pointer-events-auto liquid-glass p-1 rounded-full flex items-center gap-1">
+        <button id="mobileSearchToggleBtn" title="Search & Rack Collection" class="hw-btn w-8 h-8 sm:w-auto sm:px-3 rounded-full text-xs font-medium flex items-center justify-center gap-1.5">
+          <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
+          <span class="hidden sm:inline text-[11px]">Library</span>
+        </button>
+        <button id="sfxToggleBtn" title="Toggle Mechanical Sound Effects" class="hw-btn w-8 h-8 rounded-full text-xs flex items-center justify-center">
+          <i class="fa-solid fa-volume-high text-[11px]"></i>
+        </button>
+        <button id="zenModeBtn" title="Zen Showcase Mode (Z)" class="hw-btn w-8 h-8 rounded-full text-xs flex items-center justify-center">
+          <i class="fa-solid fa-expand text-[11px]"></i>
+        </button>
+        <button id="hotkeyHelpBtn" title="Keyboard Shortcuts" class="hidden sm:flex hw-btn w-8 h-8 rounded-full text-xs items-center justify-center">
+          <i class="fa-regular fa-keyboard text-[11px]"></i>
+        </button>
       </div>
     </div>
 
-    <!-- RIGHT COLUMN: HI-FI OLED MONITOR DISPLAY & TRACKLIST DECK -->
-    <div class="pointer-events-auto flex flex-col gap-1.5 w-full lg:w-[340px] max-w-full items-stretch">
-      
-      <!-- Audiophile OLED Matrix Monitor Unit -->
-      <div class="hw-chassis rounded-2xl p-2.5 sm:p-3 flex flex-col gap-2 shadow-2xl relative">
-        
-        <!-- Top Chassis Status Strip -->
-        <div class="flex items-center justify-between gap-2 px-0.5">
-          <div class="flex items-center gap-2">
-            <span id="colorSwatchDot" title="Dynamic Stage Color Extracted" class="w-2 h-2 rounded-full bg-amber-400 shadow"></span>
-            <span class="mono text-[9px] tracking-widest text-slate-400 uppercase font-bold">PCM DIGITAL AUDIO</span>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <span id="slotBadge" class="mono text-[9px] font-bold px-2 py-0.5 rounded bg-black/60 border border-white/10 text-amber-400">SLOT 01</span>
-            <button id="headerTracklistToggleBtn" title="Buka/Tutup Daftar Lagu & Buklet" class="hw-btn px-2 py-0.5 rounded text-[9px] mono font-bold flex items-center gap-1">
-              <i class="fa-solid fa-list-ol text-amber-400"></i>
-              <span>TRACKS</span>
-              <i id="tracklistChevron" class="fa-solid fa-chevron-down text-[8px]"></i>
-            </button>
-          </div>
-        </div>
+    <!-- Mobile Compact Camera Switcher Pill -->
+    <div class="pointer-events-auto flex md:hidden justify-center">
+      <div class="liquid-glass p-1 rounded-full flex items-center gap-0.5 max-w-full overflow-x-auto no-scrollbar">
+        <button data-cam="front" class="camPresetBtn hw-btn hw-btn-active px-3 py-1 rounded-full text-[11px] font-medium transition whitespace-nowrap">Case</button>
+        <button data-cam="back" class="camPresetBtn hw-btn px-3 py-1 rounded-full text-[11px] font-medium transition whitespace-nowrap">Back</button>
+        <button data-cam="spine" class="camPresetBtn hw-btn px-3 py-1 rounded-full text-[11px] font-medium transition whitespace-nowrap">Spine</button>
+        <button data-cam="rack" class="camPresetBtn hw-btn px-3 py-1 rounded-full text-[11px] font-medium transition whitespace-nowrap">Rack</button>
+        <button data-cam="player" class="camPresetBtn hw-btn px-3 py-1 rounded-full text-[11px] font-medium transition whitespace-nowrap">Player</button>
+      </div>
+    </div>
 
-        <!-- Recessed Matrix OLED Readout Screen -->
-        <div class="oled-screen rounded-xl p-2.5 sm:p-3 flex flex-col gap-2">
-          <!-- Row 1: Spectrum Analyzer + Album & Artist Readout -->
-          <div class="flex items-center justify-between gap-2.5">
-            <div class="flex items-end gap-0.5 h-5 w-6 flex-shrink-0 bg-black/50 p-1 rounded border border-white/5">
-              <span id="eqBar1" class="w-1 bg-amber-500 rounded-sm h-1.5 transition-all duration-75"></span>
-              <span id="eqBar2" class="w-1 bg-orange-400 rounded-sm h-2.5 transition-all duration-75"></span>
-              <span id="eqBar3" class="w-1 bg-amber-300 rounded-sm h-1.5 transition-all duration-75"></span>
-              <span id="eqBar4" class="w-1 bg-cyan-400 rounded-sm h-1 transition-all duration-75"></span>
-            </div>
-            <div class="min-w-0 flex-1">
-              <p class="text-xs font-bold uppercase truncate leading-tight oled-glow tracking-wide" id="albumTitleDisplay">NEO TOKYO '98</p>
-              <p class="mono text-[10px] text-amber-200/70 uppercase truncate leading-tight mt-0.5" id="albumArtistDisplay">SYNTHETIX CORE</p>
-            </div>
-          </div>
+    <!-- Popover: Library Search & Rack Preset Sheet -->
+    <div id="leftSearchDrawer" class="pointer-events-auto hidden self-start w-full sm:w-[360px] liquid-glass-sheet rounded-[24px] p-3.5 flex-col gap-2.5 shadow-2xl">
+      <div class="relative">
+        <form id="liveSearchForm" class="liquid-well p-1 pl-3 rounded-2xl flex items-center gap-1.5">
+          <i class="fa-solid fa-magnifying-glass text-xs text-white/45 flex-shrink-0"></i>
+          <input id="liveSearchInput" type="text" placeholder="Search album or artist..." class="bg-transparent text-xs text-white placeholder-white/40 focus:outline-none w-full min-w-0">
+          <select id="searchSlotSelect" title="Target Rack Slot" class="bg-white/10 text-[10px] mono font-medium text-white rounded-xl px-2 py-1.5 focus:outline-none cursor-pointer flex-shrink-0">
+            <option value="next" class="bg-slate-900">Next</option>
+            <option value="0" class="bg-slate-900">S-01</option>
+            <option value="1" class="bg-slate-900">S-02</option>
+            <option value="2" class="bg-slate-900">S-03</option>
+            <option value="3" class="bg-slate-900">S-04</option>
+            <option value="4" class="bg-slate-900">S-05</option>
+            <option value="5" class="bg-slate-900">S-06</option>
+            <option value="6" class="bg-slate-900">S-07</option>
+            <option value="7" class="bg-slate-900">S-08</option>
+            <option value="8" class="bg-slate-900">S-09</option>
+            <option value="9" class="bg-slate-900">S-10</option>
+            <option value="10" class="bg-slate-900">S-11</option>
+            <option value="11" class="bg-slate-900">S-12</option>
+            <option value="12" class="bg-slate-900">S-13</option>
+            <option value="13" class="bg-slate-900">S-14</option>
+          </select>
+          <button type="submit" id="liveSearchBtn" class="hw-btn-primary px-3 py-1.5 rounded-xl text-xs font-semibold transition flex-shrink-0">
+            Find
+          </button>
+        </form>
 
-          <!-- Row 2: Track Scrubber & Time Counter inside OLED -->
-          <div id="audioWidget" class="flex items-center gap-2.5 pt-2 border-t border-amber-500/20">
-            <button id="widgetPlayToggle" class="hw-btn-copper w-8 h-8 rounded-lg flex items-center justify-center transition active:scale-90 flex-shrink-0">
-              <i id="widgetPlayIcon" class="fa-solid fa-play text-xs"></i>
-            </button>
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center justify-between gap-1">
-                <p id="audioTrackName" class="mono text-[10px] font-bold text-amber-100 truncate leading-tight">SELECT TRACK BELOW</p>
-                <span id="audioTimeDisplay" class="mono text-[10px] font-bold oled-glow flex-shrink-0">0:00</span>
-              </div>
-              <p id="audioTrackStatus" class="mono text-[8px] text-slate-400 uppercase tracking-wider truncate mt-0.5">OPTICAL STANDBY // 44.1KHZ</p>
-              <div id="audioProgressContainer" class="w-full bg-black/90 border border-white/10 rounded-full h-1.5 mt-1.5 overflow-hidden cursor-pointer" title="Klik untuk geser waktu lagu">
-                <div id="audioProgressBar" class="bg-gradient-to-r from-amber-500 to-cyan-400 h-full rounded-full w-0 transition-all duration-100"></div>
-              </div>
-            </div>
+        <!-- Search Results Picker Dropdown -->
+        <div id="searchResultsDropdown" class="hidden mt-2 liquid-well rounded-2xl p-2 flex-col gap-1 max-h-56 overflow-y-auto custom-scroll">
+          <div class="flex items-center justify-between px-2 py-1">
+            <span class="text-[10px] font-medium text-white/55">Select Release</span>
+            <button id="closeSearchDropdownBtn" class="text-xs text-white/50 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
           </div>
+          <div id="searchResultsList" class="flex flex-col gap-1"></div>
         </div>
       </div>
 
-      <!-- Interactive Tracklist & Booklet Credits Drawer -->
-      <div id="tracklistDrawer" class="hidden lg:flex hw-chassis rounded-2xl p-3 w-full shadow-2xl flex-col gap-2">
-        <div class="flex items-center justify-between border-b border-white/10 pb-1.5">
-          <div class="flex gap-1">
-            <button id="tabTracksBtn" class="hw-btn hw-btn-active px-2.5 py-1 rounded-lg text-[10px] mono font-bold transition flex items-center gap-1.5">
-              <i class="fa-solid fa-music text-[9px]"></i>
-              <span>TRACKLIST</span>
-            </button>
-            <button id="tabBookletBtn" class="hw-btn px-2.5 py-1 rounded-lg text-[10px] mono font-bold transition flex items-center gap-1.5">
-              <i class="fa-solid fa-book-open text-[9px]"></i>
-              <span>LINER NOTES</span>
-            </button>
-          </div>
-          <span class="mono text-[9px] text-amber-400/90" id="drawerReleaseYear">SLOT 01</span>
+      <!-- Curated Shelf Selector & Share Actions -->
+      <div class="flex items-center justify-between gap-1.5 text-xs">
+        <div class="flex items-center gap-2 flex-1 min-w-0 liquid-well rounded-xl px-3 py-2">
+          <i class="fa-solid fa-layer-group text-white/45 text-[11px]"></i>
+          <select id="rackPresetSelect" title="Curated 14-Disc Shelf" class="bg-transparent text-white text-xs font-medium focus:outline-none cursor-pointer w-full truncate">
+            <option value="default" class="bg-slate-900">Curated: Eclectic Mix</option>
+            <option value="britpop" class="bg-slate-900">Curated: 90s Alt & Rock</option>
+            <option value="electronic" class="bg-slate-900">Curated: Electronic & Synth</option>
+            <option value="classical" class="bg-slate-900">Curated: Classical Master</option>
+          </select>
         </div>
-
-        <!-- Track Selector View -->
-        <div id="drawerTracksView" class="flex flex-col gap-1 max-h-36 sm:max-h-44 overflow-y-auto custom-scroll pr-1"></div>
-
-        <!-- Booklet / Inlay Notes View -->
-        <div id="drawerBookletView" class="hidden flex-col gap-2 text-[11px] text-slate-300 max-h-36 sm:max-h-44 overflow-y-auto custom-scroll pr-1">
-          <div class="oled-screen p-2.5 rounded-xl mono text-[10px] leading-relaxed">
-            <p class="oled-glow font-bold mb-1" id="bookletHeader">// LINER NOTES & CREDITS</p>
-            <p id="bookletDetails" class="text-slate-300">Format: Compact Disc Digital Audio (CD-DA)<br>Catalog Barcode: 001158107519<br>Country: Worldwide Release</p>
-          </div>
-          <p class="text-[10px] text-slate-400 leading-snug">
-            <i class="fa-solid fa-circle-info text-amber-400 mr-1"></i>Klik tombol <b>Load Deck</b> atau ketuk langsung unit CD Player di sebelah kanan meja untuk memindahkan CD ke pemutar.
-          </p>
-        </div>
+        <button id="shareRackBtn" title="Share or Organize Rack" class="hw-btn px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 flex-shrink-0">
+          <i class="fa-solid fa-arrow-up-from-bracket text-[11px]"></i>
+          <span>Share</span>
+        </button>
+        <button id="jukeboxToggleBtn" title="Continuous 14-Disc Jukebox" class="hw-btn px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 flex-shrink-0">
+          <i class="fa-solid fa-repeat text-[11px]"></i>
+          <span>Auto</span>
+        </button>
       </div>
+    </div>
 
-      <!-- Status Toast Notification -->
-      <div id="statusToast" class="hw-chassis px-3.5 py-2 rounded-xl text-[10px] mono text-amber-300 font-semibold hidden transition-opacity duration-300 shadow-lg text-center lg:text-right border border-amber-500/30"></div>
+    <!-- Keyboard Shortcuts Helper Popover -->
+    <div id="hotkeyPopover" class="pointer-events-auto hidden self-end liquid-glass-sheet rounded-2xl p-3.5 text-xs flex-col gap-2 w-64">
+      <div class="flex items-center justify-between border-b border-white/10 pb-1.5">
+        <span class="font-medium text-white/80">Keyboard Shortcuts</span>
+        <span class="mono text-[10px] text-white/45">Scroll = Zoom</span>
+      </div>
+      <div class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px] text-white/70">
+        <div class="flex justify-between"><span>Play / Pause</span><kbd>Space</kbd></div>
+        <div class="flex justify-between"><span>Open Case</span><kbd>O</kbd></div>
+        <div class="flex justify-between"><span>Load Deck</span><kbd>E</kbd></div>
+        <div class="flex justify-between"><span>Views 1-5</span><kbd>1-5</kbd></div>
+        <div class="flex justify-between"><span>Prev / Next</span><kbd>←</kbd><kbd>→</kbd></div>
+        <div class="flex justify-between"><span>Zen Mode</span><kbd>Z</kbd></div>
+      </div>
     </div>
   </div>
 
+  <!-- Subtle Floating Status Pill (Top Center) -->
+  <div id="statusToast" class="fixed top-16 sm:top-20 left-1/2 -translate-x-1/2 z-40 pointer-events-none liquid-glass px-4 py-1.5 rounded-full text-xs text-white/90 font-medium hidden transition-opacity duration-300 shadow-lg whitespace-nowrap"></div>
+
   <!-- ===================================================================== -->
-  <!-- BOTTOM CONTROL DOCK: HI-FI HARDWARE TRANSPORT & STUDIO FX CONSOLE     -->
+  <!-- UNIFIED BOTTOM MEDIA CONTROLLER & CONTEXTUAL SHEETS (iOS / ANDROID)   -->
   <!-- ===================================================================== -->
-  <div class="ui-Chrome fixed bottom-2.5 sm:bottom-4 left-1/2 -translate-x-1/2 z-30 w-[96vw] max-w-4xl flex flex-col items-center gap-1.5 pointer-events-none">
-    
-    <!-- Secondary Studio Customizer Drawer (Collapsible Hardware Switches) -->
-    <div id="studioToolsDrawer" class="hidden pointer-events-auto w-full hw-chassis rounded-2xl p-2.5 sm:p-3 flex-wrap items-center justify-center gap-1.5 text-[11px] shadow-2xl">
-      <!-- Japanese Edition Obi Strip Toggle -->
-      <button id="obiToggleBtn" title="Pasang/Lepas Sabuk Kertas Edisi Jepang (Obi Strip)" class="hw-btn hw-btn-active px-2.5 py-1.5 rounded-xl font-semibold flex items-center gap-1.5">
-        <i class="fa-solid fa-ribbon"></i>
-        <span>Obi: ON</span>
-      </button>
+  <div class="ui-Chrome fixed safe-bottom left-1/2 -translate-x-1/2 z-30 w-[94vw] max-w-[540px] flex flex-col items-stretch gap-2 pointer-events-none">
 
-      <!-- Iconic Hype Stickers & Promo Badges -->
-      <button id="hypeStickerBtn" title="Pasang Stiker Sampul Ikonik (Parental Advisory / Gold Seal / Promo)" class="hw-btn px-2.5 py-1.5 rounded-xl font-semibold flex items-center gap-1.5">
-        <i class="fa-solid fa-certificate text-amber-400"></i>
-        <span>Hype: Off</span>
-      </button>
+    <!-- SHEET 1: TRACKLIST & LINER NOTES (Opens cleanly above player) -->
+    <div id="tracklistDrawer" class="hidden pointer-events-auto liquid-glass-sheet rounded-[28px] p-4 w-full flex-col gap-2.5">
+      <div class="w-9 h-1 rounded-full bg-white/20 mx-auto mb-0.5 sm:hidden"></div>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-1 liquid-well p-1 rounded-full">
+          <button id="tabTracksBtn" class="hw-btn hw-btn-active px-3 py-1 rounded-full text-[11px] font-medium transition">
+            Tracks
+          </button>
+          <button id="tabBookletBtn" class="hw-btn px-3 py-1 rounded-full text-[11px] font-medium transition">
+            Liner Notes
+          </button>
+        </div>
+        <span class="mono text-[10px] text-white/45 px-2" id="drawerReleaseYear">SLOT 01</span>
+      </div>
 
-      <!-- Real-Time Web Audio DSP Filter -->
-      <button id="dspModeBtn" title="Efek Filter Audio Real-Time (Hi-Fi / 90s Boombox Bass / Lo-Fi Walkman)" class="hw-btn px-2.5 py-1.5 rounded-xl font-semibold flex items-center gap-1.5">
-        <i class="fa-solid fa-wave-square text-cyan-400"></i>
-        <span>DSP: Hi-Fi</span>
-      </button>
+      <!-- Track Selector View -->
+      <div id="drawerTracksView" class="flex flex-col gap-1 max-h-48 overflow-y-auto custom-scroll pr-1"></div>
 
-      <!-- Anti-Skip / CD Scratch Glitch Trigger -->
-      <button id="cdGlitchBtn" title="Simulasi Efek Guncangan CD Player Portabel (Buffer Stutter)" class="hw-btn px-2.5 py-1.5 rounded-xl font-semibold flex items-center gap-1.5">
-        <i class="fa-solid fa-bolt text-rose-400"></i>
-        <span>Glitch</span>
-      </button>
-
-      <!-- Case Tint -->
-      <button id="caseTintBtn" title="Ganti Warna Casing & Baki (Jewel Case Tint)" class="hw-btn px-2.5 py-1.5 rounded-xl font-medium flex items-center gap-1.5">
-        <i class="fa-solid fa-swatchbook text-amber-400"></i>
-        <span>Case: Clear</span>
-      </button>
-
-      <!-- Gold / Silver / CD-R Marker Mixtape Toggle -->
-      <button id="discFinishBtn" title="Ganti Lapisan Kepingan CD atau Mode CD-R Spidol" class="hw-btn px-2.5 py-1.5 rounded-xl font-medium flex items-center gap-1.5">
-        <i class="fa-solid fa-compact-disc text-amber-400"></i>
-        <span>CD: Silver</span>
-      </button>
-
-      <!-- Mint vs Vintage vs Signed Autograph Foil -->
-      <button id="caseWearBtn" title="Ubah Kondisi Casing / Tanda Tangan Artis (Autograph)" class="hw-btn px-2.5 py-1.5 rounded-xl font-medium flex items-center gap-1.5">
-        <i class="fa-solid fa-signature text-amber-400"></i>
-        <span>Wear: Mint</span>
-      </button>
-
-      <!-- Studio Lighting Rig & Floating Dust Motes -->
-      <button id="studioLightBtn" title="Ubah Pencahayaan Meja Studio & Partikel Debu" class="hw-btn px-2.5 py-1.5 rounded-xl font-semibold flex items-center gap-1.5">
-        <i class="fa-solid fa-lightbulb text-amber-400"></i>
-        <span>Rig: Daylight</span>
-      </button>
-
-      <button id="changeLabelBtn" class="hw-btn px-2.5 py-1.5 rounded-xl font-medium flex items-center gap-1.5">
-        <i class="fa-solid fa-vector-square text-amber-400"></i>
-        <span>Label: Busur</span>
-      </button>
-
-      <button id="toggleSpinBtn" class="hw-btn px-2.5 py-1.5 rounded-xl font-medium flex items-center gap-1.5">
-        <i class="fa-solid fa-rotate text-emerald-400 animate-spin" id="spinIcon" style="animation-duration: 4s;"></i>
-        <span id="spinStateText">Stop Spin</span>
-      </button>
-
-      <!-- File Input & Upload -->
-      <input type="file" id="imageUploadInput" accept="image/*" class="hidden">
-      <button id="uploadImageBtn" class="hw-btn px-2.5 py-1.5 rounded-xl font-semibold flex items-center gap-1.5">
-        <i class="fa-solid fa-upload text-amber-400"></i>
-        <span>Upload Cover</span>
-      </button>
+      <!-- Booklet / Inlay Notes View -->
+      <div id="drawerBookletView" class="hidden flex-col gap-2 text-xs text-white/75 max-h-48 overflow-y-auto custom-scroll pr-1">
+        <div class="liquid-well p-3.5 rounded-2xl text-[11px] leading-relaxed space-y-1">
+          <p class="font-semibold text-white" id="bookletHeader">Release Credits</p>
+          <p id="bookletDetails" class="text-white/65">Format: Compact Disc Digital Audio (CD-DA)<br>Catalog Barcode: 001158107519<br>Country: Worldwide Release</p>
+        </div>
+      </div>
     </div>
 
-    <!-- Primary Tactile Hardware Transport Bar -->
-    <div class="pointer-events-auto hw-chassis rounded-2xl p-1.5 sm:p-2 flex items-center justify-between sm:justify-center gap-1 sm:gap-2 w-full sm:w-auto shadow-2xl overflow-x-auto no-scrollbar relative">
+    <!-- SHEET 2: STUDIO CUSTOMIZER & AUDIO DSP (Opens cleanly above player) -->
+    <div id="studioToolsDrawer" class="hidden pointer-events-auto liquid-glass-sheet rounded-[28px] p-4 w-full flex-col gap-3">
+      <div class="w-9 h-1 rounded-full bg-white/20 mx-auto mb-0.5 sm:hidden"></div>
+      <div class="flex items-center justify-between px-1">
+        <span class="text-xs font-semibold text-white">Studio & Disc Customization</span>
+        <span class="mono text-[10px] text-white/45">DSP / Physical</span>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-xs">
+        <button id="dspModeBtn" class="hw-btn px-3 py-2.5 rounded-2xl font-medium flex items-center gap-2 justify-start truncate">
+          <i class="fa-solid fa-wave-square text-white/60 text-xs"></i>
+          <span class="truncate">DSP: Hi-Fi</span>
+        </button>
+
+        <button id="studioLightBtn" class="hw-btn px-3 py-2.5 rounded-2xl font-medium flex items-center gap-2 justify-start truncate">
+          <i class="fa-solid fa-sun text-white/60 text-xs"></i>
+          <span class="truncate">Rig: Daylight</span>
+        </button>
+
+        <button id="obiToggleBtn" class="hw-btn hw-btn-active px-3 py-2.5 rounded-2xl font-medium flex items-center gap-2 justify-start truncate">
+          <i class="fa-solid fa-ribbon text-xs"></i>
+          <span class="truncate">Obi: ON</span>
+        </button>
+
+        <button id="hypeStickerBtn" class="hw-btn px-3 py-2.5 rounded-2xl font-medium flex items-center gap-2 justify-start truncate">
+          <i class="fa-solid fa-certificate text-white/60 text-xs"></i>
+          <span class="truncate">Hype: Off</span>
+        </button>
+
+        <button id="caseTintBtn" class="hw-btn px-3 py-2.5 rounded-2xl font-medium flex items-center gap-2 justify-start truncate">
+          <i class="fa-solid fa-swatchbook text-white/60 text-xs"></i>
+          <span class="truncate">Case: Clear</span>
+        </button>
+
+        <button id="discFinishBtn" class="hw-btn px-3 py-2.5 rounded-2xl font-medium flex items-center gap-2 justify-start truncate">
+          <i class="fa-solid fa-compact-disc text-white/60 text-xs"></i>
+          <span class="truncate">CD: Silver</span>
+        </button>
+
+        <button id="caseWearBtn" class="hw-btn px-3 py-2.5 rounded-2xl font-medium flex items-center gap-2 justify-start truncate">
+          <i class="fa-solid fa-signature text-white/60 text-xs"></i>
+          <span class="truncate">Wear: Mint</span>
+        </button>
+
+        <button id="changeLabelBtn" class="hw-btn px-3 py-2.5 rounded-2xl font-medium flex items-center gap-2 justify-start truncate">
+          <i class="fa-solid fa-tag text-white/60 text-xs"></i>
+          <span class="truncate">Label: Busur</span>
+        </button>
+
+        <button id="cdGlitchBtn" class="hw-btn px-3 py-2.5 rounded-2xl font-medium flex items-center gap-2 justify-start truncate">
+          <i class="fa-solid fa-bolt text-white/60 text-xs"></i>
+          <span class="truncate">Anti-Skip Bump</span>
+        </button>
+
+        <button id="toggleSpinBtn" class="hw-btn px-3 py-2.5 rounded-2xl font-medium flex items-center gap-2 justify-start truncate">
+          <i class="fa-solid fa-rotate text-emerald-400 animate-spin text-xs" id="spinIcon" style="animation-duration: 4s;"></i>
+          <span id="spinStateText" class="truncate">Spinning</span>
+        </button>
+
+        <input type="file" id="imageUploadInput" accept="image/*" class="hidden">
+        <button id="uploadImageBtn" class="hw-btn col-span-2 sm:col-span-2 px-3 py-2.5 rounded-2xl font-medium flex items-center gap-2 justify-center">
+          <i class="fa-solid fa-arrow-up-from-bracket text-white/60 text-xs"></i>
+          <span>Upload Custom Cover Artwork</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN LIQUID GLASS MEDIA DECK -->
+    <div class="pointer-events-auto liquid-glass rounded-[28px] p-3 sm:p-4 flex flex-col gap-3">
       
-      <!-- 1. Buka / Tutup Casing -->
-      <button id="toggleCaseBtn" class="hw-btn px-3 sm:px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 flex-1 sm:flex-initial whitespace-nowrap">
-        <i class="fa-solid fa-box-open text-amber-400"></i>
-        <span id="caseStateText">Open Case</span>
-      </button>
+      <!-- Top Row: Live Equalizer + Now Playing Metadata + Scrubber -->
+      <div class="flex items-center gap-3 px-1">
+        <!-- Minimal Live Spectrum Pill -->
+        <div class="w-10 h-10 rounded-2xl liquid-well flex items-end justify-center gap-0.5 p-2.5 flex-shrink-0">
+          <span id="eqBar1" class="w-1 bg-white/90 rounded-full h-1.5 transition-all duration-75"></span>
+          <span id="eqBar2" class="w-1 bg-white/75 rounded-full h-2.5 transition-all duration-75"></span>
+          <span id="eqBar3" class="w-1 bg-white/90 rounded-full h-1.5 transition-all duration-75"></span>
+          <span id="eqBar4" class="w-1 bg-white/60 rounded-full h-1 transition-all duration-75"></span>
+        </div>
 
-      <!-- 2. Load CD into Audiophile Top-Loading Player -->
-      <button id="ejectDiscBtn" title="Masukkan Kepingan CD ke Unit Audiophile CD Player di Meja (Shortcut: E)" class="hw-btn-copper px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 flex-1 sm:flex-initial whitespace-nowrap">
-        <i class="fa-solid fa-Eject"></i>
-        <span>Load Deck</span>
-      </button>
+        <!-- Track & Album Info -->
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <p class="text-xs sm:text-sm font-semibold text-white truncate leading-tight" id="albumTitleDisplay">NEO TOKYO '98</p>
+              <span id="slotBadge" class="mono text-[9px] px-1.5 py-0.5 rounded-md bg-white/10 text-white/70 flex-shrink-0">SLOT 01</span>
+            </div>
+            <span id="audioTimeDisplay" class="mono text-[11px] text-white/55 flex-shrink-0">0:00</span>
+          </div>
 
-      <!-- 3. Audio Playback Toggle Button -->
-      <button id="audioPlayBtn" class="hw-btn px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 flex-1 sm:flex-initial whitespace-nowrap border-emerald-500/30">
-        <i id="audioIcon" class="fa-solid fa-play text-emerald-400"></i>
-        <span id="audioPlayText">Play</span>
-      </button>
+          <div class="flex items-center gap-1.5 text-[11px] text-white/55 truncate mt-0.5">
+            <span id="albumArtistDisplay" class="font-medium text-white/75 truncate">SYNTHETIX CORE</span>
+            <span class="text-white/25">•</span>
+            <span id="audioTrackName" class="truncate">Select Track</span>
+            <span id="audioTrackStatus" class="hidden"></span>
+          </div>
 
-      <!-- 4. Next Album (MusicBrainz) -->
-      <button id="mbSyncBtn" class="hw-btn px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 flex-1 sm:flex-initial whitespace-nowrap">
-        <i class="fa-solid fa-forward-step text-amber-400"></i>
-        <span id="mbBtnText">Next Disc</span>
-      </button>
+          <!-- Interactive Scrubber Bar -->
+          <div id="audioProgressContainer" class="w-full bg-white/10 rounded-full h-1.5 mt-2 overflow-hidden cursor-pointer group">
+            <div id="audioProgressBar" class="bg-white h-full rounded-full w-0 transition-all duration-100"></div>
+          </div>
+        </div>
+      </div>
 
-      <!-- 5. Toggle Studio Customizer Drawer -->
-      <button id="toggleStudioToolsBtn" title="Buka Menu Kustomisasi Casing, Obi Strip, Stiker Hype, DSP & Pencahayaan Studio" class="hw-btn px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 flex-shrink-0 whitespace-nowrap">
-        <i class="fa-solid fa-sliders text-amber-400"></i>
-        <span class="hidden xs:inline">FX / Custom</span>
-        <i id="studioToolsChevron" class="fa-solid fa-chevron-up text-[9px]"></i>
-      </button>
+      <!-- Bottom Row: Ergonomic 44px Transport & Action Controls -->
+      <div class="flex items-center justify-between gap-1.5 pt-0.5">
+        <!-- Left Physical Case & Deck Actions -->
+        <div class="flex items-center gap-1.5">
+          <button id="toggleCaseBtn" title="Open / Close Jewel Case (O)" class="hw-btn h-10 px-3.5 rounded-full text-xs font-medium flex items-center gap-1.5 whitespace-nowrap">
+            <i class="fa-solid fa-box-open text-[11px] text-white/70"></i>
+            <span id="caseStateText">Open</span>
+          </button>
 
-      <!-- 6. Desktop Tracklist Toggle Shortcut -->
-      <button id="toggleDrawerBtn" class="hidden sm:flex hw-btn px-3 py-2 rounded-xl text-xs font-semibold items-center gap-1.5 flex-shrink-0 whitespace-nowrap">
-        <i class="fa-solid fa-list-ul text-amber-400"></i>
-        <span>Tracks</span>
-      </button>
+          <button id="ejectDiscBtn" title="Load or Return CD from Reference Player (E)" class="hw-btn h-10 px-3.5 rounded-full text-xs font-medium flex items-center gap-1.5 whitespace-nowrap">
+            <i class="fa-solid fa-compact-disc text-[11px] text-white/70"></i>
+            <span>Load Deck</span>
+          </button>
+        </div>
+
+        <!-- Center Primary Playback Transport -->
+        <div class="flex items-center gap-1.5">
+          <button id="widgetPlayToggle" class="hidden"><i id="widgetPlayIcon"></i></button>
+          <button id="audioPlayBtn" title="Play / Pause Audio (Space)" class="hw-btn-primary w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0">
+            <i id="audioIcon" class="fa-solid fa-play text-xs ml-0.5"></i>
+            <span id="audioPlayText" class="hidden">Play</span>
+          </button>
+
+          <button id="mbSyncBtn" title="Next Disc in Rack (→)" class="hw-btn w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-forward-step text-xs"></i>
+            <span id="mbBtnText" class="hidden">Next</span>
+          </button>
+        </div>
+
+        <!-- Right Drawer Toggles (Tracks & Studio FX) -->
+        <div class="flex items-center gap-1.5">
+          <button id="headerTracklistToggleBtn" title="Tracklist & Liner Notes" class="hw-btn h-10 px-3.5 rounded-full text-xs font-medium flex items-center gap-1.5">
+            <i class="fa-solid fa-list-ul text-[11px] text-white/70"></i>
+            <span class="hidden sm:inline">Tracks</span>
+            <i id="tracklistChevron" class="hidden"></i>
+          </button>
+          <button id="toggleDrawerBtn" class="hidden"></button>
+
+          <button id="toggleStudioToolsBtn" title="Studio Lighting, Obi, Stickers & DSP" class="hw-btn w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-sliders text-xs"></i>
+            <i id="studioToolsChevron" class="hidden"></i>
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -1414,11 +1365,11 @@
       const eqBars = [document.getElementById('eqBar1'), document.getElementById('eqBar2'), document.getElementById('eqBar3'), document.getElementById('eqBar4')];
 
       if (playing) {
-        if (audioIcon) audioIcon.className = "fa-solid fa-pause text-amber-400";
+        if (audioIcon) audioIcon.className = "fa-solid fa-pause text-xs";
         if (audioPlayText) audioPlayText.innerText = "Pause";
         if (widgetPlayIcon) widgetPlayIcon.className = "fa-solid fa-pause text-xs";
       } else {
-        if (audioIcon) audioIcon.className = "fa-solid fa-play text-emerald-400";
+        if (audioIcon) audioIcon.className = "fa-solid fa-play text-xs ml-0.5";
         if (audioPlayText) audioPlayText.innerText = "Play";
         if (widgetPlayIcon) widgetPlayIcon.className = "fa-solid fa-play text-xs";
         eqBars.forEach(bar => { if (bar) bar.style.height = "6px"; });
@@ -2487,8 +2438,8 @@
       document.querySelectorAll('.camPresetBtn').forEach(b => {
         const active = b.getAttribute('data-cam') === preset;
         b.className = active
-          ? "camPresetBtn hw-btn hw-btn-active px-2 py-1 rounded-lg font-bold transition whitespace-nowrap flex-1 sm:flex-initial text-center"
-          : "camPresetBtn hw-btn px-2 py-1 rounded-lg font-bold transition whitespace-nowrap flex-1 sm:flex-initial text-center";
+          ? "camPresetBtn hw-btn hw-btn-active px-3 py-1 sm:py-1.5 rounded-full text-[11px] font-medium transition whitespace-nowrap"
+          : "camPresetBtn hw-btn px-3 py-1 sm:py-1.5 rounded-full text-[11px] font-medium transition whitespace-nowrap";
       });
 
       const t = getResponsiveCameraTargets(preset);
@@ -4240,8 +4191,8 @@
         e.stopPropagation();
         sfxEnabled = !sfxEnabled;
         sfxBtn.innerHTML = sfxEnabled
-          ? '<i class="fa-solid fa-volume-high text-amber-400"></i><span>SFX</span>'
-          : '<i class="fa-solid fa-volume-xmark text-slate-500"></i><span>SFX</span>';
+          ? '<i class="fa-solid fa-volume-high text-[11px]"></i>'
+          : '<i class="fa-solid fa-volume-xmark text-[11px] text-white/40"></i>';
         if (sfxEnabled) playMechanicalSFX('caseOpen');
       });
 
@@ -4257,11 +4208,11 @@
         e.stopPropagation();
         jukeboxAutoMode = !jukeboxAutoMode;
         jukeboxBtn.innerHTML = jukeboxAutoMode
-          ? '<i class="fa-solid fa-repeat"></i><span>AUTO: ON</span>'
-          : '<i class="fa-solid fa-repeat text-amber-400"></i><span>AUTO: OFF</span>';
+          ? '<i class="fa-solid fa-repeat text-[11px]"></i><span>Auto: ON</span>'
+          : '<i class="fa-solid fa-repeat text-[11px]"></i><span>Auto</span>';
         jukeboxBtn.className = jukeboxAutoMode
-          ? "hw-btn hw-btn-active px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1"
-          : "hw-btn px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1";
+          ? "hw-btn hw-btn-active px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 flex-shrink-0"
+          : "hw-btn px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 flex-shrink-0";
         showToast(jukeboxAutoMode ? "Mode Jukebox 14-Disc Aktif: Otomatis lanjut lagu & ganti kaset!" : "Mode Jukebox Dimatikan");
       });
 
@@ -4281,18 +4232,24 @@
       });
 
       const drawer = document.getElementById('tracklistDrawer');
-      const tracklistChevron = document.getElementById('tracklistChevron');
+      const studioToolsDrawer = document.getElementById('studioToolsDrawer');
+      const headerTrackBtn = document.getElementById('headerTracklistToggleBtn');
+      const studioToolsBtn = document.getElementById('toggleStudioToolsBtn');
+
       function toggleTracklistDrawer() {
         playMechanicalSFX('rackHover');
         const isHidden = drawer.classList.contains('hidden');
         if (isHidden) {
+          studioToolsDrawer.classList.add('hidden');
+          studioToolsDrawer.classList.remove('flex');
+          studioToolsBtn.classList.remove('hw-btn-active');
           drawer.classList.remove('hidden');
           drawer.classList.add('flex');
-          if (tracklistChevron) tracklistChevron.className = 'fa-solid fa-chevron-up text-[8px]';
+          headerTrackBtn.classList.add('hw-btn-active');
         } else {
           drawer.classList.add('hidden');
           drawer.classList.remove('flex');
-          if (tracklistChevron) tracklistChevron.className = 'fa-solid fa-chevron-down text-[8px]';
+          headerTrackBtn.classList.remove('hw-btn-active');
         }
       }
 
@@ -4300,12 +4257,12 @@
         e.stopPropagation();
         toggleTracklistDrawer();
       });
-      document.getElementById('headerTracklistToggleBtn').addEventListener('click', (e) => {
+      headerTrackBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         toggleTracklistDrawer();
       });
 
-      // Mobile Search & Rack Drawer Toggle
+      // Mobile & Desktop Library Search Popover Toggle
       const leftSearchDrawer = document.getElementById('leftSearchDrawer');
       const mobileSearchToggleBtn = document.getElementById('mobileSearchToggleBtn');
       if (mobileSearchToggleBtn && leftSearchDrawer) {
@@ -4316,28 +4273,31 @@
           if (isHidden) {
             leftSearchDrawer.classList.remove('hidden');
             leftSearchDrawer.classList.add('flex');
+            mobileSearchToggleBtn.classList.add('hw-btn-active');
           } else {
             leftSearchDrawer.classList.add('hidden');
             leftSearchDrawer.classList.remove('flex');
+            mobileSearchToggleBtn.classList.remove('hw-btn-active');
           }
         });
       }
 
-      // Bottom Studio Customizer Drawer Toggle
-      const studioToolsDrawer = document.getElementById('studioToolsDrawer');
-      const studioToolsChevron = document.getElementById('studioToolsChevron');
-      document.getElementById('toggleStudioToolsBtn').addEventListener('click', (e) => {
+      // Bottom Studio Customizer Sheet Toggle
+      studioToolsBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         playMechanicalSFX('rackHover');
         const isHidden = studioToolsDrawer.classList.contains('hidden');
         if (isHidden) {
+          drawer.classList.add('hidden');
+          drawer.classList.remove('flex');
+          headerTrackBtn.classList.remove('hw-btn-active');
           studioToolsDrawer.classList.remove('hidden');
           studioToolsDrawer.classList.add('flex');
-          if (studioToolsChevron) studioToolsChevron.className = 'fa-solid fa-chevron-down text-[9px]';
+          studioToolsBtn.classList.add('hw-btn-active');
         } else {
           studioToolsDrawer.classList.add('hidden');
           studioToolsDrawer.classList.remove('flex');
-          if (studioToolsChevron) studioToolsChevron.className = 'fa-solid fa-chevron-up text-[9px]';
+          studioToolsBtn.classList.remove('hw-btn-active');
         }
       });
 
@@ -4348,16 +4308,16 @@
 
       tabTracksBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        tabTracksBtn.className = "hw-btn hw-btn-active px-2.5 py-1 rounded-lg text-[10px] mono font-bold transition flex items-center gap-1.5";
-        tabBookletBtn.className = "hw-btn px-2.5 py-1 rounded-lg text-[10px] mono font-bold transition flex items-center gap-1.5";
+        tabTracksBtn.className = "hw-btn hw-btn-active px-3 py-1 rounded-full text-[11px] font-medium transition";
+        tabBookletBtn.className = "hw-btn px-3 py-1 rounded-full text-[11px] font-medium transition";
         tracksView.classList.remove('hidden');
         bookletView.classList.add('hidden');
       });
 
       tabBookletBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        tabBookletBtn.className = "hw-btn hw-btn-active px-2.5 py-1 rounded-lg text-[10px] mono font-bold transition flex items-center gap-1.5";
-        tabTracksBtn.className = "hw-btn px-2.5 py-1 rounded-lg text-[10px] mono font-bold transition flex items-center gap-1.5";
+        tabBookletBtn.className = "hw-btn hw-btn-active px-3 py-1 rounded-full text-[11px] font-medium transition";
+        tabTracksBtn.className = "hw-btn px-3 py-1 rounded-full text-[11px] font-medium transition";
         bookletView.classList.remove('hidden');
         bookletView.classList.add('flex');
         tracksView.classList.add('hidden');
