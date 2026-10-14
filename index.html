@@ -3769,16 +3769,34 @@
       let initialPinchDist = 0, initialPinchZoom = 8.4;
       const clampX = v => Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, v));
 
+      function resetAllPointerStates() {
+        activePointers.clear();
+        initialPinchDist = 0;
+        isDragging = false;
+        isScrubbingDisc = false;
+        activePointerId = null;
+      }
+
       function onPointerDown(e) {
         if (rackSwapState !== 'IDLE') return;
         if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+        // Bersihkan pointer stale jika terjadi ketidaksinkronan event sentuh di mobile
+        if (e.pointerType === 'touch' && activePointers.size >= 2) {
+          resetAllPointerStates();
+        }
 
         activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
         // Dukungan Pinch-to-Zoom 2 Jari di layar Mobile
         if (activePointers.size === 2) {
+          if (activePointerId !== null) {
+            try { container.releasePointerCapture(activePointerId); } catch (_) {}
+          }
           isDragging = false;
           isScrubbingDisc = false;
+          activePointerId = null;
+          hasDragged = true;
           const pts = Array.from(activePointers.values());
           initialPinchDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
           initialPinchZoom = targetCamZ;
@@ -3857,9 +3875,38 @@
 
       function endDrag(e, allowToggle) {
         activePointers.delete(e.pointerId);
-        if (activePointers.size < 2) initialPinchDist = 0;
+
+        if (activePointers.size < 2) {
+          initialPinchDist = 0;
+        }
+
+        // Jika masih ada 1 jari tersisa setelah pinch, transisikan dengan mulus ke jari tersebut
+        if (activePointers.size === 1 && activePointerId === null) {
+          const [remId, remPos] = activePointers.entries().next().value;
+          activePointerId = remId;
+          isDragging = true;
+          prevMouseX = remPos.x;
+          prevMouseY = remPos.y;
+          hasDragged = true; // Cegah tap tidak sengaja seusai pinch
+          return;
+        }
+
+        if (activePointers.size === 0) {
+          isDragging = false;
+          isScrubbingDisc = false;
+          if (activePointerId !== null) {
+            try { container.releasePointerCapture(activePointerId); } catch (_) {}
+          }
+          const wasActive = (e.pointerId === activePointerId);
+          activePointerId = null;
+          if (allowToggle && wasActive && !hasDragged) {
+            handlePointerClick(e);
+          }
+          return;
+        }
 
         if (e.pointerId !== activePointerId) return;
+
         if (isScrubbingDisc) {
           isScrubbingDisc = false;
           activePointerId = null;
@@ -3883,6 +3930,7 @@
       window.addEventListener('pointermove', onPointerMove);
       window.addEventListener('pointerup', e => endDrag(e, true));
       window.addEventListener('pointercancel', e => endDrag(e, false));
+      window.addEventListener('blur', resetAllPointerStates);
     }
 
     function toggleCase() {
